@@ -1,0 +1,11 @@
+<services>
+  <service name="tar_scm">
+    <param name="scm">git</param>
+    <param name="url">https://github.com/Kardbord/breakout.git</param>
+    <param name="revision">main</param>
+    <param name="filename">breakout</param>
+    <param name="versionformat">%h</param>
+  </service>
+  <service name="set_version" mode="buildtime"/>
+  <service name="recompress" mode="buildtime"/>
+</services>
