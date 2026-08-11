@@ -14,8 +14,7 @@ BuildRequires:  make
 
 %description
 A cheap imitation of the classic Breakout game that runs in the terminal.
-Built with C++17 and the FTXUI UI library, which is fetched from its git
-repository at build time.
+Built with C++17 and the FTXUI UI library.
 
 %prep
 %setup -q
