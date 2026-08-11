@@ -7,6 +7,6 @@
     <param name="filename">breakout</param>
     <param name="versionformat">%h</param>
   </service>
-  <service name="set_version" mode="buildtime"/>
-  <service name="recompress" mode="buildtime"/>
+  <service name="set_version"/>
+  <service name="recompress"/>
 </services>
