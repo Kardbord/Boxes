@@ -1,27 +1,13 @@
-# KardbordBox OBS project meta
+<!-- The current authoritative project meta for `home:Kardbord:KardbordBox` on
+     build.opensuse.org, with comments. This file is informational only — it is
+     **not** consumed by scmsync. The project meta must be applied on the OBS
+     side (see below), because scmsync does not sync project meta from the
+     repository.
 
-The current authoritative project meta for `home:Kardbord:KardbordBox` on
-build.opensuse.org, with comments. This file is informational only — it is
-**not** consumed by scmsync. The project meta must be applied on the OBS
-side (see below), because scmsync does not sync project meta from the
-repository.
+     Note: XML comments may be stripped by OBS when the meta is normalized on
+     save, so the comments here are annotations, not a guarantee of what you
+     see when you read the meta back. -->
 
-Note: XML comments may be stripped by OBS when the meta is normalized on
-save, so the comments here are annotations, not a guarantee of what you
-see when you read the meta back.
-
-## Apply
-
-```
-osc meta prj --edit home:Kardbord:KardbordBox
-```
-
-or via the WebUI (project → Advanced → meta), keeping the existing
-`<scmsync>`.
-
-## Meta
-
-```xml
 <project name="home:Kardbord:KardbordBox">
   <title>KardbordBox</title>
   <description>A collection of custom build specifications for upstream FOSS projects as well as any projects of my own that I wish to distribute. Builds are handled by the SUSE Open Build Service (OBS) or GitHub Actions, and binaries are hosted via the OBS or github pages. Software built from upstream sources retains its original license.
@@ -118,4 +104,3 @@ or via the WebUI (project → Advanced → meta), keeping the existing
     <arch>armv7l</arch>
   </repository>
 </project>
-```
