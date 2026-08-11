@@ -1,0 +1,22 @@
+# KardbordBox project build configuration (prjconf)
+#
+# Scmsync writes this file as the project's build configuration
+# (also known as the project config / prjconf). It is merged with
+# the configurations of every project referenced in the repository
+# <path> entries when a build runs.
+#
+# Build targets (repositories, paths, architectures) are NOT defined
+# here. They live in the OBS project meta (home:Kardbord:KardbordBox),
+# because scmsync does not sync project meta into the repository.
+#
+# No project-wide settings are required for spec/RPM builds, and the
+# dsc/deb repositories (Ubuntu_26.04, Debian_13, Raspbian_13) are
+# fully configured by the path projects (Ubuntu:26.04, Debian:13,
+# Raspbian:13). Setting a global Type here would fight those configs,
+# so leave it unset.
+#
+# Add overrides here, guarded per repository, when needed, e.g.:
+#
+#   %if "%_repository" == "openSUSE_Tumbleweed"
+#   Macro: %my_macros 1
+#   %endif
