@@ -31,6 +31,7 @@
   <!-- Tumbleweed (x86_64). Path is the build DEPENDENCY: binaries read from
        openSUSE:Factory's 'snapshot' repo; nothing is written back. -->
   <repository name="openSUSE_Tumbleweed">
+    <path project="openSUSE:Tools" repository="openSUSE_Tumbleweed"/>
     <path project="openSUSE:Tumbleweed" repository="standard"/>
     <arch>x86_64</arch>
     <arch>aarch64</arch>
@@ -40,18 +41,21 @@
        toolchains; kept for full version-lineage coverage.
        arch x86_64 + aarch64 covers Intel/AMD and ARM hardware. -->
   <repository name="RockyLinux_8">
+    <path project="openSUSE:Tools" repository="RockyLinux_8"/>
     <path project="Fedora:EPEL:8" repository="standard"/>
     <path project="RockyLinux:8" repository="standard"/>
     <arch>x86_64</arch>
     <arch>aarch64</arch>
   </repository>
   <repository name="RockyLinux_9">
+    <path project="openSUSE:Tools" repository="RockyLinux_9"/>
     <path project="Fedora:EPEL:9" repository="standard"/>
     <path project="RockyLinux:9" repository="standard"/>
     <arch>x86_64</arch>
     <arch>aarch64</arch>
   </repository>
   <repository name="RockyLinux_10">
+    <path project="openSUSE:Tools" repository="RockyLinux_10"/>
     <path project="Fedora:EPEL:10" repository="standard"/>
     <path project="RockyLinux:10" repository="standard"/>
     <arch>x86_64</arch>
@@ -59,18 +63,21 @@
   </repository>
 
   <repository name="AlmaLinux_8">
+    <path project="openSUSE:Tools" repository="AlmaLinux_8"/>
     <path project="Fedora:EPEL:8" repository="standard"/>
     <path project="AlmaLinux:8" repository="standard"/>
     <arch>x86_64</arch>
     <arch>aarch64</arch>
   </repository>
   <repository name="AlmaLinux_9">
+    <path project="openSUSE:Tools" repository="AlmaLinux_9"/>
     <path project="Fedora:EPEL:9" repository="standard"/>
     <path project="AlmaLinux:9" repository="standard"/>
     <arch>x86_64</arch>
     <arch>aarch64</arch>
   </repository>
   <repository name="AlmaLinux_10">
+    <path project="openSUSE:Tools" repository="AlmaLinux_10"/>
     <path project="Fedora:EPEL:10" repository="standard"/>
     <path project="AlmaLinux:10" repository="standard"/>
     <arch>x86_64</arch>
@@ -81,6 +88,7 @@
        searched top-down. 'standard' carries base/main packages, 'universe'
        the community archive, then update + backports streams. -->
   <repository name="Ubuntu_26.04">
+    <path project="openSUSE:Tools" repository="xUbuntu_26.04"/>
     <path project="Ubuntu:26.04" repository="standard"/>
     <path project="Ubuntu:26.04" repository="universe"/>
     <path project="Ubuntu:26.04" repository="update"/>
@@ -94,6 +102,7 @@
   <!-- Debian 13 (trixie). aarch64 also covers 64-bit Raspberry Pi OS,
        which is plain Debian. -->
   <repository name="Debian_13">
+    <path project="openSUSE:Tools" repository="Debian_13"/>
     <path project="Debian:13" repository="standard"/>
     <arch>x86_64</arch>
     <arch>aarch64</arch>
@@ -101,6 +110,7 @@
 
   <!-- Raspbian 13 = 32-bit Pi OS (armv7l); armv7l only, matching that repo. -->
   <repository name="Raspbian_13">
+    <path project="openSUSE:Tools" repository="Raspbian_13"/>
     <path project="Raspbian:13" repository="standard"/>
     <arch>armv7l</arch>
   </repository>
