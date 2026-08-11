@@ -1,4 +1,4 @@
-<!-- The current authoritative project meta for `home:Kardbord:KardbordBox` on
+<!-- The current authoritative project meta for `home:Kardbord:Boxes` on
      build.opensuse.org, with comments. This file is informational only — it is
      **not** consumed by scmsync. The project meta must be applied on the OBS
      side (see below), because scmsync does not sync project meta from the
@@ -8,24 +8,24 @@
      save, so the comments here are annotations, not a guarantee of what you
      see when you read the meta back. -->
 
-<project name="home:Kardbord:KardbordBox">
-  <title>KardbordBox</title>
+<project name="home:Kardbord:Boxes">
+  <title>Boxes</title>
   <description>A collection of custom build specifications for upstream FOSS projects as well as any projects of my own that I wish to distribute. Builds are handled by the SUSE Open Build Service (OBS) or GitHub Actions, and binaries are hosted via the OBS or github pages. Software built from upstream sources retains its original license.
   </description>
 
   <!-- scmsync: pull the full project from GitHub. Every top-level directory
        in the repo becomes a package; the top-level _config becomes the
        project's build config (prjconf). OBS reads FROM GitHub, never writes. -->
-  <scmsync>https://github.com/Kardbord/KardbordBox.git</scmsync>
+  <scmsync>https://github.com/Kardbord/Boxes.git#main</scmsync>
 
-  <!-- Ownership of THIS project (home:Kardbord:KardbordBox) and all its
+  <!-- Ownership of THIS project (home:Kardbord:Boxes) and all its
        auto-created packages. maintainer = can administer; bugowner = owns
        bug/bounce target. Not needed in _config (prjconf has no roles). -->
   <person userid="Kardbord" role="maintainer"/>
   <person userid="Kardbord" role="bugowner"/>
 
   <!-- Each <repository> = one build target + one publish directory.
-       Binary output lands in download.opensuse.org/repositories/home:/Kardbord:/KardbordBox/<name>/ -->
+       Binary output lands in download.opensuse.org/repositories/home:/Kardbord:/Boxes/<name>/ -->
 
   <!-- Tumbleweed (x86_64). Path is the build DEPENDENCY: binaries read from
        openSUSE:Factory's 'snapshot' repo; nothing is written back. -->

@@ -1,4 +1,4 @@
-# KardbordBox project build configuration (prjconf)
+# Boxes project build configuration (prjconf)
 #
 # Scmsync writes this file as the project's build configuration
 # (also known as the project config / prjconf). It is merged with
@@ -6,7 +6,7 @@
 # <path> entries when a build runs.
 #
 # Build targets (repositories, paths, architectures) are NOT defined
-# here. They live in the OBS project meta (home:Kardbord:KardbordBox),
+# here. They live in the OBS project meta (home:Kardbord:Boxes),
 # because scmsync does not sync project meta into the repository.
 #
 # No project-wide settings are required for spec/RPM builds, and the
