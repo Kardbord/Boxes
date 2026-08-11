@@ -1,3 +1,4 @@
+# vim: set ft=spec:
 # Boxes project build configuration (prjconf)
 #
 # Scmsync writes this file as the project's build configuration
