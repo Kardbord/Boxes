@@ -17,7 +17,7 @@
   <!-- scmsync: pull the full project from GitHub. Every top-level directory
        in the repo becomes a package; the top-level _config becomes the
        project's build config (prjconf). OBS reads FROM GitHub, never writes. -->
-  <scmsync>https://github.com/Kardbord/Boxes.git#main</scmsync>
+  <scmsync>https://github.com/Kardbord/Boxes.git?projectmode=1#main</scmsync>
 
   <!-- Ownership of THIS project (home:Kardbord:Boxes) and all its
        auto-created packages. maintainer = can administer; bugowner = owns
