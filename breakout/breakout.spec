@@ -1,7 +1,7 @@
 Name:           breakout
 Version:        0
-Release:        0
-Summary:        A Breakout game that runs in the terminal
+Release:        0%{?dist}
+Summary:        A terminal-based clone of the classic brick-breaking arcade game.
 License:        MIT
 URL:            https://github.com/Kardbord/breakout
 Source0:        %{name}-%{version}.tar.xz
@@ -13,17 +13,16 @@ BuildRequires:  glibc-devel
 BuildRequires:  make
 
 %description
-A cheap imitation of the classic Breakout game that runs in the terminal.
-Built with C++17 and the FTXUI UI library. Not affiliated with Atari in
-any way.
+A terminal-based clone of the classic brick-breaking arcade game.
+Built with C++17 and the FTXUI UI library. Not affiliated with
+Atari in any way.
 
 %prep
-%setup -q
-%patch0 -p1
+%autosetup -p1
 
 %build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
+%cmake -DCMAKE_SKIP_RPATH:BOOL=ON -DCMAKE_BUILD_TYPE=Release
+%cmake_build
 
 %install
 install -D -m0755 build/breakout %{buildroot}%{_bindir}/breakout
