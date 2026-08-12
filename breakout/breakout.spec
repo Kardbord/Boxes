@@ -14,7 +14,8 @@ BuildRequires:  make
 
 %description
 A cheap imitation of the classic Breakout game that runs in the terminal.
-Built with C++17 and the FTXUI UI library.
+Built with C++17 and the FTXUI UI library. Not affiliated with Atari in
+any way.
 
 %prep
 %setup -q
