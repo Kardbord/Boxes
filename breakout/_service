@@ -1,12 +1,17 @@
 <!-- vim: set ft=xml: -->
 <services>
-  <service name="tar_scm">
+  <service name="obs_scm">
     <param name="scm">git</param>
     <param name="url">https://github.com/Kardbord/breakout.git</param>
     <param name="revision">main</param>
     <param name="filename">breakout</param>
-    <param name="versionformat">%h</param>
+    <param name="versionformat">@PARENT_TAG@+git.%h</param>
+    <param name="versionrewrite-pattern">v(.*)</param>
   </service>
-  <service name="set_version"/>
-  <service name="recompress"/>
+  <service mode="buildtime" name="tar"/>
+  <service mode="buildtime" name="recompress">
+    <param name="file">*.tar</param>
+    <param name="compression">xz</param>
+  </service>
+  <service mode="buildtime" name="set_version"/>
 </services>
