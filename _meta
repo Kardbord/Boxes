@@ -32,6 +32,7 @@
        toolchains; kept for full version-lineage coverage.
        arch x86_64 + aarch64 covers Intel/AMD and ARM hardware. -->
   <repository name="RockyLinux_8">
+    <path project="home:Kardbord:obs-services" repository="RockyLinux_8"/>
     <path project="openSUSE:Tools" repository="RockyLinux_8"></path>
     <path project="Fedora:EPEL:8" repository="standard"></path>
     <path project="RockyLinux:8" repository="standard"></path>
@@ -39,6 +40,7 @@
     <arch>aarch64</arch>
   </repository>
   <repository name="RockyLinux_9">
+    <path project="home:Kardbord:obs-services" repository="RockyLinux_9"/>
     <path project="openSUSE:Tools" repository="RockyLinux_9"></path>
     <path project="Fedora:EPEL:9" repository="standard"></path>
     <path project="RockyLinux:9" repository="standard"></path>
@@ -46,6 +48,7 @@
     <arch>aarch64</arch>
   </repository>
   <repository name="RockyLinux_10">
+    <path project="home:Kardbord:obs-services" repository="RockyLinux_10"/>
     <path project="openSUSE:Tools" repository="RockyLinux_10"></path>
     <path project="Fedora:EPEL:10" repository="standard"></path>
     <path project="RockyLinux:10" repository="standard"></path>
@@ -53,6 +56,7 @@
     <arch>aarch64</arch>
   </repository>
   <repository name="AlmaLinux_8">
+    <path project="home:Kardbord:obs-services" repository="AlmaLinux_8"/>
     <path project="openSUSE:Tools" repository="AlmaLinux_8"></path>
     <path project="Fedora:EPEL:8" repository="standard"></path>
     <path project="AlmaLinux:8" repository="standard"></path>
