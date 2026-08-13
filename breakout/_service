@@ -9,7 +9,7 @@
     <param name="versionrewrite-replacement">\1</param>
     <param name="submodules">enable</param>
     <param name="changesgenerate">enable</param>
-    <param name="changesauthor">Tanner Kvarfordt &lt;tanner.kvarfordt@proton.me&gt</param>
+    <param name="changesauthor">Tanner Kvarfordt &lt;tanner.kvarfordt@proton.me&gt;</param>
   </service>
   <service mode="buildtime" name="set_version"></service>
   <service mode="buildtime" name="tar"></service>
@@ -17,5 +17,4 @@
     <param name="file">*.tar</param>
     <param name="compression">gz</param>
   </service>
-</services>
-<!-- vim: set ft=xml: -->
+</services><!-- vim: set ft=xml: -->
