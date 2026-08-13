@@ -19,7 +19,11 @@ Atari in any way.
 %autosetup
 
 %build
+%if 0%{?rhel} && 0%{?rhel} <= 8
+%cmake -DCMAKE_INSTALL_DOCDIR=%{_docdir}/%{name} -DCMAKE_CXX_FLAGS="-Wno-type-limits"
+%else
 %cmake -DCMAKE_INSTALL_DOCDIR=%{_docdir}/%{name}
+%endif
 %cmake_build
 
 %install
