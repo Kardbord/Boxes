@@ -10,6 +10,6 @@ Package: breakout
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: A terminal-based clone of the classic brick-breaking arcade game.
-A terminal-based clone of the classic brick-breaking arcade game.
+A terminal based clone of the classic brick breaking arcade game.
 Built with C++17 and the FTXUI UI library. Not affiliated with
 Atari in any way.
