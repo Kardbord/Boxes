@@ -4,12 +4,10 @@ Release:        0%{?dist}
 Summary:        A terminal-based clone of the classic brick-breaking arcade game.
 License:        MIT
 URL:            https://github.com/Kardbord/breakout
-Source0:        %{name}-%{version}.tar.xz
-Patch0:         breakout-cmake-min-3.26.patch
-BuildRequires:  cmake
+Source0:        %{name}-%{version}.tar.gz
+
+BuildRequires:  cmake >= 3.28
 BuildRequires:  gcc-c++
-BuildRequires:  git
-BuildRequires:  glibc-devel
 BuildRequires:  make
 
 %description
@@ -18,18 +16,19 @@ Built with C++17 and the FTXUI UI library. Not affiliated with
 Atari in any way.
 
 %prep
-%autosetup -p1
-
-%conf
-%cmake
+%autosetup
 
 %build
+%cmake
 %cmake_build
 
 %install
 %cmake_install
 
 %files
+%license LICENSE
 %{_bindir}/breakout
+%dir %{_datadir}/doc/%{name}
+%{_datadir}/doc/%{name}/LICENSE
 
 %changelog
