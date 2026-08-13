@@ -19,7 +19,7 @@ Atari in any way.
 %autosetup
 
 %build
-%cmake
+%cmake -DCMAKE_INSTALL_DOCDIR=%{_docdir}/%{name}
 %cmake_build
 
 %install
@@ -28,7 +28,7 @@ Atari in any way.
 %files
 %license LICENSE
 %{_bindir}/breakout
-%dir %{_datadir}/doc/%{name}
-%{_datadir}/doc/%{name}/LICENSE
+%dir %{_docdir}/%{name}
+%{_docdir}/%{name}/LICENSE
 
 %changelog
