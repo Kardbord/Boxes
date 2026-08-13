@@ -25,7 +25,7 @@ Atari in any way.
 %cmake_build
 
 %install
-install -D -m0755 build/breakout %{buildroot}%{_bindir}/breakout
+install -D -m0755 %{_vpath_builddir}/breakout %{buildroot}%{_bindir}/breakout
 
 %files
 %{_bindir}/breakout
