@@ -20,12 +20,14 @@ Atari in any way.
 %prep
 %autosetup -p1
 
+%conf
+%cmake
+
 %build
-%cmake -DCMAKE_SKIP_RPATH:BOOL=ON -DCMAKE_BUILD_TYPE=Release
 %cmake_build
 
 %install
-install -D -m0755 %{_vpath_builddir}/breakout %{buildroot}%{_bindir}/breakout
+%cmake_install
 
 %files
 %{_bindir}/breakout
