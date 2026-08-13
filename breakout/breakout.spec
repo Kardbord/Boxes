@@ -6,7 +6,7 @@ License:        MIT
 URL:            https://github.com/Kardbord/breakout
 Source0:        %{name}-%{version}.tar.gz
 
-BuildRequires:  cmake >= 3.28
+BuildRequires:  cmake >= 3.26
 BuildRequires:  gcc-c++
 BuildRequires:  make
 
