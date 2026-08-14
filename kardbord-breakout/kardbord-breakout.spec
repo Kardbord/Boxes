@@ -16,7 +16,7 @@ Built with C++17 and the FTXUI UI library. Not affiliated with
 Atari in any way.
 
 %prep
-%autosetup
+%autosetup -n breakout-%{version}
 
 %build
 %if 0%{?rhel} && 0%{?rhel} <= 8
