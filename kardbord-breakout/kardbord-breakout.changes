@@ -1,5 +1,5 @@
 -------------------------------------------------------------------
 Tue Aug 11 2026 Tanner Kvarfordt <tanner.kvarfordt@proton.me>
 
-- Initial package of breakout, a terminal implementation of the
+- Initial package of kardbord-breakout, a terminal implementation of the
   classic Breakout game

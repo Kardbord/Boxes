@@ -1,4 +1,4 @@
-Source: breakout
+Source: kardbord-breakout
 Section: games
 Priority: optional
 Maintainer: Tanner Kvarfordt <tanner.kvarfordt@proton.me>
@@ -6,7 +6,7 @@ Build-Depends: debhelper-compat (= 13), cmake (>= 3.26), g++
 Standards-Version: 4.6.2
 Homepage: https://github.com/Kardbord/breakout
 
-Package: breakout
+Package: kardbord-breakout
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: A terminal-based clone of the classic brick-breaking arcade game.
