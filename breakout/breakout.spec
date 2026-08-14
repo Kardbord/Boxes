@@ -36,4 +36,3 @@ Atari in any way.
 %{_docdir}/%{name}/LICENSE
 
 %changelog
-
