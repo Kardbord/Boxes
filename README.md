@@ -92,6 +92,29 @@ above.
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed deep-dive into the pipeline,
 configuration files, and the cross-distribution packaging infrastructure.
 
+### Rebuilding and Re-running Services
+
+Because the whole project is managed by `scmsync`, new package builds are normally
+triggered by pushing to this repository: the mirror propagates the change and
+`obs_scm` re-fetches upstream sources automatically.
+
+Sometimes you want to trigger a build without a git change:
+
+| Goal | Command | Notes |
+|---|---|---|
+| Rebuild with the current sources | `osc rebuild home:Kardbord:Boxes breakout` | Use `--all` for all packages; useful for retrying failed builds. Does **not** re-fetch upstream. |
+| Re-run `_service` (re-fetch upstream) | *(not directly possible)* | Requires pushing any commit to this repo to trigger `scmsync`. |
+
+**Known limitation:** OBS source-service trigger tokens (`osc token --trigger`,
+`POST /trigger/runservice`) and `osc service remoterun` cannot re-run `_service`
+for packages in project-level `scmsync` projects. This is an upstream bug in
+`Token::ServicePolicy`; see [docs/OBS-token-service-scmsync-bug.md](./docs/OBS-token-service-scmsync-bug.md)
+for details and the proposed fix.
+
+**Workaround:** to re-fetch upstream sources, make a commit to this repository
+(e.g. bump a version in the relevant `.spec`/`.dsc` or a trivial documentation
+change). `scmsync` then re-syncs and `obs_scm` runs.
+
 </details>
 
 ## License

@@ -1,0 +1,11 @@
+# Defines which top-level directories in this repository are OBS packages.
+#
+# With project-level scmsync, every top-level directory is treated as a
+# package by default. Listing the packages here explicitly tells the OBS SCM
+# bridge to only treat these directories as packages, so that non-package
+# directories (e.g. docs/) are excluded.
+#
+# See https://openbuildservice.org/help/manuals/obs-user-guide/cha-obs-scm-bridge
+
+packages:
+ - breakout
