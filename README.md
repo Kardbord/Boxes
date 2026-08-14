@@ -8,9 +8,9 @@ license.
 
 ## Available Packages
 
-| Package               | Description                                                       | Build Status                                                                                                                                                        |
-|-----------------------|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [breakout](breakout/) | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/breakout) |
+| Package                                 | Description                                                       | Build Status                                                                                                                                                                          |
+|-----------------------------------------|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [kardbord-breakout](kardbord-breakout/) | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
 
 ## Supported Platforms
 
@@ -102,7 +102,7 @@ Sometimes you want to trigger a build without a git change:
 
 | Goal | Command | Notes |
 |---|---|---|
-| Rebuild with the current sources | `osc rebuild home:Kardbord:Boxes breakout` | Use `--all` for all packages; useful for retrying failed builds. Does **not** re-fetch upstream. |
+| Rebuild with the current sources | `osc rebuild home:Kardbord:Boxes kardbord-breakout` | Use `--all` for all packages; useful for retrying failed builds. Does **not** re-fetch upstream. |
 | Re-run `_service` (re-fetch upstream) | *(not directly possible)* | Requires pushing any commit to this repo to trigger `scmsync`. |
 
 **Known limitation:** OBS source-service trigger tokens (`osc token --trigger`,

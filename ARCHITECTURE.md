@@ -59,11 +59,11 @@ Boxes/
 ├── ARCHITECTURE.md       # This document
 ├── _config               # OBS project build configuration (prjconf)
 ├── _meta                 # Informational copy of the OBS project metadata
-└── breakout/             # A single package
+└── kardbord-breakout/    # A single package
 ├   ├── _service          # Describes how to fetch upstream sources
-├   ├── breakout.spec     # RPM build recipe
-├   ├── breakout.dsc      # Debian source control file
-├   ├── breakout.changes  # OBS changelog (RPM)
+├   ├── kardbord-breakout.spec     # RPM build recipe
+├   ├── kardbord-breakout.dsc      # Debian source control file
+├   ├── kardbord-breakout.changes  # OBS changelog (RPM)
 ├   ├── debian.changelog  # Debian changelog
 ├   ├── debian.control    # Debian binary package definitions
 ├   ├── debian.copyright  # Debian license/copyright info
@@ -269,7 +269,7 @@ was published in `openSUSE:Tools`.
 
 1. **Create a directory** in this repository named after the package, e.g. `mypkg/`.
 2. **Add the source-service definition** — create `mypkg/_service` with an `obs_scm`
-   block pointing at the upstream git repository (following the pattern in `breakout/_service`).
+   block pointing at the upstream git repository (following the pattern in `kardbord-breakout/_service`).
 3. **Add the build recipes** — create the RPM `.spec` and, if you want `.deb`
    artifacts, the `debian.*` files and a `.dsc`. Follow the conventions noted in
    this document (placeholder `Version: 0`, `%{_docdir}` doc paths, EL8 conditional
@@ -278,4 +278,4 @@ was published in `openSUSE:Tools`.
    propagates the change, and `scmsync` picks it up.
 5. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
    that the package builds for the targets you care about; iterate on any distribution-specific
-   failures the way `breakout` did.
+   failures the way `kardbord-breakout` did.

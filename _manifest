@@ -8,4 +8,4 @@
 # See https://openbuildservice.org/help/manuals/obs-user-guide/cha-obs-scm-bridge
 
 packages:
- - breakout
+ - kardbord-breakout

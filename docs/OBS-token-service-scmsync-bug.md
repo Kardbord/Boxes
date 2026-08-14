@@ -21,7 +21,7 @@ package in a `scmsync`-managed project:
 osc api -X POST "/person/Kardbord/token?operation=runservice"
 
 # attempt to trigger a service run
-osc token --trigger <TOKEN> home:Kardbord:Boxes breakout
+osc token --trigger <TOKEN> home:Kardbord:Boxes kardbord-breakout
 ```
 
 Expected: OBS re-runs the package's `_service` (re-fetching upstream sources) and
@@ -44,11 +44,11 @@ Actual — two failure modes depending on the client:
 
 Other trigger mechanisms hit the same wall:
 
-- `osc service remoterun home:Kardbord:Boxes breakout` → 403 Forbidden
+- `osc service remoterun home:Kardbord:Boxes kardbord-breakout` → 403 Forbidden
   `Sorry, you are not authorized to update this package.`
-- `osc api -X POST "/source/home:Kardbord:Boxes/breakout?cmd=runservice"` → 403 Forbidden (same message)
+- `osc api -X POST "/source/home:Kardbord:Boxes/kardbord-breakout?cmd=runservice"` → 403 Forbidden (same message)
 
-Note: `osc rebuild home:Kardbord:Boxes breakout` **does work**, because rebuild
+Note: `osc rebuild home:Kardbord:Boxes kardbord-breakout` **does work**, because rebuild
 authorization handles the project case (see below).
 
 ## Root cause
@@ -148,6 +148,6 @@ end
 
 | Goal | Working method |
 |---|---|
-| Force a rebuild with existing sources | `osc rebuild home:Kardbord:Boxes breakout` (or `--all`) |
+| Force a rebuild with existing sources | `osc rebuild home:Kardbord:Boxes kardbord-breakout` (or `--all`) |
 | Re-run `_service` (re-fetch upstream) | Push any commit to the git repo → `scmsync` re-syncs and runs `_service` |
 | Automated upstream tracking | GitHub Actions workflow that detects a new upstream tag and pushes a trivial commit to trigger `scmsync` |
