@@ -5,27 +5,26 @@ User-facing installation instructions are on the [landing page](https://kardbord
 
 ## Architecture
 
-### Extension Points
+### Runtime Hierarchy
 
-Any `io.github.kardbord.*` app can declare `io.github.kardbord.tool` as an
-extension point. Extensions with IDs matching `io.github.kardbord.tool.*` are
-automatically mounted into the app sandbox at `/app/tools/<name>/`.
-
-For example, the custom Neovim build declares the extension point:
-
-```yaml
-add-extensions:
-  io.github.kardbord.tool:
-    directory: tools
-    subdirectories: true
-    add-ld-path: lib
-    no-autodownload: true
+```
+org.freedesktop.Platform / org.freedesktop.Sdk (upstream)
+  └── io.github.kardbord.Platform / io.github.kardbord.Sdk (custom)
+        └── io.github.kardbord.Neovim, ... (apps)
 ```
 
-For apps that use `base: io.neovim.nvim`, the bundled `ide-flatpak-wrapper`
-adds `/app/tools/*/bin` to `PATH` at runtime. Apps built from scratch or using a
-different base must provide their own wrapper or entrypoint script that adds
-`/app/tools/*/bin` to `PATH`.
+All `io.github.kardbord.*` apps use the custom runtime, which provides the
+`io.github.kardbord.tool` extension point.
+
+### Extension Points
+
+The custom runtime (`io.github.kardbord.Sdk`) declares the
+`io.github.kardbord.tool` extension point. Any app built on
+`io.github.kardbord.Platform` inherits it automatically — apps do not need to
+declare it themselves.
+
+Extensions with IDs matching `io.github.kardbord.tool.*` are automatically
+mounted into the app sandbox.
 
 ### The `base` Field
 
@@ -93,6 +92,10 @@ Two mechanisms detect upstream changes:
              url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.gz$")) | .browser_download_url'
    ```
 
+   > **Note:** Extensions are independent of the app runtime. They can use
+   > `org.freedesktop.Sdk`, `io.github.kardbord.Sdk`, or any other SDK that
+   > suits their build requirements.
+
 3. **Get sha256 checksums**: Fetch from the GitHub API:
    ```
    curl -s https://api.github.com/repos/<owner>/<repo>/releases/latest \
@@ -124,6 +127,16 @@ flatpak install flathub org.freedesktop.Sdk//25.08
 flatpak install flathub org.freedesktop.Platform//25.08
 ```
 
+### Building the Custom Runtime
+
+Before building apps or extensions, build and install the custom runtime:
+
+```bash
+flatpak-builder --force-clean --user --install-deps-from=flathub \
+  --repo=repo build-dir \
+  flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+```
+
 ### Building an Extension
 
 ```bash
@@ -144,8 +157,8 @@ flatpak-builder --force-clean --user --install-deps-from=flathub \
 
 ```bash
 flatpak --user remote-add --no-gpg-verify local-repo repo
-flatpak --user install local-repo io.github.kardbord.tool.ripgrep
-flatpak run --command=sh io.neovim.nvim -c "which rg"
+flatpak --user install local-repo io.github.kardbord.Neovim
+flatpak run --command=sh io.github.kardbord.Neovim -c "which rg"
 ```
 
 ## GPG Key Management

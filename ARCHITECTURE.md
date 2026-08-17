@@ -5,18 +5,7 @@ reach the Open Build Service (OBS), how packages are built across many distribut
 and architectures, and the infrastructure decisions that make cross-distribution
 packaging work.
 
-## Table of Contents
-
-- [Pipeline Overview](#pipeline-overview)
-- [Repository Structure](#repository-structure)
-- [Key Configuration Files](#key-configuration-files)
-- [Build Matrix](#build-matrix)
-- [Cross-Distribution Packaging](#cross-distribution-packaging)
-- [`home:Kardbord:obs-services` — Linked Packages](<ARCHITECTURE#`home:Kardbord:obs-services` — Linked Packages>)
-- [Flatpak Packaging](#flatpak-packaging)
-- [Adding a New Package](#adding-a-new-package)
-
-## Pipeline Overview
+## OBS Pipeline Overview
 
 ```
 GitHub (source of truth)
@@ -51,7 +40,7 @@ back. This keeps package definitions versioned in git and rebuilds them on every
 push. For fetching individual upstream source trees *within* a package, the package's
 own `_service` file is used instead (see below).
 
-## Repository Structure
+## OBS Repository Structure
 
 ```
 Boxes/
@@ -287,7 +276,7 @@ In addition to OBS-managed RPM and DEB packages, Boxes hosts a custom Flatpak
 repository on GitHub Pages. This serves custom apps, as well as independently-updatable
 tool extensions for other io.github.kardbord.\* flatpaks.
 
-### Pipeline Overview
+### Flatpak Pipeline Overview
 
 ```
 GitHub (source of truth)
@@ -302,32 +291,22 @@ GitHub Pages (OSTree repo)
 User systems
 ```
 
-### Extension Points
+### Custom Runtime
 
-Any `io.github.kardbord.*` app can declare `io.github.kardbord.tool` as an
+All `io.github.kardbord.*` flatpak apps are built on a custom runtime
+(`io.github.kardbord.Platform`) and SDK (`io.github.kardbord.Sdk`), derived
+from `org.freedesktop.Platform`/`org.freedesktop.Sdk`. The custom
+runtime declares the `io.github.kardbord.tool` extension point.
+
+Any app built on `io.github.kardbord.Platform` automatically inherits this
 extension point. Extensions with IDs matching `io.github.kardbord.tool.*` are
-automatically mounted into the app sandbox at `/app/tools/<name>/`.
+mounted into the app sandbox.
 
-For example, the custom Neovim build (`io.github.kardbord.Neovim`) uses
-`base: io.neovim.nvim` to inherit the Flathub Neovim build, then declares the
-extension point:
+Apps that use `base:` to inherit from a Flathub build (e.g. `io.neovim.nvim`)
+and switch to the custom runtime will have the extension point injected by the
+runtime.
 
-```yaml
-add-extensions:
-  io.github.kardbord.tool:
-    directory: tools
-    subdirectories: true
-    add-ld-path: lib
-    no-autodownload: true
-```
-
-For apps that use `base: io.neovim.nvim`, the bundled `ide-flatpak-wrapper`
-adds `/app/tools/*/bin` to `PATH` at runtime. Apps built from scratch or using a
-different base must provide their own wrapper or entrypoint script that adds
-`/app/tools/*/bin` to `PATH`. Any `io.github.kardbord.*` app that declares the
-extension point will pick up installed extensions automatically.
-
-### Repository Structure
+### Flatpak Repository Structure
 
 ```
 Boxes/
@@ -339,6 +318,8 @@ Boxes/
 │   ├── kardbord.flatpakrepo        # Remote definition for users
 │   ├── README.md                   # Developer/maintainer documentation
 │   └── manifests/
+│       ├── io.github.kardbord.Sdk/
+│       │   └── io.github.kardbord.Sdk.yml
 │       ├── io.github.kardbord.Neovim/
 │       │   ├── io.github.kardbord.Neovim.yml
 │       │   ├── neovim-first-run.txt
@@ -393,8 +374,8 @@ Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
    Flathub, use `base:` to inherit its build and layer your changes on top (see
    the [flatpak/README.md](flatpak/README.md) `base` field documentation). If
    building from source, define `modules` directly.
-3. If the app should support `io.github.kardbord.tool.*` extensions, add the
-   `add-extensions` block shown in [Extension Points](#extension-points).
+3. Use `runtime: io.github.kardbord.Platform` and `sdk: io.github.kardbord.Sdk`
+   to inherit the `io.github.kardbord.tool` extension point automatically.
 4. If the app uses `base:`, add an upstream tracking variable and extend the
    `flatpak-upstream-check.yml` workflow (see [Upstream Tracking](#upstream-tracking)).
 5. Test locally with `flatpak-builder`.
