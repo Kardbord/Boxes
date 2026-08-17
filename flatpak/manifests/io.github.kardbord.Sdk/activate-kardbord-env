@@ -1,0 +1,16 @@
+#!/bin/sh
+# activate-kardbord-env — Set up PATH for io.github.kardbord.tool extensions,
+# then exec the given command.
+#
+# Usage:
+#   activate-kardbord-env /app/bin/real-app "$@"
+
+# Add tool extension binaries to PATH
+for _dir in /app/lib/kardbord-tools/*/bin; do
+	[ -d "$_dir" ] && PATH="$_dir:$PATH"
+done
+export PATH
+unset _dir
+
+# Exec the given command
+exec "$@"

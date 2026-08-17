@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
 
 # Custom SDK for all io.github.kardbord.* apps. This is a "meta-SDK" that
-# inherits from org.freedesktop.Sdk and adds extension points. No additional
-# modules are built; the SDK exists solely to provide extension points and
-# inherit the base SDK's toolchain.
+# inherits from org.freedesktop.Sdk, adds extension points, and installs
+# automatic library discovery (ld.so.conf.d) plus a PATH wrapper command
+# (activate-kardbord-env) for tool extensions.
 id: io.github.kardbord.Sdk
 id-platform: io.github.kardbord.Platform
 default-branch: stable
@@ -68,5 +68,29 @@ add-extensions:
     no-autodownload: true
     version: stable
 
-# No modules to build; this SDK exists solely to provide extension points.
-modules: []
+modules:
+  # Automatic library discovery for tool extensions. The dynamic linker reads
+  # /etc/ld.so.conf.d/ at runtime, so extension libraries are found without
+  # needing LD_LIBRARY_PATH.
+  - name: ld-config
+    buildsystem: simple
+    build-commands:
+      - install -Dd /app/etc/ld.so.conf.d
+      - printf 'include /app/lib/kardbord-tools/*/lib\n' > /app/etc/ld.so.conf.d/kardbord-tools.conf
+    sources: []
+
+  # Wrapper command that sets up PATH for tool extensions, then execs the
+  # given command. Installed to /app/bin/ so it's on PATH by default.
+  #
+  # Usage in app manifests:
+  #   command: activate-kardbord-env /app/bin/real-app
+  #
+  # Or in a wrapper script:
+  #   exec activate-kardbord-env /app/bin/real-app "$@"
+  - name: activate-kardbord-env
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 activate-kardbord-env /app/bin/activate-kardbord-env
+    sources:
+      - type: file
+        path: activate-kardbord-env
