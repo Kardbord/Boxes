@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+id: io.github.kardbord.Sdk
+id-platform: io.github.kardbord.Platform
+branch: '25.08'
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+build-runtime: true
+separate-locales: true
+
+# Inherit extensions found via flatpak info --show-metadata org.freedesktop.Sdk//25.08
+inherit-extensions:
+  - org.freedesktop.Platform.codecs-extra
+  - org.freedesktop.Platform.GL
+  - org.freedesktop.Platform.GL.Debug
+  - org.freedesktop.Platform.GStreamer
+  - org.freedesktop.Platform.Icontheme
+  - org.freedesktop.Platform.Timezones
+  - org.freedesktop.Platform.VAAPI.Intel
+  - org.freedesktop.Platform.VAAPI.nvidia
+  - org.freedesktop.Platform.VulkanLayer
+  - org.freedesktop.Sdk.Compat.aarch64
+  - org.freedesktop.Sdk.Compat.aarch64.Debug
+  - org.freedesktop.Sdk.Compat.i386
+  - org.freedesktop.Sdk.Compat.i386.Debug
+  - org.freedesktop.Sdk.Debug
+  - org.freedesktop.Sdk.Docs
+  - org.freedesktop.Sdk.Extension
+  - org.freedesktop.Sdk.Locale
+  - org.gtk.Gtk3theme
+
+add-extensions:
+  io.github.kardbord.tool:
+    directory: lib/kardbord-tools
+    subdirectories: true
+    no-autodownload: true
+    version: '25.08'
+
+modules: []
