@@ -1,50 +1,72 @@
 # yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+# Custom SDK for all io.github.kardbord.* apps. This is a "meta-SDK" that
+# inherits from org.freedesktop.Sdk and adds extension points. No additional
+# modules are built; the SDK exists solely to provide extension points and
+# inherit the base SDK's toolchain.
 id: io.github.kardbord.Sdk
 id-platform: io.github.kardbord.Platform
 default-branch: stable
+
+# Base runtime and SDK to inherit from
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
+
+# Build this manifest as a runtime/SDK (not an app)
 build-runtime: true
+
+# Split translations into separate extensions for locale filtering
 separate-locales: true
+
+# Allow writing to /usr during the build (required for runtime builds)
 writable-sdk: true
 
 # Inherit extensions found via flatpak info --show-metadata org.freedesktop.Sdk//25.08
+# Platform extensions provide graphics drivers, codecs, themes, and other host integration.
 inherit-extensions:
-  - org.freedesktop.Platform.codecs-extra
-  - org.freedesktop.Platform.GL
-  - org.freedesktop.Platform.GL.Debug
-  - org.freedesktop.Platform.GStreamer
-  - org.freedesktop.Platform.Icontheme
-  - org.freedesktop.Platform.Timezones
-  - org.freedesktop.Platform.VAAPI.Intel
-  - org.freedesktop.Platform.VAAPI.nvidia
-  - org.freedesktop.Platform.VulkanLayer
-  - org.gtk.Gtk3theme
+  - org.freedesktop.Platform.codecs-extra    # Additional media codecs
+  - org.freedesktop.Platform.GL              # OpenGL drivers
+  - org.freedesktop.Platform.GL.Debug        # OpenGL debug symbols
+  - org.freedesktop.Platform.GStreamer       # GStreamer plugins
+  - org.freedesktop.Platform.Icontheme       # Icon themes
+  - org.freedesktop.Platform.Timezones       # Timezone data
+  - org.freedesktop.Platform.VAAPI.Intel     # Intel hardware video acceleration
+  - org.freedesktop.Platform.VAAPI.nvidia    # NVIDIA hardware video acceleration
+  - org.freedesktop.Platform.VulkanLayer     # Vulkan layers
+  - org.gtk.Gtk3theme                        # GTK3 theme support
 
+# SDK extensions inherited from the base SDK.
+# These provide cross-compilation, debug symbols, docs, and locale support.
 inherit-sdk-extensions:
-  - org.freedesktop.Sdk.Compat.aarch64
-  - org.freedesktop.Sdk.Compat.aarch64.Debug
-  - org.freedesktop.Sdk.Compat.i386
-  - org.freedesktop.Sdk.Compat.i386.Debug
-  - org.freedesktop.Sdk.Debug
-  - org.freedesktop.Sdk.Docs
-  - org.freedesktop.Sdk.Extension
-  - org.freedesktop.Sdk.Locale
+  - org.freedesktop.Sdk.Compat.aarch64       # aarch64 cross-compilation
+  - org.freedesktop.Sdk.Compat.aarch64.Debug # aarch64 debug symbols
+  - org.freedesktop.Sdk.Compat.i386          # i386 cross-compilation
+  - org.freedesktop.Sdk.Compat.i386.Debug    # i386 debug symbols
+  - org.freedesktop.Sdk.Debug                # Debug symbols for the SDK
+  - org.freedesktop.Sdk.Docs                 # SDK documentation
+  - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
+  - org.freedesktop.Sdk.Locale               # SDK locale data
 
+# Extension points provided by this SDK.
+# Apps built on io.github.kardbord.Platform automatically inherit these.
+# Extensions with IDs matching the patterns below are mounted into the app sandbox.
 add-extensions:
-  # Binary extensions
+  # Binary tool extensions (e.g., io.github.kardbord.tool.ripgrep, io.github.kardbord.tool.fd)
+  # Mounted at /app/tools/<name>/bin/ inside the app sandbox.
   io.github.kardbord.tool:
     directory: lib/kardbord-tools
     subdirectories: true
     no-autodownload: true
     version: stable
 
-  # Software dev extensions
+  # SDK language/toolchain extensions (e.g., io.github.kardbord.Sdk.golang)
+  # Provides additional build tools for the SDK environment.
   io.github.kardbord.Sdk:
     directory: lib/kardbord-sdk
     subdirectories: true
     no-autodownload: true
     version: stable
 
+# No modules to build; this SDK exists solely to provide extension points.
 modules: []
