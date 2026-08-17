@@ -1,12 +1,13 @@
 # yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
 id: io.github.kardbord.Sdk
 id-platform: io.github.kardbord.Platform
-branch: '25.08'
+default-branch: stable
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 build-runtime: true
 separate-locales: true
+writable-sdk: true
 
 # Inherit extensions found via flatpak info --show-metadata org.freedesktop.Sdk//25.08
 inherit-extensions:
@@ -19,6 +20,9 @@ inherit-extensions:
   - org.freedesktop.Platform.VAAPI.Intel
   - org.freedesktop.Platform.VAAPI.nvidia
   - org.freedesktop.Platform.VulkanLayer
+  - org.gtk.Gtk3theme
+
+inherit-sdk-extensions:
   - org.freedesktop.Sdk.Compat.aarch64
   - org.freedesktop.Sdk.Compat.aarch64.Debug
   - org.freedesktop.Sdk.Compat.i386
@@ -27,13 +31,12 @@ inherit-extensions:
   - org.freedesktop.Sdk.Docs
   - org.freedesktop.Sdk.Extension
   - org.freedesktop.Sdk.Locale
-  - org.gtk.Gtk3theme
 
 add-extensions:
   io.github.kardbord.tool:
     directory: lib/kardbord-tools
     subdirectories: true
     no-autodownload: true
-    version: '25.08'
+    version: stable
 
 modules: []
