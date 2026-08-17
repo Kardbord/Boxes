@@ -75,9 +75,11 @@ modules:
   - name: ld-config
     buildsystem: simple
     build-commands:
-      - install -Dd /app/etc/ld.so.conf.d
-      - printf 'include /app/lib/kardbord-tools/*/lib\n' > /app/etc/ld.so.conf.d/kardbord-tools.conf
-    sources: []
+      - install -Dm644 ld.so.kardbord-tools.conf /app/etc/ld.so.conf.d/ld.so.kardbord-tools.conf
+    sources:
+      - type: file
+        path: ld.so.kardbord-tools.conf
+
 
   # Wrapper command that sets up PATH for tool extensions, then execs the
   # given command. Installed to /app/bin/ so it's on PATH by default.
