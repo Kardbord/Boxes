@@ -1,0 +1,29 @@
+---
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+id: io.github.kardbord.Neovim
+base: io.neovim.nvim
+base-version: stable
+runtime: org.freedesktop.Sdk
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: nvim-wrapper
+rename-desktop-file: nvim.desktop
+rename-appdata-file: nvim.appdata.xml
+rename-icon: nvim
+
+# Give access to cwd-only by invoking neovim with
+# flatpak run --filesystem="${PWD}" io.github.kardbord.Neovim
+finish-args:
+  - --filesystem=/tmp
+  - --filesystem=/var/tmp
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+
+add-extensions:
+  io.github.kardbord.tool:
+    directory: tools
+    subdirectories: true
+    add-ld-path: lib
+    no-autodownload: true

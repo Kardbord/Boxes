@@ -1,0 +1,24 @@
+Welcome to the Kardbord build of @EDITOR_TITLE@!
+
+This is a custom Flatpak build of Neovim that supports independently-updatable
+tool extensions via the io.github.kardbord.tool extension point.
+
+Available extensions can be installed from the Kardbord Boxes remote:
+
+  flatpak install kardbord io.github.kardbord.tool.ripgrep   # Telescope live_grep
+  flatpak install kardbord io.github.kardbord.tool.fd        # Telescope find_files
+
+For language toolchains (Go, Rust, Java, etc.), install SDK extensions from Flathub:
+
+  flatpak install flathub org.freedesktop.Sdk.Extension.golang
+  flatpak install flathub org.freedesktop.Sdk.Extension.rust-stable
+
+Then enable them at runtime:
+
+  flatpak run --env=FLATPAK_ENABLE_SDK_EXT=golang,rust-stable io.github.kardbord.Neovim
+
+Or permanently:
+
+  flatpak override --user --env=FLATPAK_ENABLE_SDK_EXT=golang,rust-stable io.github.kardbord.Neovim
+
+See https://github.com/Kardbord/Boxes/tree/main/flatpak for full documentation.

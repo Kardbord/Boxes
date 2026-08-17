@@ -1,0 +1,134 @@
+name: Flatpak Build
+
+on:
+  push:
+    branches: [main]
+    paths: ['flatpak/**']
+  workflow_dispatch:
+
+concurrency:
+  group: flatpak-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.manifests.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: manifests
+        run: |
+          matrix=$(find flatpak/manifests -mindepth 2 -name '*.yml' -printf '%P\n' \
+            | sort \
+            | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "Discovered manifests: $matrix"
+
+  build:
+    needs: discover
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    strategy:
+      matrix:
+        manifest: ${{ fromJSON(needs.discover.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Import GPG key
+        run: echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
+
+      - name: Get GPG key ID
+        id: gpg
+        run: echo "key-id=$(gpg --list-secret-keys --keyid-format LONG | grep -oP 'sec\s+\w+/\K\w+' | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Build ${{ matrix.manifest }}
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/manifests/${{ matrix.manifest }}
+          repository-url: https://dl.flathub.org/repo/flathub.flatpakrepo
+          repository-name: flathub
+          repo-dir: repo
+          cache-key: flatpak-builder-${{ hashFiles(format('flatpak/manifests/{0}', matrix.manifest)) }}
+          bundle: false
+          upload-artifact: false
+          gpg-sign: ${{ steps.gpg.outputs.key-id }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: repo-${{ strategy.job-index }}
+          path: repo
+          include-hidden-files: true
+
+  merge:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: repo-*
+          path: repos
+
+      - name: Merge repos
+        run: |
+          mkdir repo
+          ostree init --repo=repo --mode=archive
+          for repo_dir in repos/repo-*/; do
+            echo "Pulling from $repo_dir"
+            ostree pull-local --repo=repo --src-repo="$repo_dir"
+          done
+
+      - name: Import GPG key
+        run: echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --yes --import
+
+      - name: Get GPG key ID
+        id: gpg
+        run: echo "key-id=$(gpg --list-secret-keys --keyid-format LONG | grep -oP 'sec\s+\w+/\K\w+' | head -1)" >> "$GITHUB_OUTPUT"
+
+      - name: Sign and optimize repo
+        run: |
+          flatpak build-update-repo \
+            --gpg-sign=${{ steps.gpg.outputs.key-id }} \
+            --generate-static-deltas \
+            --prune repo/
+
+      - name: Build Pages site
+        run: |
+          sudo dnf install -y pandoc
+          mkdir site
+          pandoc README.md \
+            --standalone \
+            --metadata title="Kardbord Boxes" \
+            --css='data:text/css,body{font-family:system-ui;max-width:48rem;margin:2rem auto;padding:0 1rem;line-height:1.6}' \
+            -o site/index.html
+          touch site/.nojekyll
+          cp flatpak/kardbord.flatpakrepo site/
+          cp flatpak/README.md site/
+          cp -r repo site/repo
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+          include-hidden-files: true
+
+  deploy:
+    needs: merge
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

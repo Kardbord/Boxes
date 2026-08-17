@@ -13,6 +13,7 @@ packaging work.
 - [Build Matrix](#build-matrix)
 - [Cross-Distribution Packaging](#cross-distribution-packaging)
 - [`home:Kardbord:obs-services` — Linked Packages](<ARCHITECTURE#`home:Kardbord:obs-services` — Linked Packages>)
+- [Flatpak Packaging](#flatpak-packaging)
 - [Adding a New Package](#adding-a-new-package)
 
 ## Pipeline Overview
@@ -59,16 +60,16 @@ Boxes/
 ├── ARCHITECTURE.md       # This document
 ├── _config               # OBS project build configuration (prjconf)
 ├── _meta                 # Informational copy of the OBS project metadata
-└── kardbord-breakout/    # A single package
-├   ├── _service          # Describes how to fetch upstream sources
-├   ├── kardbord-breakout.spec     # RPM build recipe
-├   ├── kardbord-breakout.dsc      # Debian source control file
-├   ├── kardbord-breakout.changes  # OBS changelog (RPM)
-├   ├── debian.changelog  # Debian changelog
-├   ├── debian.control    # Debian binary package definitions
-├   ├── debian.copyright  # Debian license/copyright info
-├   ├── debian.rules      # Debian build rules (debhelper + cmake)
-├   └── ...
+├── kardbord-breakout/    # A single package
+│   ├── _service          # Describes how to fetch upstream sources
+│   ├── kardbord-breakout.spec     # RPM build recipe
+│   ├── kardbord-breakout.dsc      # Debian source control file
+│   ├── kardbord-breakout.changes  # OBS changelog (RPM)
+│   ├── debian.changelog  # Debian changelog
+│   ├── debian.control    # Debian binary package definitions
+│   ├── debian.copyright  # Debian license/copyright info
+│   ├── debian.rules      # Debian build rules (debhelper + cmake)
+│   └── ...
 └── ...
 ```
 
@@ -265,7 +266,7 @@ which supplies `prove`) that is otherwise only a packaging concern, not a correc
 one. Tests are the upstream's responsibility and have already passed before the package
 was published in `openSUSE:Tools`.
 
-## Adding a New Package
+### Adding a New Package
 
 1. **Create a directory** in this repository named after the package, e.g. `mypkg/`.
 2. **Add the source-service definition** — create `mypkg/_service` with an `obs_scm`
@@ -279,3 +280,123 @@ was published in `openSUSE:Tools`.
 5. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
    that the package builds for the targets you care about; iterate on any distribution-specific
    failures the way `kardbord-breakout` did.
+
+## Flatpak Packaging
+
+In addition to OBS-managed RPM and DEB packages, Boxes hosts a custom Flatpak
+repository on GitHub Pages. This serves custom apps, as well as independently-updatable
+tool extensions for other io.github.kardbord.\* flatpaks.
+
+### Pipeline Overview
+
+```
+GitHub (source of truth)
+   │  push to flatpak/** or daily schedule
+   ▼
+GitHub Actions (flatpak-build.yml)
+   │  flatpak-builder + GPG signing
+   ▼
+GitHub Pages (OSTree repo)
+   │  flatpak install kardbord <package>
+   ▼
+User systems
+```
+
+### Extension Points
+
+Any `io.github.kardbord.*` app can declare `io.github.kardbord.tool` as an
+extension point. Extensions with IDs matching `io.github.kardbord.tool.*` are
+automatically mounted into the app sandbox at `/app/tools/<name>/`.
+
+For example, the custom Neovim build (`io.github.kardbord.Neovim`) uses
+`base: io.neovim.nvim` to inherit the Flathub Neovim build, then declares the
+extension point:
+
+```yaml
+add-extensions:
+  io.github.kardbord.tool:
+    directory: tools
+    subdirectories: true
+    add-ld-path: lib
+    no-autodownload: true
+```
+
+For apps that use `base: io.neovim.nvim`, the bundled `ide-flatpak-wrapper`
+adds `/app/tools/*/bin` to `PATH` at runtime. Apps built from scratch or using a
+different base must provide their own wrapper or entrypoint script that adds
+`/app/tools/*/bin` to `PATH`. Any `io.github.kardbord.*` app that declares the
+extension point will pick up installed extensions automatically.
+
+### Repository Structure
+
+```
+Boxes/
+├── .github/workflows/
+│   ├── flatpak-build.yml           # Build + deploy workflow
+│   └── flatpak-upstream-check.yml  # Upstream change detection
+├── flatpak/
+│   ├── .nojekyll                   # Prevents Jekyll mangling OSTree dirs
+│   ├── kardbord.flatpakrepo        # Remote definition for users
+│   ├── README.md                   # Developer/maintainer documentation
+│   └── manifests/
+│       ├── io.github.kardbord.Neovim/
+│       │   ├── io.github.kardbord.Neovim.yml
+│       │   ├── neovim-first-run.txt
+│       │   └── neovim-sdk-update.txt
+│       ├── io.github.kardbord.tool.ripgrep/
+│       │   └── io.github.kardbord.tool.ripgrep.yml
+│       └── io.github.kardbord.tool.fd/
+│           └── io.github.kardbord.tool.fd.yml
+├── kardbord-breakout/              # OBS package
+├── _manifest                       # Does NOT list flatpak/
+└── ...
+```
+
+The `flatpak/` directory is intentionally excluded from `_manifest` so that OBS
+does not treat it as a package.
+
+### Upstream Tracking
+
+Two mechanisms detect upstream changes independently:
+
+1. **App base dependencies**: Apps that use `base:` to inherit from Flathub
+   builds are tracked via GitHub Actions variables. The
+   `flatpak-upstream-check.yml` workflow runs daily, queries Flathub for the
+   latest stable commit of each base app, and triggers the build workflow if
+   upstream has changed. Currently tracks `io.neovim.nvim` via the
+   `FLATPAK_NEOVIM_UPSTREAM_COMMIT` variable; additional apps can be added as
+   new manifests are introduced.
+
+2. **Extension sources**: The `flatpak-external-data-checker` (FEDC) runs daily,
+   using `x-checker-data` annotations in the extension manifests to detect new
+   GitHub releases. FEDC auto-commits updated manifests and opens PRs.
+
+### GPG Signing
+
+The Flatpak repository is GPG-signed. The private key is stored as the GitHub
+Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
+`kardbord.flatpakrepo` so users can verify packages when adding the remote.
+
+### Adding a New Flatpak Extension
+
+1. Create a directory `flatpak/manifests/io.github.kardbord.tool.<name>/`.
+2. Write the manifest with `build-extension: true` and `x-checker-data` annotations
+   (see [flatpak/README.md](flatpak/README.md) for the template).
+3. Test locally with `flatpak-builder`.
+4. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
+   manifest and builds it.
+
+### Adding a New Flatpak App
+
+1. Create a directory `flatpak/manifests/io.github.kardbord.<Name>/`.
+2. Write the manifest (`io.github.kardbord.<Name>.yml`). If the app exists on
+   Flathub, use `base:` to inherit its build and layer your changes on top (see
+   the [flatpak/README.md](flatpak/README.md) `base` field documentation). If
+   building from source, define `modules` directly.
+3. If the app should support `io.github.kardbord.tool.*` extensions, add the
+   `add-extensions` block shown in [Extension Points](#extension-points).
+4. If the app uses `base:`, add an upstream tracking variable and extend the
+   `flatpak-upstream-check.yml` workflow (see [Upstream Tracking](#upstream-tracking)).
+5. Test locally with `flatpak-builder`.
+6. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
+   manifest and builds it.

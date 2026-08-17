@@ -8,9 +8,12 @@ license.
 
 ## Available Packages
 
-| Package                                 | Description                                                       | Build Status                                                                                                                                                                          |
-|-----------------------------------------|-------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [kardbord-breakout](kardbord-breakout/) | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
+| Package                                     | Description                                                         | Build Status                                                                                                                                                                          |
+|---------------------------------------------|---------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [kardbord-breakout](./kardbord-breakout/)   | A terminal-based clone of the classic brick-breaking arcade game.   | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
+| [io.github.kardbord.Neovim](./flatpak/)     | Custom Neovim Flatpak with independently-updatable tool extensions. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
+| [io.github.kardbord.tool.ripgrep](./flatpak/) | ripgrep extension for the Neovim Flatpak (Telescope `live_grep`).   | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
+| [io.github.kardbord.tool.fd](./flatpak/)      | fd extension for the Neovim Flatpak (Telescope `find_files`).       | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
 
 ## Supported Platforms
 
@@ -24,15 +27,52 @@ Packages are built for the following distribution and architecture combinations:
 | Ubuntu 26.04           | x86_64, aarch64 |
 | Debian 13              | x86_64, aarch64 |
 | Raspbian 13            | armv7l          |
+| Flatpak                | x86_64, aarch64 |
 
 ## Installation
 
-Packages are published to [download.opensuse.org](https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/)
+### Flatpak Apps & Extensions
+
+Flatpak apps and extensions for those apps are available at [kardbord.github.io](https://kardbord.github.io/Boxes).
+Extensions (io.github.kardbord.tool.\*) mount automatically into the
+io.github.kardbord.\* Flatpak sandboxes.
+
+**Quick start:**
+
+```bash
+# Add the remote
+flatpak remote-add --if-not-exists kardbord \
+  https://kardbord.github.io/Boxes/kardbord.flatpakrepo
+
+# Install the custom Neovim + extensions
+flatpak install kardbord io.github.kardbord.Neovim
+flatpak install kardbord io.github.kardbord.tool.ripgrep
+flatpak install kardbord io.github.kardbord.tool.fd
+
+# Or install extensions for the standard Flathub Neovim
+flatpak install kardbord io.github.kardbord.tool.ripgrep
+flatpak install kardbord io.github.kardbord.tool.fd
+```
+
+For language toolchains (Go, Rust, Java, etc.), install SDK extensions directly
+from Flathub:
+
+```bash
+flatpak install flathub org.freedesktop.Sdk.Extension.golang
+flatpak install flathub org.freedesktop.Sdk.Extension.rust-stable
+```
+
+See [flatpak/README.md](flatpak/README.md) for developer documentation and setup
+details.
+
+### Distro Packages
+
+`.rpm` and `.deb` Packages are published to [download.opensuse.org](https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/)
 by the Open Build Service and can be added to your system's package manager.
 Select the repository that matches your distribution, then install the desired package
 by name.
 
-**RPM-based distributions (openSUSE, Rocky Linux, AlmaLinux):**
+**RPM-based distributions (openSUSE, Rocky Linux, Alma Linux):**
 
 ```bash
 REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>/home:Kardbord:Boxes.repo"
@@ -92,7 +132,7 @@ above.
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed deep-dive into the pipeline,
 configuration files, and the cross-distribution packaging infrastructure.
 
-### Rebuilding and Re-running Services
+#### Rebuilding and Re-running Services
 
 Because the whole project is managed by `scmsync`, new package builds are normally
 triggered by pushing to this repository: the mirror propagates the change and
@@ -100,16 +140,15 @@ triggered by pushing to this repository: the mirror propagates the change and
 
 Sometimes you want to trigger a build without a git change:
 
-| Goal | Command | Notes |
-|---|---|---|
-| Rebuild with the current sources | `osc rebuild home:Kardbord:Boxes kardbord-breakout` | Use `--all` for all packages; useful for retrying failed builds. Does **not** re-fetch upstream. |
-| Re-run `_service` (re-fetch upstream) | *(not directly possible)* | Requires pushing any commit to this repo to trigger `scmsync`. |
+| Goal                                  | Command                                                             | Notes                                                                                            |
+|---------------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
+| Rebuild with the current sources      | `osc rebuild home:Kardbord:Boxes kardbord-breakout`                 | Use `--all` for all packages; useful for retrying failed builds. Does **not** re-fetch upstream. |
+| Re-run `_service` (re-fetch upstream) | *(not directly possible pending openSUSE/open-build-service#20168)* | Requires pushing any commit to this repo to trigger `scmsync`.                                   |
 
 **Known limitation:** OBS source-service trigger tokens (`osc token --trigger`,
 `POST /trigger/runservice`) and `osc service remoterun` cannot re-run `_service`
 for packages in project-level `scmsync` projects. This is an upstream bug in
-`Token::ServicePolicy`; see [docs/OBS-token-service-scmsync-bug.md](./docs/OBS-token-service-scmsync-bug.md)
-for details and the proposed fix.
+`Token::ServicePolicy`; see openSUSE/open-build-service#20168 for the proposed fix.
 
 **Workaround:** to re-fetch upstream sources, make a commit to this repository
 (e.g. bump a version in the relevant `.spec`/`.dsc` or a trivial documentation
