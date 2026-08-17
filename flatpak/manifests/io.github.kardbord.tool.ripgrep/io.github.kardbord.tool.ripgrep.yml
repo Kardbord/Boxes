@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.ripgrep
+branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: 'stable'
+sdk: io.github.kardbord.Sdk
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: ripgrep
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 rg ${FLATPAK_DEST}/bin/rg
+    sources:
+      - type: archive
+        only-arches: [x86_64]
+        url: https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz
+        sha256: 33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/BurntSushi/ripgrep/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("x86_64-unknown-linux-musl\\.tar\\.gz$")) | .browser_download_url'
+      - type: archive
+        only-arches: [aarch64]
+        url: https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-aarch64-unknown-linux-musl.tar.gz
+        sha256: 800b1e7206afe799dfb5a6901f23147cfaabe0e52210538100f61e86e1740915
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/BurntSushi/ripgrep/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.gz$")) | .browser_download_url'

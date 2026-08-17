@@ -60,9 +60,9 @@ Two mechanisms detect upstream changes:
    ```yaml
    id: io.github.kardbord.tool.<name>
    branch: stable
-   runtime: org.freedesktop.Sdk
-   runtime-version: '25.08'
-   sdk: org.freedesktop.Sdk
+   runtime: io.github.kardbord.Platform
+   runtime-version: 'stable'
+   sdk: io.github.kardbord.Sdk
    build-extension: true
    separate-locales: false
 
@@ -91,10 +91,6 @@ Two mechanisms detect upstream changes:
              version-query: '.tag_name | sub("^v"; "")'
              url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.gz$")) | .browser_download_url'
    ```
-
-   > **Note:** Extensions are independent of the app runtime. They can use
-   > `org.freedesktop.Sdk`, `io.github.kardbord.Sdk`, or any other SDK that
-   > suits their build requirements.
 
 3. **Get sha256 checksums**: Fetch from the GitHub API:
    ```

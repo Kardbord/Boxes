@@ -59,27 +59,14 @@ add-extensions:
     subdirectories: true
     no-autodownload: true
     version: stable
-
-  # SDK language/toolchain extensions (e.g., io.github.kardbord.Sdk.golang)
-  # Provides additional build tools for the SDK environment.
-  io.github.kardbord.Sdk:
-    directory: lib/kardbord-sdk
-    subdirectories: true
-    no-autodownload: true
-    version: stable
+    add-ld-path: lib
 
 modules:
-  # Automatic library discovery for tool extensions. The dynamic linker reads
-  # /etc/ld.so.conf.d/ at runtime, so extension libraries are found without
-  # needing LD_LIBRARY_PATH.
-  - name: ld-config
+  - name: kardbord-tools-dir
     buildsystem: simple
     build-commands:
-      - install -Dm644 ld.so.kardbord-tools.conf /app/etc/ld.so.conf.d/ld.so.kardbord-tools.conf
-    sources:
-      - type: file
-        path: ld.so.kardbord-tools.conf
-
+      - install -d /usr/lib/kardbord-tools
+    sources: []
 
   # Wrapper command that sets up PATH for tool extensions, then execs the
   # given command. Installed to /app/bin/ so it's on PATH by default.
@@ -92,7 +79,7 @@ modules:
   - name: activate-kardbord-env
     buildsystem: simple
     build-commands:
-      - install -Dm755 activate-kardbord-env /app/bin/activate-kardbord-env
+      - install -Dm755 activate-kardbord-env /usr/bin/activate-kardbord-env
     sources:
       - type: file
         path: activate-kardbord-env
