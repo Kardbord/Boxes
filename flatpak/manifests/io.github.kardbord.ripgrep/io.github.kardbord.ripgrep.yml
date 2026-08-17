@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.ripgrep
+branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: 'stable'
+sdk: io.github.kardbord.Sdk
+command: ripgrep
+
+add-extensions:
+  io.github.kardbord.tool.ripgrep:
+    directory: lib/kardbord-tools/ripgrep
+    version: stable
+    no-autodownload: false
+
+modules:
+  - name: ripgrep
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 ripgrep /app/bin/ripgrep
+    sources:
+      - type: file
+        path: ripgrep
+
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools

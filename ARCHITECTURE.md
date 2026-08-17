@@ -320,10 +320,13 @@ Boxes/
 │   └── manifests/
 │       ├── io.github.kardbord.Sdk/
 │       │   └── io.github.kardbord.Sdk.yml
-│       ├── io.github.kardbord.Neovim/
-│       │   ├── io.github.kardbord.Neovim.yml
+│       ├── io.github.kardbord.neovim/
+│       │   ├── io.github.kardbord.neovim.yml
 │       │   ├── neovim-first-run.txt
 │       │   └── neovim-sdk-update.txt
+│       ├── io.github.kardbord.ripgrep/
+│       │   ├── io.github.kardbord.ripgrep.yml
+│       │   └── ripgrep
 │       ├── io.github.kardbord.tool.ripgrep/
 │       │   └── io.github.kardbord.tool.ripgrep.yml
 │       └── io.github.kardbord.tool.fd/
@@ -369,15 +372,20 @@ Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
 
 ### Adding a New Flatpak App
 
-1. Create a directory `flatpak/manifests/io.github.kardbord.<Name>/`.
-2. Write the manifest (`io.github.kardbord.<Name>.yml`). If the app exists on
+1. Create a directory `flatpak/manifests/io.github.kardbord.<name>/`.
+2. Write the manifest (`io.github.kardbord.<name>.yml`). If the app exists on
    Flathub, use `base:` to inherit its build and layer your changes on top (see
    the [flatpak/README.md](flatpak/README.md) `base` field documentation). If
    building from source, define `modules` directly.
 3. Use `runtime: io.github.kardbord.Platform` and `sdk: io.github.kardbord.Sdk`
    to inherit the `io.github.kardbord.tool` extension point automatically.
-4. If the app uses `base:`, add an upstream tracking variable and extend the
+4. Add `cleanup-commands: - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools` to
+   create the extension mount point. Without this, bwrap will fail with a
+   read-only filesystem error when mounting extensions.
+5. If the app uses `base:`, add an upstream tracking variable and extend the
    `flatpak-upstream-check.yml` workflow (see [Upstream Tracking](#upstream-tracking)).
-5. Test locally with `flatpak-builder`.
-6. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
+6. Do not grant filesystem access in `finish-args` beyond what the app needs to
+   function. See [Sandbox Permissions Policy](flatpak/README.md#sandbox-permissions-policy).
+7. Test locally with `flatpak-builder`.
+8. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
    manifest and builds it.

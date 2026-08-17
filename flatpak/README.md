@@ -10,7 +10,7 @@ User-facing installation instructions are on the [landing page](https://kardbord
 ```
 org.freedesktop.Platform / org.freedesktop.Sdk (upstream)
   └── io.github.kardbord.Platform / io.github.kardbord.Sdk (custom)
-        └── io.github.kardbord.Neovim, ... (apps)
+        └── io.github.kardbord.neovim, ... (apps)
 ```
 
 All `io.github.kardbord.*` apps use the custom runtime, which provides the
@@ -26,10 +26,30 @@ declare it themselves.
 Extensions with IDs matching `io.github.kardbord.tool.*` are automatically
 mounted into the app sandbox.
 
+### Sandbox Permissions Policy
+
+All `io.github.kardbord.*` apps use a minimal sandbox. Only the host access an
+app needs to function is granted — nothing more. This means some apps ship with
+no host filesystem access by default.
+
+Users must pass explicit filesystem arguments at runtime:
+
+```bash
+# Access only the user's home directory
+flatpak run --filesystem=home io.github.kardbord.ripgrep <args>
+
+# Access the entire host filesystem
+flatpak run --filesystem=host io.github.kardbord.ripgrep <args>
+```
+
+When adding a new app, grant only the permissions the app needs to function in
+`finish-args`. Do not add blanket permissions like `--filesystem=host` unless
+the app cannot function without it.
+
 ### The `base` Field
 
 Apps can use `base:` to inherit the entire build output of a Flathub app. For
-example, `io.github.kardbord.Neovim` uses `base: io.neovim.nvim`:
+example, `io.github.kardbord.neovim` uses `base: io.neovim.nvim`:
 
 - All upstream modules (binaries, libraries, wrappers, etc.) are inherited
 - The custom manifest only needs to specify the app ID, `finish-args`, and `add-extensions`
@@ -110,6 +130,79 @@ Two mechanisms detect upstream changes:
 6. **Commit and push**: The `flatpak-build.yml` workflow auto-discovers the new
    manifest and builds it.
 
+## Adding a New App
+
+1. **Create a directory**: `flatpak/manifests/io.github.kardbord.<name>/`
+
+2. **Write the manifest** (`io.github.kardbord.<name>.yml`):
+   ```yaml
+   id: io.github.kardbord.<name>
+   branch: stable
+   runtime: io.github.kardbord.Platform
+   runtime-version: 'stable'
+   sdk: io.github.kardbord.Sdk
+   command: <name>
+
+   modules:
+     - name: <name>
+       buildsystem: simple
+       build-commands:
+         - install -Dm755 <wrapper-script> ${FLATPAK_DEST}/bin/<name>
+       sources:
+         - type: file
+           path: <wrapper-script>
+
+   cleanup-commands:
+     - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+   ```
+
+   The `cleanup-commands` entry is required for **all** apps on this runtime,
+   whether or not they actively use tool extensions. It creates the parent
+   directory for the `io.github.kardbord.tool` extension mount point. Without
+   it, bwrap will fail with a read-only filesystem error when mounting any
+   extension — including ones installed separately by the user.
+
+   If the app **requires** a specific tool extension to function (i.e. it will
+   not work without it), add an explicit `add-extensions` override to force
+   auto-download of that extension:
+   ```yaml
+   add-extensions:
+     io.github.kardbord.tool.<name>:
+       directory: lib/kardbord-tools/<name>
+       version: stable
+   ```
+
+   If the extension is optional (the app works without it), omit the
+   `add-extensions` override. The extension point is inherited from the runtime,
+   so optional extensions installed by the user will still be mounted
+   automatically. The `cleanup-commands` entry ensures the mount point exists in
+   either case.
+
+3. **Create the wrapper script** (if the app uses tool extensions): Use
+   `activate-kardbord-env` to set up PATH for tool extensions, then exec the
+   real command:
+   ```sh
+   #!/bin/sh
+   exec activate-kardbord-env <command> "$@"
+   ```
+
+   If the app does not use any tool extensions, set `command` directly to the
+   app's binary — no wrapper script is needed. The `cleanup-commands` entry is
+   still required in either case.
+
+4. **Follow the [Sandbox Permissions Policy](#sandbox-permissions-policy)**:
+   grant only the host access the app needs in `finish-args`.
+
+5. **Test locally**:
+   ```bash
+   flatpak-builder --force-clean --user --install-deps-from=flathub \
+     --repo=test-repo build-dir \
+     flatpak/manifests/io.github.kardbord.<name>/io.github.kardbord.<name>.yml
+   ```
+
+6. **Commit and push**: The `flatpak-build.yml` workflow auto-discovers the new
+   manifest and builds it.
+
 ## Local Development
 
 ### Prerequisites
@@ -146,15 +239,15 @@ flatpak-builder --force-clean --user --install-deps-from=flathub \
 ```bash
 flatpak-builder --force-clean --user --install-deps-from=flathub \
   --repo=repo build-dir \
-  flatpak/manifests/io.github.kardbord.Neovim/io.github.kardbord.Neovim.yml
+  flatpak/manifests/io.github.kardbord.neovim/io.github.kardbord.neovim.yml
 ```
 
 ### Testing Locally
 
 ```bash
 flatpak --user remote-add --no-gpg-verify local-repo repo
-flatpak --user install local-repo io.github.kardbord.Neovim
-flatpak run --command=sh io.github.kardbord.Neovim -c "which rg"
+flatpak --user install local-repo io.github.kardbord.neovim
+flatpak run --command=sh io.github.kardbord.neovim -c "which rg"
 ```
 
 ## GPG Key Management
@@ -211,7 +304,7 @@ Apps that use `base: io.neovim.nvim` get `ide-flatpak-wrapper`, which adds
 `/app/tools/*/bin` to PATH. For other apps, verify the app's entrypoint does
 the same. Check the mount:
 ```bash
-flatpak run --command=sh io.github.kardbord.Neovim -c "ls /app/tools/"
+flatpak run --command=sh io.github.kardbord.neovim -c "ls /app/tools/"
 ```
 
 ### FEDC not detecting updates

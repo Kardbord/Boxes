@@ -12,7 +12,8 @@ license.
 |---------------------------------------------|---------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [kardbord-breakout](./kardbord-breakout/)   | A terminal-based clone of the classic brick-breaking arcade game.   | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
 | [io.github.kardbord.Sdk](./flatpak/)     | Custom Flatpak runtime and SDK for all io.github.kardbord.* apps. Provides the `io.github.kardbord.tool` extension point. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.Neovim](./flatpak/)     | Custom Neovim Flatpak with independently-updatable tool extensions. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
+| [io.github.kardbord.neovim](./flatpak/)     | Custom Neovim Flatpak with independently-updatable tool extensions. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
+| [io.github.kardbord.ripgrep](./flatpak/)   | Standalone ripgrep Flatpak with tool extension.                   | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
 | [io.github.kardbord.tool.ripgrep](./flatpak/) | ripgrep extension for the Neovim Flatpak (Telescope `live_grep`).   | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
 | [io.github.kardbord.tool.fd](./flatpak/)      | fd extension for the Neovim Flatpak (Telescope `find_files`).       | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
 
@@ -47,10 +48,13 @@ flatpak remote-add --if-not-exists kardbord \
 
 # Install the custom Neovim + extensions
 # (io.github.kardbord.Platform runtime is pulled automatically)
-flatpak install kardbord io.github.kardbord.Neovim
+flatpak install kardbord io.github.kardbord.neovim
 flatpak install kardbord io.github.kardbord.tool.ripgrep
 flatpak install kardbord io.github.kardbord.tool.fd
-```
+
+> **Note:** Apps use a minimal sandbox — only the host access they need to
+> function is granted. Pass additional `--filesystem=` flags as needed (e.g.
+> `--filesystem=host`).
 
 For language toolchains (Go, Rust, Java, etc.), install SDK extensions directly
 from Flathub:
