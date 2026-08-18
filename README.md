@@ -1,4 +1,4 @@
-# Boxes
+# Kardbord's Boxes
 
 A collection of custom build specifications for upstream FOSS projects as well
 as any projects of my own that I wish to distribute. Builds are handled by the
@@ -35,8 +35,8 @@ Packages are built for the following distribution and architecture combinations:
 
 ### Flatpak Apps & Extensions
 
-Flatpak apps and extensions for those apps are available at [kardbord.github.io](https://kardbord.github.io/Boxes).
-Extensions (io.github.kardbord.tool.\*) mount automatically into any app built
+Flatpak apps and extensions for those apps are available at [kardbord.github.io/Boxes](https://kardbord.github.io/Boxes).
+Extensions (`io.github.kardbord.tool.*`) mount automatically into any app built
 on the `io.github.kardbord.Platform` runtime.
 
 **Quick start:**
@@ -54,7 +54,7 @@ flatpak install kardbord io.github.kardbord.tool.fd
 
 > **Note:** Apps use a minimal sandbox — only the host access they need to
 > function is granted. Pass additional `--filesystem=` flags as needed (e.g.
-> `--filesystem=host`).
+> `--filesystem=${PWD}`).
 
 For language toolchains (Go, Rust, Java, etc.), install SDK extensions directly
 from Flathub:
