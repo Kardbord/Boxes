@@ -87,7 +87,7 @@ jobs:
           for pkg in ${{ steps.discover.outputs.extensions }}; do
             echo "::group::Building ${pkg}"
             flatpak-builder --force-clean --install-deps-from=flathub \
-              --repo=repo "build-${pkg}" \
+              --extra-sources=repo --repo=repo "build-${pkg}" \
               "flatpak/manifests/${pkg}/${pkg}.yml"
             echo "::endgroup::"
           done
@@ -97,7 +97,7 @@ jobs:
           for pkg in ${{ steps.discover.outputs.apps }}; do
             echo "::group::Building ${pkg}"
             flatpak-builder --force-clean --install-deps-from=flathub \
-              --repo=repo "build-${pkg}" \
+              --extra-sources=repo --repo=repo "build-${pkg}" \
               "flatpak/manifests/${pkg}/${pkg}.yml"
             echo "::endgroup::"
           done
