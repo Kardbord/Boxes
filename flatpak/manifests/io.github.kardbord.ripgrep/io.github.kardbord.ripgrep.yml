@@ -20,7 +20,7 @@ modules:
       - install -Dm755 rg-wrapper /app/bin/rg-wrapper
     sources:
       - type: file
-        path: ripgrep
+        path: rg-wrapper
 
 cleanup-commands:
   - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/ripgrep
