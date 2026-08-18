@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.fd
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: 'stable'
+sdk: io.github.kardbord.Sdk
+command: fd-wrapper
+
+add-extensions:
+  io.github.kardbord.tool.fd:
+    directory: lib/kardbord-tools/fd
+    version: stable
+    no-autodownload: false
+
+modules:
+  - name: fd
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 fd-wrapper /app/bin/fd-wrapper
+    sources:
+      - type: file
+        path: fd-wrapper
+
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/fd
