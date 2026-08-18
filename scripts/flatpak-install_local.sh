@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -eo pipefail
 
 MANIFESTS_ROOT="$(readlink -e "$(dirname "${BASH_SOURCE[0]}")/../flatpak/manifests")"
 

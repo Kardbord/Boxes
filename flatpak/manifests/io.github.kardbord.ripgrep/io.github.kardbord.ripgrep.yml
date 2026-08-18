@@ -5,7 +5,7 @@ default-branch: stable
 runtime: io.github.kardbord.Platform
 runtime-version: 'stable'
 sdk: io.github.kardbord.Sdk
-command: ripgrep
+command: rg-wrapper
 
 add-extensions:
   io.github.kardbord.tool.ripgrep:
@@ -17,7 +17,7 @@ modules:
   - name: ripgrep
     buildsystem: simple
     build-commands:
-      - install -Dm755 ripgrep /app/bin/ripgrep
+      - install -Dm755 rg-wrapper /app/bin/rg-wrapper
     sources:
       - type: file
         path: ripgrep
