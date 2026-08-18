@@ -1,24 +1,26 @@
 #!/bin/bash
 
-set -eo pipefail
+set -euo pipefail
 
-WD="$(dirname "${BASH_SOURCE[0]}")/../flatpak/manifests"
+MANIFESTS_ROOT="$(readlink -e "$(dirname "${BASH_SOURCE[0]}")/../flatpak/manifests")"
+
+WD=$(mktemp -d)
 pushd "${WD}" >/dev/null
 
 if [[ -z "${1}" ]]; then
-	echo -e "Expected local package name. Options are:\n $(ls)" >&2
+	echo -e "Expected local package name. Options are:\n$(ls "${MANIFESTS_ROOT}")" >&2
 	exit 1
 fi
 
-if [[ ! -d "./${1}" ]]; then
-	echo -e "You must provide a valid local package name. Options are:\n $(ls)" >&2
+MANIFEST_DIR="${MANIFESTS_ROOT}/${1}"
+if [[ ! -d "${MANIFEST_DIR}" ]]; then
+	echo -e "You must provide a valid local package name. Options are:\n$(ls "${MANIFESTS_ROOT}")" >&2
 	exit 1
 fi
 
-pushd "./${1}" >/dev/null
-
-if [[ ! -r "./${1}.yml" ]]; then
-	echo "No such manifest: ${1}.yml" >&2
+MANIFEST="${MANIFEST_DIR}/${1}.yml"
+if [[ ! -r "${MANIFEST}" ]]; then
+	echo "No such manifest: ${MANIFEST}" >&2
 	exit 1
 fi
 
@@ -28,5 +30,9 @@ flatpak-builder \
 	--user \
 	--install-deps-from=flathub \
 	--repo=local-repo \
+	--delete-build-dirs \
 	--install \
-	build "${1}.yml"
+	"flatpak-build_${1}" "${MANIFEST}"
+
+popd >/dev/null
+rm -rf "${WD}"
