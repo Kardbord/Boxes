@@ -23,4 +23,4 @@ modules:
         path: ripgrep
 
 cleanup-commands:
-  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/ripgrep
