@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.neovim
+default-branch: stable
+runtime: io.github.kardbord.Sdk
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+base: io.neovim.nvim
+command: nvim-wrapper-wrapper
+
+modules:
+  - name: neovim-wrapper
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 nvim-wrapper-wrapper /app/bin/nvim-wrapper-wrapper
+    sources:
+      - type: file
+        path: nvim-wrapper-wrapper
+
+finish-args:
+  - --filesystem=/tmp
+  - --filesystem=/var/tmp
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
