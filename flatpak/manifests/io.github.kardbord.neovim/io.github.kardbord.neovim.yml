@@ -9,7 +9,7 @@ base: io.neovim.nvim
 command: nvim-wrapper-wrapper
 
 modules:
-  - name: neovim-wrapper
+  - name: neovim-wrapper-wrapper
     buildsystem: simple
     build-commands:
       - install -Dm755 nvim-wrapper-wrapper /app/bin/nvim-wrapper-wrapper
@@ -20,6 +20,7 @@ modules:
 finish-args:
   - --filesystem=/tmp
   - --filesystem=/var/tmp
+  - --filesystem=xdg-config/nvim:ro
   - --share=network
   - --socket=wayland
   - --socket=fallback-x11
