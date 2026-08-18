@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+# Custom SDK for all io.github.kardbord.* apps. This is a "meta-SDK" that
+# inherits from org.freedesktop.Sdk, adds extension points, and installs
+# automatic library discovery (ld.so.conf.d) plus a PATH wrapper command
+# (activate-kardbord-env) for tool extensions.
+id: io.github.kardbord.Sdk
+id-platform: io.github.kardbord.Platform
+default-branch: stable
+
+# Base runtime and SDK to inherit from
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+
+# Build this manifest as a runtime/SDK (not an app)
+build-runtime: true
+
+# Split translations into separate extensions for locale filtering
+separate-locales: true
+
+# Allow writing to /usr during the build (required for runtime builds)
+writable-sdk: true
+
+# Inherit extensions found via flatpak info --show-metadata org.freedesktop.Sdk//25.08
+# Platform extensions provide graphics drivers, codecs, themes, and other host integration.
+inherit-extensions:
+  - org.freedesktop.Platform.codecs-extra    # Additional media codecs
+  - org.freedesktop.Platform.GL              # OpenGL drivers
+  - org.freedesktop.Platform.GL.Debug        # OpenGL debug symbols
+  - org.freedesktop.Platform.GStreamer       # GStreamer plugins
+  - org.freedesktop.Platform.Icontheme       # Icon themes
+  - org.freedesktop.Platform.Timezones       # Timezone data
+  - org.freedesktop.Platform.VAAPI.Intel     # Intel hardware video acceleration
+  - org.freedesktop.Platform.VAAPI.nvidia    # NVIDIA hardware video acceleration
+  - org.freedesktop.Platform.VulkanLayer     # Vulkan layers
+  - org.gtk.Gtk3theme                        # GTK3 theme support
+
+# SDK extensions inherited from the base SDK.
+# These provide cross-compilation, debug symbols, docs, and locale support.
+inherit-sdk-extensions:
+  - org.freedesktop.Sdk.Compat.aarch64       # aarch64 cross-compilation
+  - org.freedesktop.Sdk.Compat.aarch64.Debug # aarch64 debug symbols
+  - org.freedesktop.Sdk.Compat.i386          # i386 cross-compilation
+  - org.freedesktop.Sdk.Compat.i386.Debug    # i386 debug symbols
+  - org.freedesktop.Sdk.Debug                # Debug symbols for the SDK
+  - org.freedesktop.Sdk.Docs                 # SDK documentation
+  - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
+  - org.freedesktop.Sdk.Locale               # SDK locale data
+
+# Extension points provided by this SDK.
+# Apps built on io.github.kardbord.Platform automatically inherit these.
+# Extensions with IDs matching the patterns below are mounted into the app sandbox.
+add-extensions:
+  # Binary tool extensions (e.g., io.github.kardbord.tool.ripgrep, io.github.kardbord.tool.fd)
+  # Mounted at /app/tools/<name>/bin/ inside the app sandbox.
+  io.github.kardbord.tool:
+    directory: lib/kardbord-tools
+    subdirectories: true
+    no-autodownload: true
+    version: stable
+    add-ld-path: lib
+
+modules:
+  - name: kardbord-tools-dir
+    buildsystem: simple
+    build-commands:
+      - install -d /usr/lib/kardbord-tools
+    sources: []
+
+  # Wrapper command that sets up PATH for tool extensions, then execs the
+  # given command. Installed to /app/bin/ so it's on PATH by default.
+  #
+  # Usage in app manifests:
+  #   command: activate-kardbord-env /app/bin/real-app
+  #
+  # Or in a wrapper script:
+  #   exec activate-kardbord-env /app/bin/real-app "$@"
+  - name: activate-kardbord-env
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 activate-kardbord-env /usr/bin/activate-kardbord-env
+    sources:
+      - type: file
+        path: activate-kardbord-env

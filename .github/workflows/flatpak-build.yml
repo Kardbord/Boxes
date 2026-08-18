@@ -1,0 +1,127 @@
+name: Build and deploy Flatpak repository
+
+on:
+  push:
+    branches: [main]
+    paths: [flatpak/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Install Flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder pandoc
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.freedesktop.Sdk//25.08 org.freedesktop.Platform//25.08
+
+      - name: Import GPG key
+        id: gpg
+        run: |
+          if [ -n "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" ]; then
+            echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --import
+            KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | awk -F'/' '/sec/{print $2}' | awk '{print $1}' | head -1)
+            echo "gpg_key_id=${KEY_ID}" >> "$GITHUB_OUTPUT"
+            echo "gpg_signed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::GPG key imported. Repo will be signed."
+          else
+            echo "gpg_signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::FLATPAK_GPG_PRIVATE_KEY not set. Repo will not be signed. Users will need --no-gpg-verify."
+          fi
+
+      - name: Discover manifests
+        id: discover
+        run: |
+          sdk=""
+          extensions=""
+          apps=""
+
+          for dir in flatpak/manifests/*/; do
+            name=$(basename "${dir}")
+            case "${name}" in
+              io.github.kardbord.Sdk)
+                sdk="${name}"
+                ;;
+              io.github.kardbord.tool.*)
+                extensions="$extensions ${name}"
+                ;;
+              io.github.kardbord.*)
+                apps="${apps} ${name}"
+                ;;
+            esac
+          done
+
+          echo "sdk=${sdk}" >> "$GITHUB_OUTPUT"
+          echo "extensions=${extensions# }" >> "$GITHUB_OUTPUT"
+          echo "apps=${apps# }" >> "$GITHUB_OUTPUT"
+
+      - name: Build SDK
+        run: |
+          flatpak-builder --force-clean --install-deps-from=flathub \
+            --repo=repo build-sdk \
+            flatpak/manifests/${{ steps.discover.outputs.sdk }}/${{ steps.discover.outputs.sdk }}.yml
+
+      - name: Build extensions
+        run: |
+          for pkg in ${{ steps.discover.outputs.extensions }}; do
+            echo "::group::Building ${pkg}"
+            flatpak-builder --force-clean --install-deps-from=flathub \
+              --repo=repo "build-${pkg}" \
+              "flatpak/manifests/${pkg}/${pkg}.yml"
+            echo "::endgroup::"
+          done
+
+      - name: Build apps
+        run: |
+          for pkg in ${{ steps.discover.outputs.apps }}; do
+            echo "::group::Building ${pkg}"
+            flatpak-builder --force-clean --install-deps-from=flathub \
+              --repo=repo "build-${pkg}" \
+              "flatpak/manifests/${pkg}/${pkg}.yml"
+            echo "::endgroup::"
+          done
+
+      - name: Sign repository
+        if: steps.gpg.outputs.gpg_signed == 'true'
+        run: |
+          for ref in $(flatpak --repo=repo refs); do
+            flatpak build-sign --gpg-sign=${{ steps.gpg.outputs.gpg_key_id }} repo "$ref"
+          done
+
+      - name: Generate landing page
+        run: scripts/generate-landing-page.sh staging/index.html
+
+      - name: Stage for deployment
+        run: |
+          touch staging/.nojekyll
+          mv repo staging/repo
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: staging
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v5

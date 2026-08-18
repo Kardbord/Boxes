@@ -5,17 +5,7 @@ reach the Open Build Service (OBS), how packages are built across many distribut
 and architectures, and the infrastructure decisions that make cross-distribution
 packaging work.
 
-## Table of Contents
-
-- [Pipeline Overview](#pipeline-overview)
-- [Repository Structure](#repository-structure)
-- [Key Configuration Files](#key-configuration-files)
-- [Build Matrix](#build-matrix)
-- [Cross-Distribution Packaging](#cross-distribution-packaging)
-- [`home:Kardbord:obs-services` — Linked Packages](<ARCHITECTURE#`home:Kardbord:obs-services` — Linked Packages>)
-- [Adding a New Package](#adding-a-new-package)
-
-## Pipeline Overview
+## OBS Pipeline Overview
 
 ```
 GitHub (source of truth)
@@ -50,7 +40,7 @@ back. This keeps package definitions versioned in git and rebuilds them on every
 push. For fetching individual upstream source trees *within* a package, the package's
 own `_service` file is used instead (see below).
 
-## Repository Structure
+## OBS Repository Structure
 
 ```
 Boxes/
@@ -59,16 +49,16 @@ Boxes/
 ├── ARCHITECTURE.md       # This document
 ├── _config               # OBS project build configuration (prjconf)
 ├── _meta                 # Informational copy of the OBS project metadata
-└── kardbord-breakout/    # A single package
-├   ├── _service          # Describes how to fetch upstream sources
-├   ├── kardbord-breakout.spec     # RPM build recipe
-├   ├── kardbord-breakout.dsc      # Debian source control file
-├   ├── kardbord-breakout.changes  # OBS changelog (RPM)
-├   ├── debian.changelog  # Debian changelog
-├   ├── debian.control    # Debian binary package definitions
-├   ├── debian.copyright  # Debian license/copyright info
-├   ├── debian.rules      # Debian build rules (debhelper + cmake)
-├   └── ...
+├── kardbord-breakout/    # A single package
+│   ├── _service          # Describes how to fetch upstream sources
+│   ├── kardbord-breakout.spec     # RPM build recipe
+│   ├── kardbord-breakout.dsc      # Debian source control file
+│   ├── kardbord-breakout.changes  # OBS changelog (RPM)
+│   ├── debian.changelog  # Debian changelog
+│   ├── debian.control    # Debian binary package definitions
+│   ├── debian.copyright  # Debian license/copyright info
+│   ├── debian.rules      # Debian build rules (debhelper + cmake)
+│   └── ...
 └── ...
 ```
 
@@ -265,7 +255,7 @@ which supplies `prove`) that is otherwise only a packaging concern, not a correc
 one. Tests are the upstream's responsibility and have already passed before the package
 was published in `openSUSE:Tools`.
 
-## Adding a New Package
+### Adding a New Package
 
 1. **Create a directory** in this repository named after the package, e.g. `mypkg/`.
 2. **Add the source-service definition** — create `mypkg/_service` with an `obs_scm`
@@ -279,3 +269,123 @@ was published in `openSUSE:Tools`.
 5. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
    that the package builds for the targets you care about; iterate on any distribution-specific
    failures the way `kardbord-breakout` did.
+
+## Flatpak Packaging
+
+In addition to OBS-managed RPM and DEB packages, Boxes hosts a custom Flatpak
+repository on GitHub Pages. This serves custom apps, as well as independently-updatable
+tool extensions for other io.github.kardbord.\* flatpaks.
+
+### Flatpak Pipeline Overview
+
+```
+GitHub (source of truth)
+   │  push to flatpak/** or daily schedule
+   ▼
+GitHub Actions (flatpak-build.yml)
+   │  flatpak-builder + GPG signing
+   ▼
+GitHub Pages (OSTree repo)
+   │  flatpak install kardbord <package>
+   ▼
+User systems
+```
+
+### Custom Runtime
+
+All `io.github.kardbord.*` flatpak apps are built on a custom runtime
+(`io.github.kardbord.Platform`) and SDK (`io.github.kardbord.Sdk`), derived
+from `org.freedesktop.Platform`/`org.freedesktop.Sdk`. The custom
+runtime declares the `io.github.kardbord.tool` extension point.
+
+Any app built on `io.github.kardbord.Platform` automatically inherits this
+extension point. Extensions with IDs matching `io.github.kardbord.tool.*` are
+mounted into the app sandbox.
+
+Apps that use `base:` to inherit from a Flathub build (e.g. `io.neovim.nvim`)
+and switch to the custom runtime will have the extension point injected by the
+runtime.
+
+### Flatpak Repository Structure
+
+```
+Boxes/
+├── .github/workflows/
+│   ├── flatpak-build.yml           # Build + deploy workflow
+│   └── flatpak-upstream-check.yml  # Upstream change detection
+├── flatpak/
+│   ├── .nojekyll                   # Prevents Jekyll mangling OSTree dirs
+│   ├── kardbord.flatpakrepo        # Remote definition for users
+│   ├── README.md                   # Developer/maintainer documentation
+│   └── manifests/
+│       ├── io.github.kardbord.Sdk/
+│       │   └── io.github.kardbord.Sdk.yml
+│       ├── io.github.kardbord.neovim/
+│       │   ├── io.github.kardbord.neovim.yml
+│       │   ├── neovim-first-run.txt
+│       │   └── neovim-sdk-update.txt
+│       ├── io.github.kardbord.ripgrep/
+│       │   ├── io.github.kardbord.ripgrep.yml
+│       │   └── ripgrep
+│       ├── io.github.kardbord.tool.ripgrep/
+│       │   └── io.github.kardbord.tool.ripgrep.yml
+│       └── io.github.kardbord.tool.fd/
+│           └── io.github.kardbord.tool.fd.yml
+├── kardbord-breakout/              # OBS package
+├── _manifest                       # Does NOT list flatpak/
+└── ...
+```
+
+The `flatpak/` directory is intentionally excluded from `_manifest` so that OBS
+does not treat it as a package.
+
+### Upstream Tracking
+
+Two mechanisms detect upstream changes independently:
+
+1. **App base dependencies**: Apps that use `base:` to inherit from Flathub
+   builds are tracked via GitHub Actions variables. The
+   `flatpak-upstream-check.yml` workflow runs daily, queries Flathub for the
+   latest stable commit of each base app, and triggers the build workflow if
+   upstream has changed. Currently tracks `io.neovim.nvim` via the
+   `FLATPAK_NEOVIM_UPSTREAM_COMMIT` variable; additional apps can be added as
+   new manifests are introduced.
+
+2. **Extension sources**: The `flatpak-external-data-checker` (FEDC) runs daily,
+   using `x-checker-data` annotations in the extension manifests to detect new
+   GitHub releases. FEDC auto-commits updated manifests and opens PRs.
+
+### GPG Signing
+
+The Flatpak repository is GPG-signed. The private key is stored as the GitHub
+Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
+`kardbord.flatpakrepo` so users can verify packages when adding the remote.
+
+### Adding a New Flatpak Extension
+
+1. Create a directory `flatpak/manifests/io.github.kardbord.tool.<name>/`.
+2. Write the manifest with `build-extension: true` and `x-checker-data` annotations
+   (see [flatpak/README.md](flatpak/README.md) for the template).
+3. Test locally with `flatpak-builder`.
+4. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
+   manifest and builds it.
+
+### Adding a New Flatpak App
+
+1. Create a directory `flatpak/manifests/io.github.kardbord.<name>/`.
+2. Write the manifest (`io.github.kardbord.<name>.yml`). If the app exists on
+   Flathub, use `base:` to inherit its build and layer your changes on top (see
+   the [flatpak/README.md](flatpak/README.md) `base` field documentation). If
+   building from source, define `modules` directly.
+3. Use `runtime: io.github.kardbord.Platform` and `sdk: io.github.kardbord.Sdk`
+   to inherit the `io.github.kardbord.tool` extension point automatically.
+4. Add `cleanup-commands: - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools` to
+   create the extension mount point. Without this, bwrap will fail with a
+   read-only filesystem error when mounting extensions.
+5. If the app uses `base:`, add an upstream tracking variable and extend the
+   `flatpak-upstream-check.yml` workflow (see [Upstream Tracking](#upstream-tracking)).
+6. Do not grant filesystem access in `finish-args` beyond what the app needs to
+   function. See [Sandbox Permissions Policy](flatpak/README.md#sandbox-permissions-policy).
+7. Test locally with `flatpak-builder`.
+8. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
+   manifest and builds it.

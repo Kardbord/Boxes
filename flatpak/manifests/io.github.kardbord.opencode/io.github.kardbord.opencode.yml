@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.opencode
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+command: opencode-wrapper
+
+add-extensions:
+  io.github.kardbord.tool.opencode:
+    directory: lib/kardbord-tools/opencode
+    version: stable
+    no-autodownload: false
+
+modules:
+  - name: opencode
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 opencode-wrapper /app/bin/opencode-wrapper
+    sources:
+      - type: file
+        path: opencode-wrapper
+
+finish-args:
+  - --share=network
+  - --filesystem=/tmp
+  - --filesystem=/var/tmp
+  - --filesystem=xdg-config/opencode:ro
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/opencode

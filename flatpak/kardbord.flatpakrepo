@@ -1,0 +1,7 @@
+[Flatpak Repo]
+Title=Kardbord Boxes
+Url=https://kardbord.github.io/Boxes/repo/
+Homepage=https://github.com/Kardbord/Boxes
+Comment=Custom Flatpak packages
+Description=Custom-built Flatpak packages including extensions for the Neovim Flatpak.
+GPGKey=<PLACEHOLDER — replace with output of: gpg --export <KEY_ID> | base64 --wrap=0>
