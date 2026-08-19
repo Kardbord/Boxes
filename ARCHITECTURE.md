@@ -273,23 +273,49 @@ was published in `openSUSE:Tools`.
 ## Flatpak Packaging
 
 In addition to OBS-managed RPM and DEB packages, Boxes hosts a custom Flatpak
-repository on GitHub Pages. This serves custom apps, as well as independently-updatable
-tool extensions for other io.github.kardbord.\* flatpaks.
+repository using [AetherPak](https://github.com/aetherpak/actions). Application
+layers are stored as OCI images in GitHub Container Registry (GHCR), and a small
+JSON index plus landing page are served from GitHub Pages.
 
 ### Flatpak Pipeline Overview
 
 ```
 GitHub (source of truth)
-   │  push to flatpak/** or daily schedule
+   │  push to flatpak/**
    ▼
 GitHub Actions (flatpak-build.yml)
-   │  flatpak-builder + GPG signing
+   │  Phase 1: Build SDK → OCI in GHCR + index on Pages
+   │  Phase 2: Build apps/extensions → OCI in GHCR + index on Pages
    ▼
-GitHub Pages (OSTree repo)
-   │  flatpak install kardbord <package>
+GHCR (OCI images) + Pages (index/static)
+   │  flatpak install kardbord-boxes <package>
    ▼
 User systems
 ```
+
+### Two-Phase Build
+
+The SDK (`io.github.kardbord.Sdk`) declares `build-runtime: true`, producing
+both `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
+All other packages depend on these runtimes at build time. AetherPak builds
+packages in a parallel matrix, so the SDK must be built first:
+
+1. **Phase 1** — Build and publish the SDK using `flatpak/aetherpak-sdk.yaml`.
+2. **Phase 2** — Generate `aetherpak-apps.yaml` from the manifests directory
+   at CI time (via `scripts/generate-aetherpak-config.sh`), compute the build
+   matrix, build all apps and extensions in parallel, push OCI images, merge the
+   index, and deploy to Pages.
+
+The apps config references the Phase 1 deployment as a custom Flatpak remote so
+`flatpak-builder` can resolve `io.github.kardbord.Platform` at build time.
+
+### Auto-Discovery
+
+New packages are auto-discovered from the `flatpak/manifests/` directory. The
+`generate-aetherpak-config.sh` script scans the directory, skips the SDK, and
+emits an `aetherpak-apps.yaml` config. Adding or removing a package only
+requires creating or deleting its manifest directory — no config file to
+maintain.
 
 ### Custom Runtime
 
@@ -312,10 +338,11 @@ runtime.
 Boxes/
 ├── .github/workflows/
 │   ├── flatpak-build.yml           # Build + deploy workflow
-│   └── flatpak-upstream-check.yml  # Upstream change detection
+│   └── flatpak-prune.yml           # Weekly OCI image pruning
+├── scripts/
+│   └── generate-aetherpak-config.sh  # Generates apps config from manifests
 ├── flatpak/
-│   ├── .nojekyll                   # Prevents Jekyll mangling OSTree dirs
-│   ├── kardbord.flatpakrepo        # Remote definition for users
+│   ├── aetherpak-sdk.yaml          # AetherPak config for SDK (committed)
 │   ├── README.md                   # Developer/maintainer documentation
 │   └── manifests/
 │       ├── io.github.kardbord.Sdk/
@@ -339,6 +366,13 @@ Boxes/
 The `flatpak/` directory is intentionally excluded from `_manifest` so that OBS
 does not treat it as a package.
 
+### OCI Image Pruning
+
+A weekly scheduled workflow (`flatpak-prune.yml`) runs AetherPak's
+`prune-github-container-registry.yml`, which compares the active index against
+GHCR container versions and deletes any that are no longer referenced. This
+ensures stale images are cleaned up automatically after packages are removed.
+
 ### Upstream Tracking
 
 Two mechanisms detect upstream changes independently:
@@ -358,8 +392,9 @@ Two mechanisms detect upstream changes independently:
 ### GPG Signing
 
 The Flatpak repository is GPG-signed. The private key is stored as the GitHub
-Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
-`kardbord.flatpakrepo` so users can verify packages when adding the remote.
+Actions secret `FLATPAK_GPG_PRIVATE_KEY`. AetherPak handles signing via the
+`signing` input (default: `auto` — sign when a key is set). The public key and
+signature lookaside are published alongside the index on Pages.
 
 ### Adding a New Flatpak Extension
 
@@ -367,8 +402,8 @@ Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
 2. Write the manifest with `build-extension: true` and `x-checker-data` annotations
    (see [flatpak/README.md](flatpak/README.md) for the template).
 3. Test locally with `flatpak-builder`.
-4. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
-   manifest and builds it.
+4. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
+   the new manifest at CI time.
 
 ### Adding a New Flatpak App
 
@@ -387,5 +422,5 @@ Actions secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
 6. Do not grant filesystem access in `finish-args` beyond what the app needs to
    function. See [Sandbox Permissions Policy](flatpak/README.md#sandbox-permissions-policy).
 7. Test locally with `flatpak-builder`.
-8. Commit and push — the `flatpak-build.yml` workflow auto-discovers the new
-   manifest and builds it.
+8. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
+   the new manifest at CI time.

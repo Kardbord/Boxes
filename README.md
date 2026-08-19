@@ -35,7 +35,8 @@ Packages are built for the following distribution and architecture combinations:
 
 ### Flatpak Apps & Extensions
 
-Flatpak apps and extensions for those apps are available at [kardbord.github.io/Boxes](https://kardbord.github.io/Boxes).
+Flatpak apps and extensions are hosted as OCI images on GHCR, with the index
+and landing page served from [kardbord.github.io/Boxes](https://kardbord.github.io/Boxes).
 Extensions (`io.github.kardbord.tool.*`) mount automatically into any app built
 on the `io.github.kardbord.Platform` runtime.
 
@@ -43,14 +44,15 @@ on the `io.github.kardbord.Platform` runtime.
 
 ```bash
 # Add the remote
-flatpak remote-add --if-not-exists kardbord \
-  https://kardbord.github.io/Boxes/kardbord.flatpakrepo
+flatpak remote-add --if-not-exists --user kardbord-boxes \
+  oci+https://kardbord.github.io/Boxes
 
 # Install the custom Neovim + extensions
 # (io.github.kardbord.Platform runtime is pulled automatically)
-flatpak install kardbord io.github.kardbord.neovim
-flatpak install kardbord io.github.kardbord.tool.ripgrep
-flatpak install kardbord io.github.kardbord.tool.fd
+flatpak install kardbord-boxes io.github.kardbord.neovim
+flatpak install kardbord-boxes io.github.kardbord.tool.ripgrep
+flatpak install kardbord-boxes io.github.kardbord.tool.fd
+```
 
 > **Note:** Apps use a minimal sandbox — only the host access they need to
 > function is granted. Pass additional `--filesystem=` flags as needed (e.g.
@@ -118,6 +120,8 @@ with a package name from the table above.
 This repository is the source of truth for the packaging of the projects listed
 above.
 
+#### Distro Packages (OBS)
+
 1. **Source** — Each package directory contains a `_service` file describing where
    the upstream sources come from, plus the packaging files (RPM `.spec`, Debian
    `debian.*`, etc.) needed to build it.
@@ -130,6 +134,27 @@ above.
 4. **Publish** — Completed binaries are published to
    [download.opensuse.org](https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/),
    from which they can be installed by the commands above.
+
+#### Flatpak Packages (AetherPak)
+
+Flatpak packages are built and published using
+[AetherPak](https://github.com/aetherpak/actions), which stores application
+layers as OCI images in GitHub Container Registry (GHCR) and serves a small
+JSON index from GitHub Pages.
+
+1. **Build** — The custom SDK (`io.github.kardbord.Sdk`) is built first, producing
+   the `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
+   All other packages (apps and extensions) are built in parallel after the SDK
+   is available.
+2. **Publish** — Each package is pushed to GHCR as a signed OCI image. The index
+   (`index/static`) is merged and reconciled against the registry, then deployed
+   to GitHub Pages along with a landing page and `.flatpakref` files.
+3. **Prune** — A weekly scheduled workflow removes stale OCI images from GHCR
+   that are no longer referenced in the active index.
+
+New packages are auto-discovered from the `flatpak/manifests/` directory at CI
+time. Adding or removing a package only requires creating or deleting its
+manifest directory.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed deep-dive into the pipeline,
 configuration files, and the cross-distribution packaging infrastructure.

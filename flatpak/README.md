@@ -127,8 +127,8 @@ Two mechanisms detect upstream changes:
 
 5. **Add x-checker-data to the manifest** (shown above) so FEDC can auto-update it.
 
-6. **Commit and push**: The `flatpak-build.yml` workflow auto-discovers the new
-   manifest and builds it.
+6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
+   the new manifest at CI time.
 
 ## Adding a New App
 
@@ -200,8 +200,8 @@ Two mechanisms detect upstream changes:
      flatpak/manifests/io.github.kardbord.<name>/io.github.kardbord.<name>.yml
    ```
 
-6. **Commit and push**: The `flatpak-build.yml` workflow auto-discovers the new
-   manifest and builds it.
+6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
+   the new manifest at CI time.
 
 ## Local Development
 
@@ -252,9 +252,10 @@ flatpak run --command=sh io.github.kardbord.neovim -c "which rg"
 
 ## GPG Key Management
 
-The Flatpak repo is GPG-signed. The private key is stored as the GitHub Actions
-secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
-`kardbord.flatpakrepo`.
+The Flatpak repository is GPG-signed. The private key is stored as the GitHub
+Actions secret `FLATPAK_GPG_PRIVATE_KEY`. AetherPak handles signing via the
+`signing` input (default: `auto` — sign when a key is set). The public key and
+signature lookaside are published alongside the index on Pages.
 
 ### Rotating the Key
 
@@ -277,15 +278,12 @@ secret `FLATPAK_GPG_PRIVATE_KEY`. The public key is embedded in
    # Update FLATPAK_GPG_PRIVATE_KEY in GitHub repo settings
    ```
 
-3. Update the public key in `kardbord.flatpakrepo`:
-   ```bash
-   gpg --export <KEY_ID> | base64 --wrap=0
-   ```
-
-4. Existing users will need to re-add the remote:
+3. Existing users will need to re-add the remote:
    ```bash
    flatpak remote-delete kardbord
-   flatpak remote-add --if-not-exists kardbord https://kardbord.github.io/Boxes/kardbord.flatpakrepo
+   flatpak remote-add --user \
+     --signature-lookaside=https://kardbord.github.io/Boxes/sigs \
+     kardbord-boxes https://kardbord.github.io/Boxes/kardbord.flatpakrepo
    ```
 
 ## Troubleshooting

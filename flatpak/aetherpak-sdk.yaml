@@ -1,0 +1,6 @@
+remote_name: kardbord
+apps:
+  - id: io.github.kardbord.Sdk
+    manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+    arches: [x86_64, aarch64]
+    branch: stable

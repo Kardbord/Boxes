@@ -1,0 +1,20 @@
+name: Prune stale Flatpak OCI images
+
+on:
+  schedule:
+    - cron: '0 4 * * 0' # Weekly, Sunday 4am UTC
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run (list only, no deletion)'
+        type: boolean
+        default: true
+
+permissions:
+  packages: write
+
+jobs:
+  prune:
+    uses: aetherpak/actions/.github/workflows/prune-github-container-registry.yml@v3
+    with:
+      dry-run: ${{ inputs.dry-run || false }}

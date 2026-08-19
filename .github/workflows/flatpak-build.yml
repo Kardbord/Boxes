@@ -1,198 +1,150 @@
-name: Build and deploy Flatpak repository
+name: Build and publish Flatpak repository
 
 on:
   push:
     branches: [main]
-    paths: [flatpak/**, README.md, landing-page.html]
+    paths: [flatpak/**]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  packages: write
+  pages: write
+  id-token: write
+
 concurrency:
-  group: pages
+  group: flatpak
   cancel-in-progress: true
 
 jobs:
-  build-sdk:
-    name: Build SDK (${{ matrix.variant.arch }})
-    runs-on: ${{ matrix.variant.runner }}
-    strategy:
-      matrix:
-        variant:
-          - arch: x86_64
-            runner: ubuntu-24.04
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
-      fail-fast: false
+  publish-sdk:
+    uses: aetherpak/actions/.github/workflows/publish.yml@v3
+    with:
+      config: flatpak/aetherpak-sdk.yaml
+    secrets:
+      gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+
+  plan-apps:
+    needs: publish-sdk
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.wrap.outputs.matrix }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install Flatpak tooling
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y --noninteractive flathub org.freedesktop.Sdk//25.08 org.freedesktop.Platform//25.08
+      - name: Generate aetherpak-apps.yaml
+        run: scripts/generate-aetherpak-config.sh
 
-      - name: Cache flatpak-builder state
-        uses: actions/cache@v6
+      - name: Compute build matrix
+        id: plan
+        uses: aetherpak/actions/plan@v3
         with:
-          path: .flatpak-builder
-          key: sdk-${{ matrix.variant.arch }}-${{ hashFiles('flatpak/manifests/io.github.kardbord.Sdk/*.yml') }}
-          restore-keys: sdk-${{ matrix.variant.arch }}-
+          config: aetherpak-apps.yaml
+          force: all
 
-      - name: Build SDK
-        run: |
-          flatpak-builder --force-clean --install-deps-from=flathub \
-            --repo=repo --arch=${{ matrix.variant.arch }} build-sdk \
-            flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+      - name: Wrap matrix for strategy
+        id: wrap
+        if: steps.plan.outputs.matrix != ''
+        run: echo "matrix={\"include\":${{ steps.plan.outputs.matrix }}}" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/upload-artifact@v7
-        with:
-          name: sdk-repo-${{ matrix.variant.arch }}
-          path: repo
-          retention-days: 1
-
-  build-packages:
-    name: Build packages (${{ matrix.variant.arch }})
-    needs: build-sdk
-    runs-on: ${{ matrix.variant.runner }}
+  build-apps:
+    needs: plan-apps
+    if: needs.plan-apps.outputs.matrix != ''
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
+    runs-on: ${{ matrix.runner }}
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
-    strategy:
-      matrix:
-        variant:
-          - arch: x86_64
-            runner: ubuntu-24.04
-          - arch: aarch64
-            runner: ubuntu-24.04-arm
-      fail-fast: false
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v8
+      - name: Generate aetherpak-apps.yaml
+        run: scripts/generate-aetherpak-config.sh
+
+      - name: Build
+        uses: aetherpak/actions/build@v3
         with:
-          name: sdk-repo-${{ matrix.variant.arch }}
-          path: repo
+          manifest-path: ${{ matrix.manifest }}
+          app-id: ${{ matrix.app-id }}
+          arch: ${{ matrix.arch }}
+          branch: ${{ matrix.branch }}
+          run-linter: ${{ matrix.run-linter }}
 
-      - name: Register SDK repo
-        run: |
-          flatpak remote-add --if-not-exists --no-gpg-verify local-repo "$(pwd)/repo"
-          flatpak install -y --noninteractive local-repo io.github.kardbord.Sdk
-          flatpak install -y --noninteractive local-repo io.github.kardbord.Platform
-
-      - name: Discover manifests
-        id: discover
-        run: |
-          extensions=""
-          apps=""
-
-          for dir in flatpak/manifests/*/; do
-            name=$(basename "${dir}")
-            case "${name}" in
-              io.github.kardbord.Sdk) continue ;;
-              io.github.kardbord.tool.*) extensions="${extensions} ${name}" ;;
-              io.github.kardbord.*) apps="${apps} ${name}" ;;
-            esac
-          done
-
-          echo "extensions=${extensions# }" >> "$GITHUB_OUTPUT"
-          echo "apps=${apps# }" >> "$GITHUB_OUTPUT"
-
-      - name: Build extensions
-        run: |
-          for pkg in ${{ steps.discover.outputs.extensions }}; do
-            echo "::group::Building ${pkg}"
-            flatpak-builder --force-clean --install-deps-from=flathub \
-              --repo=repo "build-${pkg}" \
-              "flatpak/manifests/${pkg}/${pkg}.yml"
-            echo "::endgroup::"
-          done
-
-      - name: Build apps
-        run: |
-          for pkg in ${{ steps.discover.outputs.apps }}; do
-            echo "::group::Building ${pkg}"
-            flatpak-builder --force-clean --install-deps-from=flathub \
-              --repo=repo "build-${pkg}" \
-              "flatpak/manifests/${pkg}/${pkg}.yml"
-            echo "::endgroup::"
-          done
-
-      - uses: actions/upload-artifact@v7
+      - name: Upload OSTree repo
+        uses: actions/upload-artifact@v7
         with:
-          name: packages-repo-${{ matrix.variant.arch }}
-          path: repo
+          name: repo-${{ matrix.app-id }}-${{ matrix.arch }}
+          path: _repo
           retention-days: 1
 
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build-packages
+  publish-oci:
+    needs: [plan-apps, build-apps]
+    if: needs.plan-apps.outputs.matrix != ''
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download OSTree repo
+        uses: actions/download-artifact@v8
+        with:
+          name: repo-${{ matrix.app-id }}-${{ matrix.arch }}
+          path: _repo
+
+      - name: Push OCI image
+        uses: aetherpak/actions/publish-oci@v3
+        with:
+          repo-path: _repo
+          app-id: ${{ matrix.app-id }}
+          arch: ${{ matrix.arch }}
+          branch: ${{ matrix.branch }}
+          signing: auto
+          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+
+      - name: Upload record
+        uses: actions/upload-artifact@v7
+        with:
+          name: aetherpak-record-${{ matrix.app-id }}-${{ matrix.arch }}
+          path: _records
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy-apps:
+    needs: [plan-apps, publish-oci]
+    if: needs.plan-apps.outputs.matrix != ''
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/configure-pages@v6
+      - name: Generate aetherpak-apps.yaml
+        run: scripts/generate-aetherpak-config.sh
 
-      - name: Install tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak ostree pandoc
-
-      - uses: actions/download-artifact@v8
+      - name: Download all records
+        uses: actions/download-artifact@v8
         with:
-          name: packages-repo-x86_64
-          path: packages-repo-x86_64
+          pattern: aetherpak-record-*
+          path: _records_in
 
-      - uses: actions/download-artifact@v8
-        with:
-          name: packages-repo-aarch64
-          path: packages-repo-aarch64
-
-      - name: Merge architecture repos
+      - name: Flatten records
         run: |
-          ostree pull-local --repo=packages-repo-x86_64/repo packages-repo-aarch64/repo
-          mv packages-repo-x86_64/repo repo
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p _records
+          for dir in _records_in/*/; do cp -r "$dir." _records/; done
 
-      - name: Import GPG key
-        id: gpg
-        run: |
-          if [ -n "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" ]; then
-            echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --import
-            KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | awk -F'/' '/sec/{print $2}' | awk '{print $1}' | head -1)
-            echo "gpg_key_id=${KEY_ID}" >> "$GITHUB_OUTPUT"
-            echo "gpg_signed=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::GPG key imported. Repo will be signed."
-          else
-            echo "gpg_signed=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::FLATPAK_GPG_PRIVATE_KEY not set. Repo will not be signed. Users will need --no-gpg-verify."
-          fi
-
-      - name: Sign repository
-        if: steps.gpg.outputs.gpg_signed == 'true'
-        run: |
-          for ref in $(flatpak --repo=repo refs); do
-            flatpak build-sign --gpg-sign=${{ steps.gpg.outputs.gpg_key_id }} repo "$ref"
-          done
-
-      - name: Generate landing page
-        run: scripts/generate-landing-page.sh staging/index.html
-
-      - name: Stage for deployment
-        run: |
-          touch staging/.nojekyll
-          mv repo staging/repo
-
-      - uses: actions/upload-pages-artifact@v5
-        with:
-          path: staging
-
-      - name: Deploy to GitHub Pages
+      - name: Build and deploy site
         id: deploy
-        uses: actions/deploy-pages@v5
+        uses: aetherpak/actions/publish-site@v3
+        with:
+          records-dir: _records
+          pages-url: https://kardbord.github.io/Boxes
+          remote-name: kardbord
+          signing: auto
+          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
