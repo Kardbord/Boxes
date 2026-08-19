@@ -45,7 +45,10 @@ jobs:
       - name: Wrap matrix for strategy
         id: wrap
         if: steps.plan.outputs.matrix != ''
-        run: echo "matrix={\"include\":${{ steps.plan.outputs.matrix }}}" >> "$GITHUB_OUTPUT"
+        env:
+          MATRIX: ${{ steps.plan.outputs.matrix }}
+        run: |
+          echo "matrix=$(printf '%s' "$MATRIX" | jq -c '{include: .}')" >> "$GITHUB_OUTPUT"
 
   build-apps:
     needs: plan-apps
