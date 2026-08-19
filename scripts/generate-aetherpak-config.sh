@@ -24,7 +24,7 @@ defaults:
   flatpaks:
     - remote: flathub
       ref: org.freedesktop.Sdk//25.08
-    - remote: kardbord
+    - remote: kardbord-boxes
       ref: io.github.kardbord.Sdk//stable
 apps:
 HEADER
