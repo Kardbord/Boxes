@@ -17,15 +17,125 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish-sdk:
-    uses: aetherpak/actions/.github/workflows/publish.yml@v3
-    with:
-      config: flatpak/aetherpak-sdk.yaml
-    secrets:
-      gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+  # ────────────────────────────────────────────────────────────
+  # Phase 1: Build SDK (produces Platform + SDK runtimes)
+  # ────────────────────────────────────────────────────────────
+  build-sdk:
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v7
 
-  plan-apps:
+      - uses: aetherpak/actions/build@v3
+        env:
+          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
+        with:
+          manifest-path: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+          arch: ${{ matrix.arch }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: repo-sdk-${{ matrix.arch }}
+          path: _repo
+          retention-days: 1
+
+  publish-sdk:
+    needs: build-sdk
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+          - arch: aarch64
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: repo-sdk-${{ matrix.arch }}
+          path: _repo
+
+      - uses: aetherpak/actions/publish-oci@v3
+        with:
+          repo-path: _repo
+          app-id: io.github.kardbord.Sdk
+          arch: ${{ matrix.arch }}
+          signing: auto
+          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          records-dir: _records-sdk
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: aetherpak-record-io.github.kardbord.Sdk-${{ matrix.arch }}
+          path: _records-sdk
+          include-hidden-files: true
+          retention-days: 1
+
+      - name: Push Platform OCI
+        env:
+          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
+          OCI_USERNAME: ${{ github.actor }}
+          OCI_PASSWORD: ${{ github.token }}
+        run: |
+          aetherpak push-oci --repo-path _repo \
+            --app-id io.github.kardbord.Platform \
+            --arch ${{ matrix.arch }} \
+            --records-dir _records-platform
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: aetherpak-record-io.github.kardbord.Platform-${{ matrix.arch }}
+          path: _records-platform
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy-sdk:
     needs: publish-sdk
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: aetherpak-record-io.github.kardbord.*
+          path: _records_in
+
+      - name: Flatten records
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p _records
+          for dir in _records_in/*/; do cp -r "$dir." _records/; done
+
+      - uses: aetherpak/actions/publish-site@v3
+        id: deploy
+        env:
+          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
+        with:
+          records-dir: _records
+          pages-url: https://kardbord.github.io/Boxes
+          signing: auto
+          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+
+  # ────────────────────────────────────────────────────────────
+  # Phase 2: Build, publish, and deploy apps + extensions
+  # ────────────────────────────────────────────────────────────
+  plan-apps:
+    needs: deploy-sdk
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.wrap.outputs.matrix }}
