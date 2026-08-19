@@ -3,21 +3,48 @@ name: Build and deploy Flatpak repository
 on:
   push:
     branches: [main]
-    paths: [flatpak/**]
+    paths: [flatpak/**, README.md, landing-page.html]
   workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-sdk:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build SDK
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+          repo-dir: repo
+          cache-key: sdk-${{ github.sha }}
+
+      - name: Upload SDK artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdk-repo
+          path: repo
+          retention-days: 1
+
+  build-and-deploy:
+    needs: build-sdk
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -29,12 +56,27 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v6
 
-      - name: Install Flatpak tooling
+      - name: Install pandoc
+        run: dnf install -y pandoc
+
+      - name: Download SDK artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: sdk-repo
+          path: repo
+
+      - name: Register local repo
         run: |
-          sudo apt-get update
-          sudo apt-get install -y flatpak flatpak-builder pandoc
-          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.freedesktop.Sdk//25.08 org.freedesktop.Platform//25.08
+          flatpak --system remote-add --if-not-exists --no-gpg-verify local-repo repo
+          flatpak --system install -y local-repo io.github.kardbord.Sdk
+          flatpak --system install -y local-repo io.github.kardbord.Platform
+
+      - name: Cache flatpak-builder state
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/share/flatpak-builder
+          key: flatpak-builder-${{ hashFiles('flatpak/manifests/**/*.yml') }}
+          restore-keys: flatpak-builder-
 
       - name: Import GPG key
         id: gpg
@@ -64,7 +106,7 @@ jobs:
                 sdk="${name}"
                 ;;
               io.github.kardbord.tool.*)
-                extensions="$extensions ${name}"
+                extensions="${extensions} ${name}"
                 ;;
               io.github.kardbord.*)
                 apps="${apps} ${name}"
@@ -76,18 +118,12 @@ jobs:
           echo "extensions=${extensions# }" >> "$GITHUB_OUTPUT"
           echo "apps=${apps# }" >> "$GITHUB_OUTPUT"
 
-      - name: Build SDK
-        run: |
-          flatpak-builder --force-clean --install-deps-from=flathub \
-            --repo=repo build-sdk \
-            flatpak/manifests/${{ steps.discover.outputs.sdk }}/${{ steps.discover.outputs.sdk }}.yml
-
       - name: Build extensions
         run: |
           for pkg in ${{ steps.discover.outputs.extensions }}; do
             echo "::group::Building ${pkg}"
             flatpak-builder --force-clean --install-deps-from=flathub \
-              --extra-sources=repo --repo=repo "build-${pkg}" \
+              --repo=repo "build-${pkg}" \
               "flatpak/manifests/${pkg}/${pkg}.yml"
             echo "::endgroup::"
           done
@@ -97,7 +133,7 @@ jobs:
           for pkg in ${{ steps.discover.outputs.apps }}; do
             echo "::group::Building ${pkg}"
             flatpak-builder --force-clean --install-deps-from=flathub \
-              --extra-sources=repo --repo=repo "build-${pkg}" \
+              --repo=repo "build-${pkg}" \
               "flatpak/manifests/${pkg}/${pkg}.yml"
             echo "::endgroup::"
           done
@@ -118,7 +154,7 @@ jobs:
           mv repo staging/repo
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: staging
 
