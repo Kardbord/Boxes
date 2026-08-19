@@ -14,9 +14,6 @@ jobs:
   build-sdk:
     name: Build SDK (${{ matrix.variant.arch }})
     runs-on: ${{ matrix.variant.runner }}
-    container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
-      options: --privileged
     strategy:
       matrix:
         variant:
@@ -28,13 +25,25 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      - name: Install Flatpak tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y --noninteractive flathub org.freedesktop.Sdk//25.08 org.freedesktop.Platform//25.08
+
+      - name: Cache flatpak-builder state
+        uses: actions/cache@v6
         with:
-          manifest-path: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
-          arch: ${{ matrix.variant.arch }}
-          build-bundle: false
-          upload-artifact: false
-          cache-key: flatpak-builder-sdk-${{ github.sha }}
+          path: .flatpak-builder
+          key: sdk-${{ matrix.variant.arch }}-${{ hashFiles('flatpak/manifests/io.github.kardbord.Sdk/*.yml') }}
+          restore-keys: sdk-${{ matrix.variant.arch }}-
+
+      - name: Build SDK
+        run: |
+          flatpak-builder --force-clean --install-deps-from=flathub \
+            --repo=repo --arch=${{ matrix.variant.arch }} build-sdk \
+            flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
 
       - uses: actions/upload-artifact@v7
         with:
