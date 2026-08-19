@@ -12,109 +12,80 @@ concurrency:
 
 jobs:
   build-sdk:
-    runs-on: ubuntu-latest
+    name: Build SDK (${{ matrix.variant.arch }})
+    runs-on: ${{ matrix.variant.runner }}
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
-
+    strategy:
+      matrix:
+        variant:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+      fail-fast: false
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-      - name: Build SDK
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           manifest-path: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
-          repo-dir: repo
-          cache-key: sdk-${{ github.sha }}
+          arch: ${{ matrix.variant.arch }}
+          build-bundle: false
+          upload-artifact: false
+          cache-key: flatpak-builder-sdk-${{ github.sha }}
 
-      - name: Upload SDK artifact
-        uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v7
         with:
-          name: sdk-repo
+          name: sdk-repo-${{ matrix.variant.arch }}
           path: repo
           retention-days: 1
 
-  build-and-deploy:
+  build-packages:
+    name: Build packages (${{ matrix.variant.arch }})
     needs: build-sdk
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.variant.runner }}
     container:
       image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
       options: --privileged
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-
+    strategy:
+      matrix:
+        variant:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+      fail-fast: false
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
-
-      - name: Install pandoc
-        run: dnf install -y pandoc
-
-      - name: Download SDK artifact
-        uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@v8
         with:
-          name: sdk-repo
+          name: sdk-repo-${{ matrix.variant.arch }}
           path: repo
 
-      - name: Register local repo
+      - name: Register SDK repo
         run: |
-          flatpak --system remote-add --if-not-exists --no-gpg-verify local-repo repo
-          flatpak --system install -y local-repo io.github.kardbord.Sdk
-          flatpak --system install -y local-repo io.github.kardbord.Platform
-
-      - name: Cache flatpak-builder state
-        uses: actions/cache@v6
-        with:
-          path: ~/.local/share/flatpak-builder
-          key: flatpak-builder-${{ hashFiles('flatpak/manifests/**/*.yml') }}
-          restore-keys: flatpak-builder-
-
-      - name: Import GPG key
-        id: gpg
-        run: |
-          if [ -n "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" ]; then
-            echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --import
-            KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | awk -F'/' '/sec/{print $2}' | awk '{print $1}' | head -1)
-            echo "gpg_key_id=${KEY_ID}" >> "$GITHUB_OUTPUT"
-            echo "gpg_signed=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::GPG key imported. Repo will be signed."
-          else
-            echo "gpg_signed=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::FLATPAK_GPG_PRIVATE_KEY not set. Repo will not be signed. Users will need --no-gpg-verify."
-          fi
+          flatpak remote-add --if-not-exists --no-gpg-verify local-repo "$(pwd)/repo"
+          flatpak install -y --noninteractive local-repo io.github.kardbord.Sdk
+          flatpak install -y --noninteractive local-repo io.github.kardbord.Platform
 
       - name: Discover manifests
         id: discover
         run: |
-          sdk=""
           extensions=""
           apps=""
 
           for dir in flatpak/manifests/*/; do
             name=$(basename "${dir}")
             case "${name}" in
-              io.github.kardbord.Sdk)
-                sdk="${name}"
-                ;;
-              io.github.kardbord.tool.*)
-                extensions="${extensions} ${name}"
-                ;;
-              io.github.kardbord.*)
-                apps="${apps} ${name}"
-                ;;
+              io.github.kardbord.Sdk) continue ;;
+              io.github.kardbord.tool.*) extensions="${extensions} ${name}" ;;
+              io.github.kardbord.*) apps="${apps} ${name}" ;;
             esac
           done
 
-          echo "sdk=${sdk}" >> "$GITHUB_OUTPUT"
           echo "extensions=${extensions# }" >> "$GITHUB_OUTPUT"
           echo "apps=${apps# }" >> "$GITHUB_OUTPUT"
 
@@ -138,6 +109,62 @@ jobs:
             echo "::endgroup::"
           done
 
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages-repo-${{ matrix.variant.arch }}
+          path: repo
+          retention-days: 1
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build-packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/configure-pages@v6
+
+      - name: Install tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak ostree pandoc
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages-repo-x86_64
+          path: packages-repo-x86_64
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages-repo-aarch64
+          path: packages-repo-aarch64
+
+      - name: Merge architecture repos
+        run: |
+          ostree pull-local --repo=packages-repo-x86_64/repo packages-repo-aarch64/repo
+          mv packages-repo-x86_64/repo repo
+
+      - name: Import GPG key
+        id: gpg
+        run: |
+          if [ -n "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" ]; then
+            echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --import
+            KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | awk -F'/' '/sec/{print $2}' | awk '{print $1}' | head -1)
+            echo "gpg_key_id=${KEY_ID}" >> "$GITHUB_OUTPUT"
+            echo "gpg_signed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::GPG key imported. Repo will be signed."
+          else
+            echo "gpg_signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::FLATPAK_GPG_PRIVATE_KEY not set. Repo will not be signed. Users will need --no-gpg-verify."
+          fi
+
       - name: Sign repository
         if: steps.gpg.outputs.gpg_signed == 'true'
         run: |
@@ -153,8 +180,7 @@ jobs:
           touch staging/.nojekyll
           mv repo staging/repo
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: staging
 
