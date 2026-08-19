@@ -37,12 +37,8 @@ inherit-extensions:
   - org.gtk.Gtk3theme                        # GTK3 theme support
 
 # SDK extensions inherited from the base SDK.
-# These provide cross-compilation, debug symbols, docs, and locale support.
+# These provide debug symbols, docs, and locale support.
 inherit-sdk-extensions:
-  - org.freedesktop.Sdk.Compat.aarch64       # aarch64 cross-compilation
-  - org.freedesktop.Sdk.Compat.aarch64.Debug # aarch64 debug symbols
-  - org.freedesktop.Sdk.Compat.i386          # i386 cross-compilation
-  - org.freedesktop.Sdk.Compat.i386.Debug    # i386 debug symbols
   - org.freedesktop.Sdk.Debug                # Debug symbols for the SDK
   - org.freedesktop.Sdk.Docs                 # SDK documentation
   - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
