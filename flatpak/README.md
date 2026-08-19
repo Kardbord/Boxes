@@ -280,10 +280,10 @@ signature lookaside are published alongside the index on Pages.
 
 3. Existing users will need to re-add the remote:
    ```bash
-   flatpak remote-delete kardbord
+   flatpak remote-delete kardbord-boxes
    flatpak remote-add --user \
      --signature-lookaside=https://kardbord.github.io/Boxes/sigs \
-     kardbord-boxes https://kardbord.github.io/Boxes/kardbord.flatpakrepo
+     kardbord-boxes https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
    ```
 
 ## Troubleshooting

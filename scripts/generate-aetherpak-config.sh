@@ -16,11 +16,11 @@ OUTPUT="$REPO_ROOT/aetherpak-apps.yaml"
 
 generate() {
   cat <<'HEADER'
-remote_name: kardbord
+remote_name: kardbord-boxes
 defaults:
   remotes:
     flathub: https://dl.flathub.org/repo/flathub.flatpakrepo
-    kardbord: https://kardbord.github.io/Boxes/kardbord.flatpakrepo
+    kardbord-boxes: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
   flatpaks:
     - remote: flathub
       ref: org.freedesktop.Sdk//25.08

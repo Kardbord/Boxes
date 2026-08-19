@@ -1,4 +1,4 @@
-remote_name: kardbord
+remote_name: kardbord-boxes
 apps:
   - id: io.github.kardbord.Sdk
     manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
