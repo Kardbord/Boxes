@@ -63,24 +63,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Register kardbord-boxes remote
-        run: |
-          flatpak remote-add --if-not-exists kardbord-boxes \
-            https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
-
       - name: Generate aetherpak-apps.yaml
         run: scripts/generate-aetherpak-config.sh
 
       - name: Build
         uses: aetherpak/actions/build@v3
+        env:
+          AETHERPAK_CONFIG: aetherpak-apps.yaml
         with:
           manifest-path: ${{ matrix.manifest }}
           app-id: ${{ matrix.app-id }}
           arch: ${{ matrix.arch }}
           branch: ${{ matrix.branch }}
           run-linter: ${{ matrix.run-linter }}
-          builder-args: |
-            --install-deps-from=kardbord-boxes
 
       - name: Upload OSTree repo
         uses: actions/upload-artifact@v7
@@ -152,9 +147,10 @@ jobs:
       - name: Build and deploy site
         id: deploy
         uses: aetherpak/actions/publish-site@v3
+        env:
+          AETHERPAK_CONFIG: aetherpak-apps.yaml
         with:
           records-dir: _records
           pages-url: https://kardbord.github.io/Boxes
-          remote-name: kardbord-boxes
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
