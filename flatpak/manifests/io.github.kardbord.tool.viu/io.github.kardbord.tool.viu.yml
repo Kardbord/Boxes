@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.viu
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: viu
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 viu-*-unknown-linux-musl ${FLATPAK_DEST}/bin/viu
+    sources:
+      - type: file
+        only-arches:
+          - x86_64
+        url: https://github.com/atanunq/viu/releases/download/v1.6.1/viu-x86_64-unknown-linux-musl
+        sha256: f108265ff0441406290d5f53f64a2b88d4db530a7389a5dcd771bf782aa3ec6e
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/atanunq/viu/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("x86_64-unknown-linux-musl$")) | .browser_download_url'
+      - type: file
+        only-arches:
+          - aarch64
+        url: https://github.com/atanunq/viu/releases/download/v1.6.1/viu-aarch64-unknown-linux-musl
+        sha256: 64fd815cc4c9a215aab4e81e2165db78127a84789a8b04df060b3de82ac4613b
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/atanunq/viu/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl$")) | .browser_download_url'
