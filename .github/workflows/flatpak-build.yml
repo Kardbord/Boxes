@@ -98,6 +98,7 @@ jobs:
           AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
           OCI_USERNAME: ${{ github.actor }}
           OCI_PASSWORD: ${{ github.token }}
+          AETHERPAK_GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
         run: |
           aetherpak push-oci --repo-path _repo \
             --app-id io.github.kardbord.Platform \
