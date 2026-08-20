@@ -17,6 +17,7 @@ jobs:
   prune:
     uses: aetherpak/actions/.github/workflows/prune-github-container-registry.yml@v3
     with:
+      oci-repository: boxes
       dry-run: ${{ inputs.dry-run || false }}
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
