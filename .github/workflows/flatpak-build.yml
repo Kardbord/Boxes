@@ -20,6 +20,14 @@ jobs:
   # ────────────────────────────────────────────────────────────
   # Phase 1: Build SDK (produces Platform + SDK runtimes)
   # ────────────────────────────────────────────────────────────
+  # TODO: Revert to reusable workflow once these upstream issues are resolved:
+  #   1. aetherpak/cli: IsRefRelated doesn't account for id-platform relationships
+  #      — Platform OCI image is skipped when pushing SDK refs
+  #   2. aetherpak/cli: build CLI doesn't extract id from manifest when --manifest
+  #      is passed without --app-id
+  #   3. aetherpak/actions: build action requires manifest-path even when
+  #      AETHERPAK_CONFIG provides it
+  # See: https://github.com/aetherpak/cli/issues (file these)
   build-sdk:
     runs-on: ${{ matrix.runner }}
     container:
@@ -41,7 +49,10 @@ jobs:
           AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
         with:
           manifest-path: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+          app-id: io.github.kardbord.Sdk
           arch: ${{ matrix.arch }}
+          branch: stable
+          run-linter: false
 
       - uses: actions/upload-artifact@v7
         with:
