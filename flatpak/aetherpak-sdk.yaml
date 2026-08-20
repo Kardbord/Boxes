@@ -5,3 +5,6 @@ apps:
     arches: [x86_64, aarch64]
     branch: stable
   - id: io.github.kardbord.Platform
+    manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+    arches: [x86_64, aarch64]
+    branch: stable
