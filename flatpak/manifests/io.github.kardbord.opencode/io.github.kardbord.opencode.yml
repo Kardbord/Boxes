@@ -26,7 +26,7 @@ finish-args:
   - --share=network
   - --filesystem=/tmp
   - --filesystem=/var/tmp
-  - --filesystem=xdg-config/opencode:ro
+  - --filesystem=xdg-config/opencode
   - --socket=wayland
   - --socket=fallback-x11
   - --share=ipc

@@ -20,7 +20,7 @@ modules:
 finish-args:
   - --filesystem=/tmp
   - --filesystem=/var/tmp
-  - --filesystem=xdg-config/nvim:ro
+  - --filesystem=xdg-config/nvim
   - --share=network
   - --socket=wayland
   - --socket=fallback-x11
