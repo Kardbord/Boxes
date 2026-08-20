@@ -53,6 +53,9 @@ jobs:
           arch: ${{ matrix.arch }}
           branch: stable
           run-linter: false
+          builder-args: |
+            --disable-rofiles-fuse
+            --user
 
       - uses: actions/upload-artifact@v7
         with:
