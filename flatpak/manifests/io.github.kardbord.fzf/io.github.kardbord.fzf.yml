@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.fzf
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+command: fzf-wrapper
+
+add-extensions:
+  io.github.kardbord.tool.fzf:
+    directory: lib/kardbord-tools/fzf
+    version: stable
+    no-autodownload: false
+
+modules:
+  - name: fzf
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 fzf-wrapper /app/bin/fzf-wrapper
+    sources:
+      - type: file
+        path: fzf-wrapper
+
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/fzf

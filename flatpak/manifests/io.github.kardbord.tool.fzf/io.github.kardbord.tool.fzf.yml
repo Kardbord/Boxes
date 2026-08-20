@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.fzf
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: fzf
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 fzf ${FLATPAK_DEST}/bin/fzf
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/junegunn/fzf/releases/download/v0.74.3/fzf-0.74.3-linux_amd64.tar.gz
+        sha256: 3501a595e4b5c40a6b047340a0e8f805c46fd4e61ef95ef8a136ba8c61cf6f22
+        strip-components: 0
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/junegunn/fzf/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("linux_amd64\\.tar\\.gz$")) | .browser_download_url'
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/junegunn/fzf/releases/download/v0.74.3/fzf-0.74.3-linux_arm64.tar.gz
+        sha256: 4a17a17b46bd0c4873e995533de508995c11572c0be0664a5dbcf13f60463046
+        strip-components: 0
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/junegunn/fzf/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("linux_arm64\\.tar\\.gz$")) | .browser_download_url'
