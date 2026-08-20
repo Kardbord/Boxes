@@ -98,12 +98,12 @@ jobs:
           AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
           OCI_USERNAME: ${{ github.actor }}
           OCI_PASSWORD: ${{ github.token }}
-          AETHERPAK_GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
         run: |
           aetherpak push-oci --repo-path _repo \
             --app-id io.github.kardbord.Platform \
             --arch ${{ matrix.arch }} \
-            --records-dir _records-platform
+            --records-dir _records-platform \
+            --gpg-key '${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}'
 
       - uses: actions/upload-artifact@v7
         with:
