@@ -6,8 +6,13 @@ set -euo pipefail
 # Scans the manifests directory and produces an AetherPak config for all
 # packages except the SDK (which is handled by flatpak/aetherpak-sdk.yaml).
 #
+# Set INCLUDE_SDK=true to include io.github.kardbord.Sdk and
+# io.github.kardbord.Platform in the generated config (used at deploy time
+# so publish-site adds them to the final flatpakrepo index).
+#
 # Usage:
 #   scripts/generate-aetherpak-config.sh          # Write aetherpak-apps.yaml
+#   INCLUDE_SDK=true scripts/generate-aetherpak-config.sh  # Include SDK/Platform
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -35,7 +40,10 @@ HEADER
     name="$(basename "$dir")"
 
     # SDK is handled by flatpak/aetherpak-sdk.yaml (Phase 1)
-    [[ "$name" == "io.github.kardbord.Sdk" ]] && continue
+    # Include in deploy config so publish-site adds them to the index
+    if [[ "$name" == "io.github.kardbord.Sdk" && "${INCLUDE_SDK:-}" != "true" ]]; then
+      continue
+    fi
 
     # Find the manifest file (matches directory name)
     manifest="$dir${name}.yml"
@@ -61,6 +69,16 @@ HEADER
     arches: [x86_64, aarch64]
     branch: stable
 EOF
+
+    # Platform is a side-effect of the SDK build — emit both entries
+    if [[ "$name" == "io.github.kardbord.Sdk" ]]; then
+      cat <<EOF
+  - id: io.github.kardbord.Platform
+    manifest: $rel_path
+    arches: [x86_64, aarch64]
+    branch: stable
+EOF
+    fi
   done
 }
 
