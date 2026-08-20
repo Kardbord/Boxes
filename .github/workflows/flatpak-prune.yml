@@ -18,3 +18,5 @@ jobs:
     uses: aetherpak/actions/.github/workflows/prune-github-container-registry.yml@v3
     with:
       dry-run: ${{ inputs.dry-run || false }}
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
