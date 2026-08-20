@@ -31,7 +31,7 @@ jobs:
   build-sdk:
     runs-on: ${{ matrix.runner }}
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      image: ghcr.io/aetherpak/cli:v0.32.0-builder
       options: --privileged
     strategy:
       fail-fast: false
@@ -53,9 +53,6 @@ jobs:
           arch: ${{ matrix.arch }}
           branch: stable
           run-linter: false
-          builder-args: |
-            --disable-rofiles-fuse
-            --user
 
       - uses: actions/upload-artifact@v7
         with:
@@ -182,7 +179,7 @@ jobs:
       matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
     runs-on: ${{ matrix.runner }}
     container:
-      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      image: ghcr.io/aetherpak/cli:v0.32.0-builder
       options: --privileged
     steps:
       - uses: actions/checkout@v7
