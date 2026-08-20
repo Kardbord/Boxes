@@ -138,6 +138,8 @@ jobs:
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
+      - uses: actions/deploy-pages@v5
+
   # ────────────────────────────────────────────────────────────
   # Phase 2: Build, publish, and deploy apps + extensions
   # ────────────────────────────────────────────────────────────
@@ -271,3 +273,5 @@ jobs:
           pages-url: https://kardbord.github.io/Boxes
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+
+      - uses: actions/deploy-pages@v5
