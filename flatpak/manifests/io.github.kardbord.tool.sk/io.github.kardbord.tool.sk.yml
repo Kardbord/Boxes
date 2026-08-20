@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.sk
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: sk
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 sk ${FLATPAK_DEST}/bin/sk
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/skim-rs/skim/releases/download/v5.6.5/skim-x86_64-unknown-linux-musl.tar.xz
+        sha256: 9d11a259718ca30fd4aacd962d1db9153bdb7b389a7d980b2a3a0907b94cb7fa
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/skim-rs/skim/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("x86_64-unknown-linux-musl\\.tar\\.xz$")) | .browser_download_url'
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/skim-rs/skim/releases/download/v5.6.5/skim-aarch64-unknown-linux-musl.tar.xz
+        sha256: 0b347b30fe01f709ead7733505432206016443dba6939d266b2db20c0cae5234
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/skim-rs/skim/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.xz$")) | .browser_download_url'
