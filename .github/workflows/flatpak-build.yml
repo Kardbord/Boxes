@@ -93,24 +93,15 @@ jobs:
           include-hidden-files: true
           retention-days: 1
 
-      - name: Push Platform OCI
-        env:
-          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
-          OCI_USERNAME: ${{ github.actor }}
-          OCI_PASSWORD: ${{ github.token }}
-          GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-        run: |
-          keyfile="$(mktemp)"
-          chmod 600 "$keyfile"
-          trap 'rm -f "$keyfile"' EXIT
-          printf '%s' "$GPG_KEY" > "$keyfile"
-          repo_name="$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
-          aetherpak push-oci --repo-path _repo \
-            --app-id io.github.kardbord.Platform \
-            --arch ${{ matrix.arch }} \
-            --records-dir _records-platform \
-            --gpg-key "$keyfile" \
-            --oci-repository "$repo_name"
+      - uses: aetherpak/actions/publish-oci@v3
+        with:
+          repo-path: _repo
+          app-id: io.github.kardbord.Platform
+          arch: ${{ matrix.arch }}
+          branch: stable
+          signing: auto
+          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          records-dir: _records-platform
 
       - uses: actions/upload-artifact@v7
         with:
