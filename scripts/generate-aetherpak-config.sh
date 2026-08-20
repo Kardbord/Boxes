@@ -26,6 +26,8 @@ defaults:
       ref: org.freedesktop.Sdk//25.08
     - remote: kardbord-boxes
       ref: io.github.kardbord.Sdk//stable
+    - remote: kardbord-boxes
+      ref: io.github.kardbord.Platform//stable
 apps:
 HEADER
 
