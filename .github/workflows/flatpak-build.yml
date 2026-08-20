@@ -133,12 +133,15 @@ jobs:
         env:
           AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
         with:
+          pages-artifact-name: github-pages-sdk
           records-dir: _records
           pages-url: https://kardbord.github.io/Boxes
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
       - uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-sdk
 
   # ────────────────────────────────────────────────────────────
   # Phase 2: Build, publish, and deploy apps + extensions
@@ -269,9 +272,12 @@ jobs:
         env:
           AETHERPAK_CONFIG: aetherpak-apps.yaml
         with:
+          pages-artifact-name: github-pages-apps
           records-dir: _records
           pages-url: https://kardbord.github.io/Boxes
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
       - uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-apps
