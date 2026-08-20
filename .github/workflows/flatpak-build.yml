@@ -20,14 +20,11 @@ jobs:
   # ────────────────────────────────────────────────────────────
   # Phase 1: Build SDK (produces Platform + SDK runtimes)
   # ────────────────────────────────────────────────────────────
-  # TODO: Revert to reusable workflow once these upstream issues are resolved:
-  #   1. aetherpak/cli: IsRefRelated doesn't account for id-platform relationships
-  #      — Platform OCI image is skipped when pushing SDK refs
-  #   2. aetherpak/cli: build CLI doesn't extract id from manifest when --manifest
-  #      is passed without --app-id
-  #   3. aetherpak/actions: build action requires manifest-path even when
-  #      AETHERPAK_CONFIG provides it
-  # See: https://github.com/aetherpak/cli/issues (file these)
+  # Phase 1 cannot use the reusable workflow (aetherpak/actions/.github/workflows/publish.yml@v3)
+  # because the Platform runtime is a side-effect of the SDK build — both refs live in the
+  # same OSTree repo. The reusable workflow builds each app independently, so Platform would
+  # have no repo to push from. Composite actions let us push both SDK and Platform OCI images
+  # from the SDK's repo.
   build-sdk:
     runs-on: ${{ matrix.runner }}
     container:
