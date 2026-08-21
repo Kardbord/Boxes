@@ -14,8 +14,13 @@
 # ships a different version.
 
 for _dir in /usr/lib/kardbord-tools/*/bin /app/lib/kardbord-tools/*/bin; do
-	[ -d "$_dir" ] && PATH="$_dir:$PATH"
+	[ -d "${_dir}" ] && PATH="${_dir}:${PATH}"
 done
+
+for _dir in /usr/lib/sdk/*; do
+	[ -f "${_dir}/enable.sh" ] && . "${_dir}/enable.sh"
+done
+
 export PATH
 unset _dir
 

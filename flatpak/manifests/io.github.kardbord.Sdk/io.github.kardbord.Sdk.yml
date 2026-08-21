@@ -25,7 +25,6 @@ writable-sdk: true
 # Inherit extensions found via flatpak info --show-metadata org.freedesktop.Sdk//25.08
 # Platform extensions provide graphics drivers, codecs, themes, and other host integration.
 inherit-extensions:
-  - org.freedesktop.Platform.codecs-extra    # Additional media codecs
   - org.freedesktop.Platform.GL              # OpenGL drivers
   - org.freedesktop.Platform.GL.Debug        # OpenGL debug symbols
   - org.freedesktop.Platform.GStreamer       # GStreamer plugins
@@ -34,6 +33,8 @@ inherit-extensions:
   - org.freedesktop.Platform.VAAPI.Intel     # Intel hardware video acceleration
   - org.freedesktop.Platform.VAAPI.nvidia    # NVIDIA hardware video acceleration
   - org.freedesktop.Platform.VulkanLayer     # Vulkan layers
+  - org.freedesktop.Platform.codecs-extra    # Additional media codecs
+  - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
   - org.gtk.Gtk3theme                        # GTK3 theme support
 
 # SDK extensions inherited from the base SDK.
@@ -41,7 +42,6 @@ inherit-extensions:
 inherit-sdk-extensions:
   - org.freedesktop.Sdk.Debug                # Debug symbols for the SDK
   - org.freedesktop.Sdk.Docs                 # SDK documentation
-  - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
   - org.freedesktop.Sdk.Locale               # SDK locale data
 
 # Extension points provided by this SDK.
