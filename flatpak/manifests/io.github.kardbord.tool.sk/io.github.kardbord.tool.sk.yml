@@ -34,7 +34,3 @@ modules:
           url: https://api.github.com/repos/skim-rs/skim/releases/latest
           version-query: '.tag_name | sub("^v"; "")'
           url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.xz$")) | .browser_download_url'
-
-cleanup-commands:
-  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
-  - mkdir -p ${FLATPAK_DEST}/lib/sdk

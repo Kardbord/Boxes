@@ -34,7 +34,6 @@ inherit-extensions:
   - org.freedesktop.Platform.VAAPI.nvidia    # NVIDIA hardware video acceleration
   - org.freedesktop.Platform.VulkanLayer     # Vulkan layers
   - org.freedesktop.Platform.codecs-extra    # Additional media codecs
-  - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
   - org.gtk.Gtk3theme                        # GTK3 theme support
 
 # SDK extensions inherited from the base SDK.
@@ -42,6 +41,7 @@ inherit-extensions:
 inherit-sdk-extensions:
   - org.freedesktop.Sdk.Debug                # Debug symbols for the SDK
   - org.freedesktop.Sdk.Docs                 # SDK documentation
+  - org.freedesktop.Sdk.Extension            # SDK extensions (language toolchains, etc.)
   - org.freedesktop.Sdk.Locale               # SDK locale data
 
 # Extension points provided by this SDK.
@@ -79,8 +79,3 @@ modules:
     sources:
       - type: file
         path: activate-kardbord-env
-cleanup-commands:
-  - mkdir -p /app/lib/kardbord-tools
-  - mkdir -p /app/lib/sdk
-  - mkdir -p /usr/lib/kardbord-tools
-  - mkdir -p /usr/lib/sdk

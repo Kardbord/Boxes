@@ -2,7 +2,7 @@
 
 id: io.github.kardbord.treesitter-cli
 default-branch: stable
-runtime: io.github.kardbord.Platform
+runtime: io.github.kardbord.Sdk
 runtime-version: stable
 sdk: io.github.kardbord.Sdk
 command: treesitter-cli-wrapper
@@ -24,4 +24,3 @@ modules:
 
 cleanup-commands:
   - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/treesitter-cli
-  - mkdir -p ${FLATPAK_DEST}/lib/sdk

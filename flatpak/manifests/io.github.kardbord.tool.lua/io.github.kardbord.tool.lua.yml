@@ -2,7 +2,7 @@
 
 id: io.github.kardbord.tool.lua
 default-branch: stable
-runtime: io.github.kardbord.Platform
+runtime: io.github.kardbord.Sdk
 runtime-version: stable
 sdk: io.github.kardbord.Sdk
 build-extension: true
@@ -30,6 +30,3 @@ modules:
         url: https://github.com/luarocks/luarocks/archive/refs/tags/v3.13.0.tar.gz
         sha256: 71adfead6966e2912034b8fb8103dd343c3adc6c91a276f1d209eebbaefe3a15
         # TODO: add x-checker-data
-cleanup-commands:
-  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
-  - mkdir -p ${FLATPAK_DEST}/lib/sdk

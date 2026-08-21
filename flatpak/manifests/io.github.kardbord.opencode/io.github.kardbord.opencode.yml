@@ -2,7 +2,7 @@
 
 id: io.github.kardbord.opencode
 default-branch: stable
-runtime: io.github.kardbord.Platform
+runtime: io.github.kardbord.Sdk
 runtime-version: stable
 sdk: io.github.kardbord.Sdk
 command: opencode-wrapper
@@ -33,4 +33,3 @@ finish-args:
 
 cleanup-commands:
   - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/opencode
-  - mkdir -p ${FLATPAK_DEST}/lib/sdk
