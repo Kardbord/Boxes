@@ -154,6 +154,7 @@ Two mechanisms detect upstream changes:
 
    cleanup-commands:
      - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+     - mkdir -p ${FLATPAK_DEST}/lib/sdk
    ```
 
    The `cleanup-commands` entry is required for **all** apps on this runtime,

@@ -33,3 +33,4 @@ finish-args:
 
 cleanup-commands:
   - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/opencode
+  - mkdir -p ${FLATPAK_DEST}/lib/sdk

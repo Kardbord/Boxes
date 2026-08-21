@@ -21,3 +21,6 @@ modules:
         sha256: 837d299e8f7ddf2be31a229a7a7e019d354979825117989acb3b32b1a9be262a
         # TODO: add x-checker-data
 
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+  - mkdir -p ${FLATPAK_DEST}/lib/sdk

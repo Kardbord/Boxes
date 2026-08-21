@@ -414,9 +414,10 @@ signature lookaside are published alongside the index on Pages.
    building from source, define `modules` directly.
 3. Use `runtime: io.github.kardbord.Platform` and `sdk: io.github.kardbord.Sdk`
    to inherit the `io.github.kardbord.tool` extension point automatically.
-4. Add `cleanup-commands: - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools` to
-   create the extension mount point. Without this, bwrap will fail with a
-   read-only filesystem error when mounting extensions.
+4. Add `cleanup-commands: - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+   \- mkdir -p ${FLATPAK_DEST}/lib/sdk` to create the extension mount points.
+   Without this, bwrap will fail with a read-only filesystem error when
+   mounting extensions.
 5. If the app uses `base:`, add an upstream tracking variable and extend the
    `flatpak-upstream-check.yml` workflow (see [Upstream Tracking](#upstream-tracking)).
 6. Do not grant filesystem access in `finish-args` beyond what the app needs to

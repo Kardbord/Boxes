@@ -36,3 +36,6 @@ modules:
           url: https://api.github.com/repos/anomalyco/opencode/releases/latest
           version-query: '.tag_name | sub("^v"; "")'
           url-query: '.assets[] | select(.name | test("linux-arm64\\.tar\\.gz$")) | .browser_download_url'
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+  - mkdir -p ${FLATPAK_DEST}/lib/sdk

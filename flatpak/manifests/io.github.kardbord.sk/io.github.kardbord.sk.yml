@@ -24,3 +24,4 @@ modules:
 
 cleanup-commands:
   - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/sk
+  - mkdir -p ${FLATPAK_DEST}/lib/sdk

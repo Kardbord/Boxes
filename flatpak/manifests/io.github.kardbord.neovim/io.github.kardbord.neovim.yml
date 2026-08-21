@@ -25,3 +25,7 @@ finish-args:
   - --socket=wayland
   - --socket=fallback-x11
   - --share=ipc
+
+cleanup-commands:
+  - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
+  - mkdir -p ${FLATPAK_DEST}/lib/sdk

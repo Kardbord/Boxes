@@ -79,3 +79,8 @@ modules:
     sources:
       - type: file
         path: activate-kardbord-env
+cleanup-commands:
+  - mkdir -p /app/lib/kardbord-tools
+  - mkdir -p /app/lib/sdk
+  - mkdir -p /usr/lib/kardbord-tools
+  - mkdir -p /usr/lib/sdk

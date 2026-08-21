@@ -24,3 +24,4 @@ modules:
 
 cleanup-commands:
   - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools/ripgrep
+  - mkdir -p ${FLATPAK_DEST}/lib/sdk
