@@ -1,0 +1,32 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.lua
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: lua
+    buildsystem: simple
+    build-commands:
+      - make INSTALL_TOP=${FLATPAK_DEST} all install
+    sources:
+      - type: archive
+        url: https://www.lua.org/ftp/lua-5.5.1.tar.gz
+        sha256: 1c4b4068d67061f2a2231ad2b5422e77acea1487ea9890f6320af614f4373dce
+        # TODO: add x-checker-data
+
+  - name: luarocks
+    buildsystem: simple
+    build-commands:
+      - ./configure --with-lua-bin=${FLATPAK_DEST}/bin --prefix=${FLATPAK_DEST}
+      - make
+      - make install
+    sources:
+      - type: archive
+        url: https://github.com/luarocks/luarocks/archive/refs/tags/v3.13.0.tar.gz
+        sha256: 71adfead6966e2912034b8fb8103dd343c3adc6c91a276f1d209eebbaefe3a15
+        # TODO: add x-checker-data
