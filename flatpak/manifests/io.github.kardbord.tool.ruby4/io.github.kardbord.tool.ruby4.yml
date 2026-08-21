@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.ruby4
+default-branch: stable
+runtime: io.github.kardbord.Platform
+runtime-version: stable
+sdk: io.github.kardbord.Sdk
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: ruby4
+    buildsystem: simple
+    build-commands:
+      - ./configure --prefix=${FLATPAK_DEST}
+      - make  -j ${FLATPAK_BUILDER_N_JOBS}
+      - make install
+    sources:
+      - type: archive
+        url: https://cache.ruby-lang.org/pub/ruby/4.0/ruby-4.0.6.tar.gz
+        sha256: 837d299e8f7ddf2be31a229a7a7e019d354979825117989acb3b32b1a9be262a
+        # TODO: add x-checker-data
+
