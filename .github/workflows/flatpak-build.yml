@@ -175,6 +175,7 @@ jobs:
   build-apps:
     needs: plan-apps
     if: needs.plan-apps.outputs.matrix != ''
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
@@ -206,8 +207,24 @@ jobs:
           path: _repo
           retention-days: 1
 
-  publish-oci:
+  build-apps-gate:
     needs: [plan-apps, build-apps]
+    if: always() && needs.plan-apps.outputs.matrix != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if any build succeeded
+        env:
+          BUILD_RESULT: ${{ needs.build-apps.result }}
+        run: |
+          if [[ "$BUILD_RESULT" == "success" ]]; then
+            echo "At least one build succeeded"
+          else
+            echo "All builds failed"
+            exit 1
+          fi
+
+  publish-oci:
+    needs: [plan-apps, build-apps-gate]
     if: needs.plan-apps.outputs.matrix != ''
     strategy:
       fail-fast: false
@@ -217,12 +234,15 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Download OSTree repo
+        continue-on-error: true
+        id: download
         uses: actions/download-artifact@v8
         with:
           name: repo-${{ matrix.app-id }}-${{ matrix.arch }}
           path: _repo
 
       - name: Push OCI image
+        if: steps.download.outcome == 'success'
         uses: aetherpak/actions/publish-oci@v3
         with:
           repo-path: _repo
@@ -233,6 +253,7 @@ jobs:
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
       - name: Upload record
+        if: steps.download.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
           name: aetherpak-record-${{ matrix.app-id }}-${{ matrix.arch }}
