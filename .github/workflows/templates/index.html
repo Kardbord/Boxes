@@ -4,12 +4,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ .RepoTitle }}</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366f1'/><path d='M8 12h10l4 4v6H8V12z' fill='white'/><rect x='11' y='18' width='10' height='2' rx='1' fill='white' opacity='.6'/></svg>">
+  <title>Kardbord's Boxes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #09090b;
       --card: #18181b;
       --border: #27272a;
+      --code-bg: #111513;
+      --code-text: #ecf1ed;
       --code-border: #202723;
       --text: #e4e4e7;
       --text-heading: #a0a0a4;
@@ -18,15 +24,19 @@
       --link: #a5b4fc;
       --primary-glow: rgba(99, 102, 241, 0.10);
       --success: #10b981;
-      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --shadow: 0 4px 20px rgba(9, 9, 11, 0.05);
+      --shadow-hover: 0 12px 30px rgba(9, 9, 11, 0.12);
+      --font-sans: "Outfit", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg: #f8fafc;
+        --bg: #f9f9fb;
         --card: #ffffff;
-        --border: #e2e8f0;
+        --border: #e4e4e7;
+        --code-bg: #f6f8fa;
+        --code-text: #1f2328;
         --code-border: #d0d7de;
         --text: #0f172a;
         --text-heading: #0f172a;
@@ -35,13 +45,17 @@
         --link: #4338ca;
         --primary-glow: rgba(79, 70, 229, 0.10);
         --success: #059669;
+        --shadow: 0 4px 20px rgba(9, 9, 11, 0.05);
+        --shadow-hover: 0 12px 30px rgba(9, 9, 11, 0.12);
       }
     }
 
     html.light {
-      --bg: #f8fafc;
+      --bg: #f9f9fb;
       --card: #ffffff;
-      --border: #e2e8f0;
+      --border: #e4e4e7;
+      --code-bg: #f6f8fa;
+      --code-text: #1f2328;
       --code-border: #d0d7de;
       --text: #0f172a;
       --text-heading: #0f172a;
@@ -50,12 +64,16 @@
       --link: #4338ca;
       --primary-glow: rgba(79, 70, 229, 0.10);
       --success: #059669;
+      --shadow: 0 4px 20px rgba(9, 9, 11, 0.05);
+      --shadow-hover: 0 12px 30px rgba(9, 9, 11, 0.12);
     }
 
     html.dark {
       --bg: #09090b;
       --card: #18181b;
       --border: #27272a;
+      --code-bg: #111513;
+      --code-text: #ecf1ed;
       --code-border: #202723;
       --text: #e4e4e7;
       --text-heading: #a0a0a4;
@@ -64,6 +82,8 @@
       --link: #a5b4fc;
       --primary-glow: rgba(99, 102, 241, 0.10);
       --success: #10b981;
+      --shadow: 0 4px 20px rgba(9, 9, 11, 0.05);
+      --shadow-hover: 0 12px 30px rgba(9, 9, 11, 0.12);
     }
 
     * {
@@ -116,12 +136,38 @@
       z-index: 10;
     }
 
+    @media (max-width: 480px) {
+      .header-actions {
+        position: static;
+        margin-top: 0.5rem;
+        justify-content: flex-end;
+      }
+    }
+
+    .theme-toggle-btn:focus-visible,
+    .btn:focus-visible,
+    .btn-copy-floating:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
     .theme-toggle-btn {
       background: var(--card);
       border: 1px solid var(--border);
       color: var(--text-muted);
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 10px;
       cursor: pointer;
       display: flex;
@@ -130,19 +176,34 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .theme-toggle-btn .sun-icon { display: none; }
+    .theme-toggle-btn .sun-icon {
+      display: none;
+    }
 
-    html.dark .theme-toggle-btn .sun-icon { display: block; }
-    html.dark .theme-toggle-btn .moon-icon { display: none; }
+    html.dark .theme-toggle-btn .sun-icon {
+      display: block;
+    }
+
+    html.dark .theme-toggle-btn .moon-icon {
+      display: none;
+    }
 
     @media (prefers-color-scheme: light) {
-      html:not(.dark) .theme-toggle-btn .sun-icon { display: block; }
-      html:not(.dark) .theme-toggle-btn .moon-icon { display: none; }
+      html:not(.dark) .theme-toggle-btn .sun-icon {
+        display: block;
+      }
+      html:not(.dark) .theme-toggle-btn .moon-icon {
+        display: none;
+      }
     }
 
     @media (prefers-color-scheme: dark) {
-      html:not(.light) .theme-toggle-btn .sun-icon { display: none; }
-      html:not(.light) .theme-toggle-btn .moon-icon { display: block; }
+      html:not(.light) .theme-toggle-btn .sun-icon {
+        display: none;
+      }
+      html:not(.light) .theme-toggle-btn .moon-icon {
+        display: block;
+      }
     }
 
     h1 {
@@ -165,35 +226,460 @@
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
-      box-shadow: 0 4px 20px rgba(9, 9, 11, 0.05);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    h2 {
-      font-size: 1.25rem;
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(600px circle at var(--mouse-x, -200px) var(--mouse-y, -200px), rgba(139, 92, 246, 0.06), transparent 40%);
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    html.light .card::before {
+      background: radial-gradient(600px circle at var(--mouse-x, -200px) var(--mouse-y, -200px), rgba(124, 58, 237, 0.03), transparent 40%);
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .card-number {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      margin-bottom: 1rem;
-      color: var(--text);
-    }
-
-    h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin: 1rem 0 0.5rem;
-      color: var(--text-muted);
-    }
-
-    p {
-      margin-bottom: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    code {
       font-family: var(--font-mono);
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+
+    .section-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 9999px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
       font-size: 0.85rem;
-      background: var(--primary-glow);
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .section-nav a:hover {
+      border-color: var(--primary);
       color: var(--primary);
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .nav-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary-glow);
+      color: var(--primary);
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3.5rem 2rem;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      color: var(--text-muted);
+    }
+
+    .empty-state.error {
+      border-color: #ef4444;
+      color: #f87171;
+    }
+
+    .empty-state.empty {
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .empty-state .empty-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state .empty-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .empty-state .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--primary);
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .empty-state .retry-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-glow);
+    }
+
+    .app-entry {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .app-entry:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .app-icon-initial {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      background: var(--primary-glow);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .app-head {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .app-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .app-name {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .app-id {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .image-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .badge {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    html.light .badge {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .badge.primary {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .platform-tag {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .skeleton-list {
+      padding: 1rem 0;
+    }
+
+    .skeleton-item {
+      height: 3.5rem;
+      background: linear-gradient(90deg, var(--border) 25%, color-mix(in srgb, var(--border) 60%, var(--text-muted)) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite linear;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 0 1rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    footer .footer-sep {
+      width: 60px;
+      height: 2px;
+      background: var(--border);
+      border-radius: 1px;
+      margin: 2rem auto 1.5rem;
+      opacity: 0.6;
+    }
+
+    footer .footer-power {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    footer .footer-power a {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    footer .footer-power a:hover {
+      text-decoration: underline;
+    }
+
+    footer .footer-updated {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .code-container {
+      position: relative;
+      margin: 1rem 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--code-border);
+      background: var(--code-bg);
+    }
+
+    .code-container .code-block {
+      padding: 0.85rem 1rem;
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      overflow-x: auto;
+    }
+
+    .code-container .code-block code {
+      display: block;
+      white-space: pre;
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      line-height: 1.6;
+      color: var(--code-text);
+    }
+
+    .btn-copy-floating {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      padding: 0.35rem;
+      border-radius: 6px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .btn-copy-floating:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+    }
+
+    .btn-copy-floating.success {
+      color: var(--success);
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .code-keyword {
+      color: #58a6ff;
+      font-weight: 600;
+    }
+
+    .code-subcommand {
+      color: #f28b54;
+    }
+
+    .code-flag {
+      color: #ff7b72;
+    }
+
+    .code-url {
+      color: #34d399;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .code-keyword {
+        color: #0550ae;
+      }
+      .code-subcommand {
+        color: #953800;
+      }
+      .code-flag {
+        color: #cf222e;
+      }
+      .code-url {
+        color: #0550ae;
+      }
+    }
+
+    html.dark .code-keyword {
+      color: #58a6ff;
+    }
+
+    html.dark .code-subcommand {
+      color: #f28b54;
+    }
+
+    html.dark .code-flag {
+      color: #ff7b72;
+    }
+
+    html.dark .code-url {
+      color: #34d399;
+    }
+
+    html.light .code-keyword {
+      color: #0550ae;
+    }
+
+    html.light .code-subcommand {
+      color: #953800;
+    }
+
+    html.light .code-flag {
+      color: #cf222e;
+    }
+
+    html.light .code-url {
+      color: #0550ae;
+    }
+
+    .obs-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+
+    .actions {
+      margin-top: 1.25rem;
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
     }
 
     .btn {
@@ -209,6 +695,15 @@
       cursor: pointer;
       border: 1px solid transparent;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn:hover {
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
     }
 
     .btn.primary {
@@ -232,340 +727,65 @@
       color: var(--primary);
     }
 
-    .actions {
-      margin-top: 1.25rem;
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .app-head {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .app-icon {
-      width: 52px;
-      height: 52px;
-      border-radius: 12px;
-      flex-shrink: 0;
-      background: var(--primary-glow);
-      border: 1px solid var(--border);
-      object-fit: contain;
-    }
-
-    h2.app-name {
-      margin: 0;
-      font-size: 1.35rem;
-      font-weight: 700;
-    }
-
-    .app-id {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .app-summary {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      margin: 0.25rem 0 0.5rem;
-    }
-
-    .badge {
-      padding: 0.15rem 0.5rem;
-      font-size: 0.72rem;
-      font-family: var(--font-mono);
-      border-radius: 6px;
-      background: var(--primary-glow);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-    }
-
-    .badge.primary {
-      background: var(--primary-glow);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .releases {
-      margin-top: 1.25rem;
-      border-left: 2px solid var(--border);
-      padding-left: 1.25rem;
-    }
-
-    .release {
-      position: relative;
-      padding-bottom: 1.25rem;
-    }
-
-    .release:last-child {
-      padding-bottom: 0;
-    }
-
-    .release::before {
-      content: '';
-      position: absolute;
-      left: calc(-1.25rem - 6px);
-      top: 0.35rem;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--primary);
-      box-shadow: 0 0 0 3px var(--bg);
-    }
-
-    .release-head {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .release-date {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      margin-left: auto;
-    }
-
-    .release-meta {
-      color: var(--text-muted);
-      font-size: 0.78rem;
-      font-family: var(--font-mono);
-      margin: 0.4rem 0 0.5rem;
-    }
-
-    .obs-status {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin: 0.5rem 0;
-    }
-
-    .obs-status .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--success);
-      display: inline-block;
-    }
-
     .links-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 0.75rem;
     }
 
     .link-item {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 0.75rem;
+      gap: 0.6rem;
+      padding: 0.6rem 0.8rem;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.85rem;
-    }
-
-    .link-item a {
-      color: var(--link);
+      border-radius: 10px;
+      color: var(--text);
       text-decoration: none;
       font-weight: 500;
-      word-break: break-all;
+      font-size: 0.875rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .link-item a:hover {
-      text-decoration: underline;
+    .link-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px var(--primary-glow);
+      text-decoration: none;
     }
 
     .link-icon {
-      color: var(--text-muted);
+      color: var(--primary);
       flex-shrink: 0;
-    }
-
-    footer {
-      text-align: center;
-      padding: 3rem 0 1rem;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
-
-    footer a {
-      color: var(--link);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    a {
-      color: var(--link);
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .section-label {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.5rem;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 3.5rem 2rem;
-      border: 2px dashed var(--border);
-      border-radius: 16px;
-      color: var(--text-muted);
-    }
-
-    .platform-tag {
-      display: inline-block;
-      padding: 0.1rem 0.4rem;
-      font-size: 0.7rem;
-      font-family: var(--font-mono);
-      border-radius: 4px;
-      background: var(--primary-glow);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-    }
-
-    /* Clean Code blocks styling from AetherPak */
-    .code-container {
-      margin: 1rem 0;
-      border-radius: 10px;
-      overflow: hidden;
-      border: 1px solid var(--code-border);
-      background: #111513;
-    }
-
-    .code-header {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      background: #0b0e0c;
-      border-bottom: 1px solid var(--code-border);
-      font-family: var(--font-sans);
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
     }
 
-    .code-lang {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .code-lang::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--primary);
-    }
-
-    .code-container .code-block {
-      padding: 0.85rem 1rem;
-      margin: 0;
-      border: none;
-      border-radius: 0;
-      background: transparent;
-      overflow-x: auto;
-    }
-
-    .code-container .code-block code {
-      display: block;
-      white-space: pre;
-      font-family: var(--font-mono);
-      font-size: 0.83rem;
-      line-height: 1.6;
-      color: #ecf1ed;
-    }
-
-    .code-container .btn-copy {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      cursor: pointer;
-      color: var(--text-muted);
-      display: flex;
-      padding: 0.35rem;
-      border-radius: 6px;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      align-items: center;
-      justify-content: center;
-    }
-
-    .code-container .btn-copy:hover {
-      color: #fff;
-      background: rgba(255,255,255,0.1);
-      border-color: var(--primary);
-    }
-
-    .code-container .btn-copy.success {
-      color: var(--success);
-      border-color: var(--success);
-      background: rgba(16, 185, 129, 0.15);
-    }
-
-    .code-keyword { color: #58a6ff; font-weight: 600; }
-    .code-subcommand { color: #f28b54; }
-    .code-flag { color: #ff7b72; }
-    .code-url { color: #34d399; text-decoration: underline; text-underline-offset: 3px; }
-
-    @media (prefers-color-scheme: light) {
-      .code-container {
-        background: #f6f8fa;
-        border-color: #d0d7de;
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
       }
-      .code-header {
-        background: #f0f3f6;
-        border-bottom-color: #d0d7de;
-        color: #57606a;
+      to {
+        opacity: 1;
       }
-      .code-container .code-block code {
-        color: #1f2328;
-      }
-      .code-keyword { color: #0550ae; }
-      .code-subcommand { color: #953800; }
-      .code-flag { color: #cf222e; }
-      .code-url { color: #0550ae; }
     }
 
-    html.light .code-container {
-      background: #f6f8fa;
-      border-color: #d0d7de;
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
     }
-    html.light .code-header {
-      background: #f0f3f6;
-      border-bottom-color: #d0d7de;
-      color: #57606a;
-    }
-    html.light .code-container .code-block code {
-      color: #1f2328;
-    }
-    html.light .code-keyword { color: #0550ae; }
-    html.light .code-subcommand { color: #953800; }
-    html.light .code-flag { color: #cf222e; }
-    html.light .code-url { color: #0550ae; }
   </style>
 </head>
 
 <body>
   <div class="container">
-<header>
+    <header>
       <div class="header-actions">
         <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
           <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -576,50 +796,56 @@
       <p class="subtitle">Custom build specifications for upstream FOSS projects. Built by OBS and GitHub Actions. Flatpaks, RPMs, and DEBs.</p>
     </header>
 
+    <nav class="section-nav" aria-label="Page sections">
+      <a href="#flatpak"><span class="nav-number">1</span>Flatpak Repository</a>
+      <a href="#distro"><span class="nav-number">2</span>Distro Packages</a>
+      <a href="#links"><span class="nav-number">3</span>Links</a>
+      <a href="#apps"><span class="nav-number">4</span>Packages</a>
+    </nav>
+
     <section class="card" id="flatpak">
+      <span class="card-number">01</span>
       <h2>Flatpak Repository</h2>
       <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
-        Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.</p>
+        Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.
+      </p>
       <h3>Quick Start</h3>
       <pre><code>flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
-oci+{{ .PagesURL }}</code></pre>
+  oci+{{ .PagesURL }}</code></pre>
       <p>Then install the apps you want:</p>
       <pre><code>flatpak install {{ .RemoteName }} io.github.kardbord.neovim
-flatpak install {{ .RemoteName }} io.github.kardbord.tool.ripgrep
-flatpak install {{ .RemoteName }} io.github.kardbord.tool.fd</code></pre>
+flatpak install {{ .RemoteName }} io.github.kardbord.ripgrep
+flatpak install {{ .RemoteName }} io.github.kardbord.fd</code></pre>
       <p><small>Pass additional <code>--filesystem=</code> flags as needed. See the <a
             href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">Flatpak guide</a> for developer
           documentation.</small></p>
     </section>
 
     <section class="card" id="distro">
-      <h2>Distro Packages (OBS)</h2>
-      <p>RPM and DEB packages are published to the Open Build Service and can be added to your system's package manager.
+      <span class="card-number">02</span>
+      <h2>Distro Packages | Open Build Service)</h2>
+      <p>RPM and DEB packages are published via the Open Build Service and can be added to your system's package manager.
       </p>
       <h3>RPM-based (openSUSE, Rocky Linux, Alma Linux)</h3>
-<pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>/home:Kardbord:Boxes.repo"
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
 sudo zypper addrepo --refresh "$REPO_URL" # openSUSE
 sudo dnf config-manager --add-repo "$REPO_URL" # Rocky/Alma
 sudo zypper refresh # or: sudo dnf makecache
-sudo zypper install <PACKAGE></code></pre>
+sudo zypper install [PACKAGE]</code></pre>
       <h3>Debian-based (Ubuntu, Debian, Raspbian)</h3>
-<pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>"
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]"
 curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
-| sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
+  | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
 echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
-| sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
+  | sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
 sudo apt update
-sudo apt install <PACKAGE></code></pre>
-      <p><small>Replace <code>&lt;REPOSITORY&gt;</code> with your distribution's repo name (e.g.
+sudo apt install [PACKAGE]</code></pre>
+      <p><small>Replace <code>[REPOSITORY]</code> with your distribution's repo name (e.g.
           <code>openSUSE_Tumbleweed</code>, <code>RockyLinux_9</code>, <code>Debian_13</code>) and
-          <code>&lt;PACKAGE&gt;</code> with a package name from the README.</small></p>
-    </section>
-
-    <section class="card" id="obs">
-      <h2>Open Build Service</h2>
+          <code>[PACKAGE]</code> with a package name from the README.</small></p>
       <div class="obs-status">
         <span class="dot"></span>
-        <span>Builds triggered automatically on push. View build results and package status on the OBS project
+        <span>Builds triggered automatically on push to the Boxes project. View build results and package status on the OBS project
           page.</span>
       </div>
       <div class="actions">
@@ -630,56 +856,67 @@ sudo apt install <PACKAGE></code></pre>
     </section>
 
     <section class="card" id="links">
+      <span class="card-number">03</span>
       <h2>Links</h2>
       <div class="links-grid">
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://github.com/Kardbord/Boxes">GitHub Repository</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://src.opensuse.org/Kardbord/Boxes">OBS Mirror (src.opensuse.org)</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://build.opensuse.org/project/show/home:Kardbord:Boxes">OBS Build Project</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/">OBS Binaries
-            (download.opensuse.org)</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="{{ .PagesURL }}">Flatpak Index (GitHub Pages)</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://github.com/Kardbord/Boxes/blob/main/README.md">README</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://github.com/Kardbord/Boxes/blob/main/ARCHITECTURE.md">Architecture Guide</a>
-        </div>
-        <div class="link-item">
-          <span class="link-icon">&#x1F517;</span>
-          <a href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">Flatpak Developer Guide</a>
-        </div>
+        <a class="link-item" href="https://github.com/Kardbord/Boxes">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.66 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></span>
+          GitHub Repository
+        </a>
+        <a class="link-item" href="https://src.opensuse.org/Kardbord/Boxes">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg></span>
+          OBS Mirror
+        </a>
+        <a class="link-item" href="{{ .PagesURL }}">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>
+          Flatpak Index
+        </a>
+        <a class="link-item" href="https://github.com/Kardbord/Boxes/blob/main/README.md">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+          README
+        </a>
+        <a class="link-item" href="https://build.opensuse.org/project/show/home:Kardbord:Boxes">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></span>
+          OBS Project
+        </a>
+        <a class="link-item" href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+          Flatpak Packaging Guide
+        </a>
+        <a class="link-item" href="https://github.com/Kardbord/Boxes/blob/main/ARCHITECTURE.md">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+          Project Architecture
+        </a>
+        <a class="link-item" href="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
+          OBS Artifacts
+        </a>
+        <a class="link-item" href="https://kardbord.github.io/Boxes/index/static">
+          <span class="link-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></span>
+          OCI Index
+        </a>
       </div>
     </section>
 
     <section class="card" id="apps">
+      <span class="card-number">04</span>
       <h2>Available Flatpak Packages</h2>
       <div id="app-list">
-        <div class="empty-state">Loading app list...</div>
+        <div class="skeleton-list">
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+          <div class="skeleton-item"></div>
+        </div>
       </div>
     </section>
 
     <footer>
       <p>Packaging configuration is provided under the MIT License. Software built from upstream sources retains its
         original license.</p>
-      <p>Powered by <a href="https://aetherpak.org/">AetherPak</a> and the <a href="https://openbuildservice.org/">Open
-          Build Service</a>.</p>
+      <div class="footer-sep" aria-hidden="true"></div>
+      <p class="footer-power">Powered by <a href="https://aetherpak.org/">AetherPak</a> and the <a href="https://openbuildservice.org/">Open
+        Build Service</a>.</p>
+      <p class="footer-updated" id="footer-updated"></p>
     </footer>
   </div>
 
@@ -693,12 +930,13 @@ sudo apt install <PACKAGE></code></pre>
         d.appendChild(document.createTextNode(text));
         return d.innerHTML;
       }
+      var ICON_COPY = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
 
       function copyToClipboard(text, btn) {
         navigator.clipboard.writeText(text).then(function () {
           var o = btn.innerHTML;
           btn.classList.add('success');
-          btn.innerHTML = ' ';
+          btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
           setTimeout(function () {
             btn.classList.remove('success');
             btn.innerHTML = o;
@@ -708,20 +946,23 @@ sudo apt install <PACKAGE></code></pre>
 
       function highlightCmd(cmd) {
         var htmlStr = esc(cmd);
+        var urls = [];
+        htmlStr = htmlStr.replace(/((?:oci\+)?https?:\/\/[^\s\\]+|sigs\/[^\s\\]+)/g, function (match) {
+          urls.push(match);
+          return '__AETHERPAK_URL_PLACEHOLDER_' + (urls.length - 1) + '__';
+        });
         htmlStr = htmlStr.replace(/(^|\s)(--?[a-zA-Z0-9-]+)/g, '$1<span class="code-flag">$2</span>');
-        htmlStr = htmlStr.replace(/\b(flatpak)\b/g, '<span class="code-keyword">$1</span>');
+        htmlStr = htmlStr.replace(/(^|\s)(flatpak)\b/g, '$1<span class="code-keyword">$2</span>');
         htmlStr = htmlStr.replace(/\b(install|remote-add|remote-modify)\b/g, '<span class="code-subcommand">$1</span>');
-        htmlStr = htmlStr.replace(/((?:oci\+)?https?:\/\/[^\s\\]+|sigs\/[^\s\\]+)/g, '<span class="code-url">$1</span>');
+        for (var i = 0; i < urls.length; i++) {
+          htmlStr = htmlStr.replace('__AETHERPAK_URL_PLACEHOLDER_' + i + '__', '<span class="code-url">' + urls[i] + '</span>');
+        }
         return htmlStr;
       }
 
-      function codeBlock(label, cmd) {
-        var labelHtml = label ? ' <span class="code-lang">' + esc(label) + '</span>' : '';
+      function codeBlock(cmd) {
         return '<div class="code-container">' +
-          '<div class="code-header">' +
-          labelHtml +
-          '<button class="btn-copy" aria-label="Copy to clipboard">' + esc('Copy') + '</button>' +
-          '</div>' +
+          '<button class="btn-copy-floating" aria-label="Copy to clipboard" title="Copy to clipboard">' + ICON_COPY + '</button>' +
           '<div class="code-block"><code>' + highlightCmd(cmd) + '</code></div>' +
           '</div>';
       }
@@ -745,7 +986,7 @@ sudo apt install <PACKAGE></code></pre>
           var pre = codeEl.parentElement;
           if (pre.classList.contains('code-container')) return;
           var text = codeEl.textContent;
-          pre.innerHTML = codeBlock('', text);
+          pre.innerHTML = codeBlock(text);
         });
       }
 
@@ -754,7 +995,7 @@ sudo apt install <PACKAGE></code></pre>
         processCodeBlocks();
 
         document.addEventListener('click', function (e) {
-          var btn = e.target.closest('.btn-copy');
+          var btn = e.target.closest('.btn-copy-floating');
           if (!btn) return;
           var container = btn.closest('.code-container');
           if (!container) return;
@@ -768,68 +1009,103 @@ sudo apt install <PACKAGE></code></pre>
         var container = document.getElementById('app-list');
         if (!container) return;
 
-        fetch(indexUrl)
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (!data || !data.Results || data.Results.length === 0) {
-              container.innerHTML = '<div class="empty-state">No packages available yet.</div>';
-              return;
-            }
+        function renderAppList(data) {
+          if (!data || !data.Results || data.Results.length === 0) {
+            container.innerHTML = '<div class="empty-state empty"><span class="empty-icon">&#x1F4E6;</span><div class="empty-title">No packages available yet</div><p class="empty-desc">Flatpak packages will appear here once they have been built and pushed to the registry.</p></div>';
+            return;
+          }
 
-            var apps = {};
-            data.Results.forEach(function (pkg) {
-              if (!pkg.Images) return;
-              pkg.Images.forEach(function (img) {
-                var ref = img.Labels && img.Labels['org.flatpak.ref'];
-                if (!ref) return;
-                var parts = ref.split('/');
-                if (parts.length < 4) return;
-                var kind = parts[0];
-                var appId = parts[1];
-                if (kind !== 'app') return;
-                if (appId.indexOf('.Sdk') !== -1 || appId.indexOf('.Platform') !== -1) return;
-                var nameParts = appId.split('.');
-                var appName = nameParts[nameParts.length - 1];
-                var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-                if (!apps[appId]) {
-                  apps[appId] = { id: appId, name: displayName, images: [] };
-                }
-                apps[appId].images.push(img);
-              });
+          var apps = {};
+          data.Results.forEach(function (pkg) {
+            if (!pkg.Images) return;
+            pkg.Images.forEach(function (img) {
+              var ref = img.Labels && img.Labels['org.flatpak.ref'];
+              if (!ref) return;
+              var parts = ref.split('/');
+              if (parts.length < 4) return;
+              var kind = parts[0];
+              var appId = parts[1];
+              if (kind !== 'app') return;
+              if (appId.indexOf('.Sdk') !== -1 || appId.indexOf('.Platform') !== -1) return;
+              var nameParts = appId.split('.');
+              var appName = nameParts[nameParts.length - 1];
+              var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+              if (!apps[appId]) {
+                apps[appId] = { id: appId, name: displayName, images: [] };
+              }
+              apps[appId].images.push(img);
             });
+          });
 
-            var appIds = Object.keys(apps);
-            if (appIds.length === 0) {
-              container.innerHTML = '<div class="empty-state">No user-facing packages available yet.</div>';
-              return;
-            }
+          var appIds = Object.keys(apps);
+          if (appIds.length === 0) {
+            container.innerHTML = '<div class="empty-state empty"><span class="empty-icon">&#x1F512;</span><div class="empty-title">No user-facing packages</div><p class="empty-desc">Only SDK and Platform runtimes were found. Application packages will appear here once available.</p></div>';
+            return;
+          }
 
-            var html = '';
-            appIds.forEach(function (appId) {
-              var app = apps[appId];
-              html += '<div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);">';
-              html += '<div class="app-head">';
-              html += '<div class="app-icon placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.2rem;">' + app.name.charAt(0) + '</div>';
-              html += '<div><h2 class="app-name">' + app.name + '</h2>';
-              html += '<span class="app-id">' + app.id + '</span></div></div>';
+          var html = '';
+          appIds.forEach(function (appId) {
+            var app = apps[appId];
+            html += '<article class="app-entry">';
+            html += '<div class="app-head">';
+            html += '<div class="app-icon-initial" aria-hidden="true">' + app.name.charAt(0) + '</div>';
+            html += '<div class="app-info"><h3 class="app-name">' + app.name + '</h3>';
+            html += '<span class="app-id">' + app.id + '</span></div></div>';
 
-              if (app.images.length > 0) {
-                html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">';
-                app.images.forEach(function (img) {
-                  var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
-                  var arch = img.Architecture || 'unknown';
-                  html += '<span class="badge primary">' + branch + '</span>';
+            if (app.images.length > 0) {
+              var branchMap = {};
+              app.images.forEach(function (img) {
+                var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
+                var arch = img.Architecture || 'unknown';
+                if (!branchMap[branch]) branchMap[branch] = [];
+                branchMap[branch].push(arch);
+              });
+              html += '<div class="image-tags">';
+              Object.keys(branchMap).forEach(function (branch) {
+                html += '<span class="badge primary">' + branch + '</span>';
+                branchMap[branch].forEach(function (arch) {
                   html += '<span class="platform-tag">' + arch + '</span>';
                 });
-                html += '</div>';
-              }
+              });
               html += '</div>';
-            });
-            container.innerHTML = html;
-          })
-          .catch(function () {
-            container.innerHTML = '<div class="empty-state">Unable to load app list.</div>';
+            }
+            html += '</article>';
           });
+          container.innerHTML = html;
+          var dateEl = document.getElementById('footer-updated');
+          if (dateEl && data && data.LastModified) {
+            dateEl.textContent = 'Last updated: ' + new Date(data.LastModified).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          }
+        }
+
+        function renderError() {
+          container.innerHTML = '<div class="empty-state error"><span class="empty-icon">&#x26A0;</span><div class="empty-title">Unable to load app list</div><p class="empty-desc">Could not fetch the package index. Check your network connection and try again.</p><button class="retry-btn" id="retry-btn">Retry</button></div>';
+          var retryBtn = document.getElementById('retry-btn');
+          if (retryBtn) {
+            retryBtn.addEventListener('click', fetchAppList);
+          }
+        }
+
+        function fetchAppList() {
+          var controller = new AbortController();
+          var timeout = setTimeout(function () {
+            controller.abort();
+          }, 8000);
+
+          fetch(indexUrl, { signal: controller.signal })
+            .then(function (r) {
+              clearTimeout(timeout);
+              return r.json();
+            })
+            .then(function (data) {
+              renderAppList(data);
+            })
+            .catch(function () {
+              renderError();
+            });
+        }
+
+        fetchAppList();
       });
     })();
   </script>
