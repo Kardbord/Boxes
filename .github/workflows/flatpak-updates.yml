@@ -17,10 +17,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install FEDC
-        run: pip install flatpak-external-data-checker
-
       - name: Run FEDC on manifests with x-checker-data
+        container: ghcr.io/flathub/flatpak-external-data-checker:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
