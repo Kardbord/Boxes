@@ -138,6 +138,7 @@ jobs:
           pages-url: https://kardbord.github.io/Boxes
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          index-template: .github/workflows/templates/index.html
 
       - uses: actions/deploy-pages@v5
         with:
@@ -300,6 +301,7 @@ jobs:
           pages-url: https://kardbord.github.io/Boxes
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          index-template: .github/workflows/templates/index.html
 
       - uses: actions/deploy-pages@v5
         with:

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kardbord's Boxes</title>
+  <style>
+    :root {
+      --bg: #f9f9fb;
+      --card: #ffffff;
+      --border: #e4e4e7;
+      --text: #09090b;
+      --text-muted: #5e5e64;
+      --primary: #7c3aed;
+      --primary-glow: rgba(124, 58, 237, 0.15);
+      --success: #10b981;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #09090b;
+        --card: #121214;
+        --border: #222226;
+        --text: #f4f4f5;
+        --text-muted: #a1a1aa;
+        --primary: #8b5cf6;
+        --primary-glow: rgba(139, 92, 246, 0.15);
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      padding: 2rem 1rem;
+      min-height: 100vh;
+    }
+    .container { max-width: 820px; margin: 0 auto; }
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-top: 1.5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      background: linear-gradient(to right, var(--text), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle { color: var(--text-muted); margin-top: 0.25rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 20px rgba(9, 9, 11, 0.05);
+    }
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 1rem 0 0.5rem;
+      color: var(--text-muted);
+    }
+    p { margin-bottom: 0.75rem; color: var(--text-muted); }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      background: rgba(124, 58, 237, 0.08);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      color: var(--primary);
+    }
+    pre {
+      background: #111513;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 0.75rem 0;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: #ecf1ed;
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 9999px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .btn.primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn.primary:hover {
+      background: color-mix(in srgb, var(--primary) 85%, #ffffff);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .btn.ghost {
+      background: var(--card);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn.ghost:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .app-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.25rem; }
+    .app-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      object-fit: contain;
+    }
+    h2.app-name { margin: 0; font-size: 1.35rem; font-weight: 700; }
+    .app-id { font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); }
+    .app-summary { color: var(--text-muted); font-size: 0.95rem; margin: 0.25rem 0 0.5rem; }
+    .badge {
+      padding: 0.15rem 0.5rem;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .badge.primary {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .releases { margin-top: 1.25rem; border-left: 2px solid var(--border); padding-left: 1.25rem; }
+    .release { position: relative; padding-bottom: 1.25rem; }
+    .release:last-child { padding-bottom: 0; }
+    .release::before {
+      content: '';
+      position: absolute;
+      left: calc(-1.25rem - 6px);
+      top: 0.35rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 0 3px var(--bg);
+    }
+    .release-head { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .release-date { color: var(--text-muted); font-size: 0.85rem; margin-left: auto; }
+    .release-meta { color: var(--text-muted); font-size: 0.78rem; font-family: var(--font-mono); margin: 0.4rem 0 0.5rem; }
+    .obs-status { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem 0; }
+    .obs-status .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--success);
+      display: inline-block;
+    }
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem; }
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+    .link-item a { color: var(--primary); text-decoration: none; font-weight: 500; word-break: break-all; }
+    .link-item a:hover { text-decoration: underline; }
+    .link-icon { color: var(--text-muted); flex-shrink: 0; }
+    footer { text-align: center; padding: 3rem 0 1rem; color: var(--text-muted); font-size: 0.85rem; }
+    footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+    footer a:hover { text-decoration: underline; }
+    .section-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3.5rem 2rem;
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      color: var(--text-muted);
+    }
+    .platform-tag {
+      display: inline-block;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      border-radius: 4px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Kardbord's Boxes</h1>
+      <p class="subtitle">Custom build specifications for upstream FOSS projects. Built by OBS and GitHub Actions. Flatpaks, RPMs, and DEBs.</p>
+    </header>
+
+    <section class="card" id="flatpak">
+      <h2>Flatpak Repository</h2>
+      <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages. Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.</p>
+      <h3>Quick Start</h3>
+      <pre><code># Add the remote
+flatpak remote-add --if-not-exists --user kardbord-boxes \
+  oci+https://kardbord.github.io/Boxes
+
+# Install the custom Neovim + extensions
+flatpak install kardbord-boxes io.github.kardbord.neovim
+flatpak install kardbord-boxes io.github.kardbord.tool.ripgrep
+flatpak install kardbord-boxes io.github.kardbord.tool.fd</code></pre>
+      <p><small>Pass additional <code>--filesystem=</code> flags as needed. See the <a href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">Flatpak guide</a> for developer documentation.</small></p>
+    </section>
+
+    <section class="card" id="distro">
+      <h2>Distro Packages (OBS)</h2>
+      <p>RPM and DEB packages are published to the Open Build Service and can be added to your system's package manager.</p>
+      <h3>RPM-based (openSUSE, Rocky Linux, Alma Linux)</h3>
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/&lt;REPOSITORY&gt;/home:Kardbord:Boxes.repo"
+sudo zypper addrepo --refresh "$REPO_URL"   # openSUSE
+sudo dnf config-manager --add-repo "$REPO_URL"  # Rocky/Alma
+sudo zypper refresh   # or: sudo dnf makecache
+sudo zypper install &lt;PACKAGE&gt;</code></pre>
+      <h3>Debian-based (Ubuntu, Debian, Raspbian)</h3>
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/&lt;REPOSITORY&gt;"
+curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
+  | sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
+sudo apt update
+sudo apt install &lt;PACKAGE&gt;</code></pre>
+      <p><small>Replace <code>&lt;REPOSITORY&gt;</code> with your distribution's repo name (e.g. <code>openSUSE_Tumbleweed</code>, <code>RockyLinux_9</code>, <code>Debian_13</code>) and <code>&lt;PACKAGE&gt;</code> with a package name from the README.</small></p>
+    </section>
+
+    <section class="card" id="obs">
+      <h2>Open Build Service</h2>
+      <div class="obs-status">
+        <span class="dot"></span>
+        <span>Builds triggered automatically on push. View build results and package status on the OBS project page.</span>
+      </div>
+      <div class="actions">
+        <a class="btn ghost" href="https://build.opensuse.org/project/show/home:Kardbord:Boxes">View OBS Project</a>
+        <a class="btn ghost" href="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/">Browse Binaries</a>
+      </div>
+    </section>
+
+    <section class="card" id="links">
+      <h2>Links</h2>
+      <div class="links-grid">
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://github.com/Kardbord/Boxes">GitHub Repository</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://src.opensuse.org/Kardbord/Boxes">OBS Mirror (src.opensuse.org)</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://build.opensuse.org/project/show/home:Kardbord:Boxes">OBS Build Project</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/">OBS Binaries (download.opensuse.org)</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://kardbord.github.io/Boxes/">Flatpak Index (GitHub Pages)</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://github.com/Kardbord/Boxes/blob/main/README.md">README</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://github.com/Kardbord/Boxes/blob/main/ARCHITECTURE.md">Architecture Guide</a>
+        </div>
+        <div class="link-item">
+          <span class="link-icon">&#x1F517;</span>
+          <a href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">Flatpak Developer Guide</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="apps">
+      <h2>Available Flatpak Packages</h2>
+      <div id="app-list">
+        <div class="empty-state">Loading app list...</div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Packaging configuration is provided under the MIT License. Software built from upstream sources retains its original license.</p>
+      <p>Powered by <a href="https://aetherpak.org/">AetherPak</a> and the <a href="https://openbuildservice.org/">Open Build Service</a>.</p>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      var pagesUrl = window.location.origin + window.location.pathname;
+      var indexUrl = pagesUrl.replace(/\/$/, '') + '/index/static';
+      var container = document.getElementById('app-list');
+      if (!container) return;
+
+      fetch(indexUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data || !data.Results || data.Results.length === 0) {
+            container.innerHTML = '<div class="empty-state">No packages available yet.</div>';
+            return;
+          }
+          var html = '';
+          data.Results.forEach(function(pkg) {
+            var appId = pkg.Name;
+            var parts = appId.split('.');
+            var appName = parts[parts.length - 1];
+            var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+            html += '<div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);">';
+            html += '<div class="app-head">';
+            html += '<div class="app-icon placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.2rem;">' + displayName.charAt(0) + '</div>';
+            html += '<div><h2 class="app-name">' + displayName + '</h2>';
+            html += '<span class="app-id">' + appId + '</span></div></div>';
+            if (pkg.Images && pkg.Images.length > 0) {
+              html += '<div class="releases">';
+              pkg.Images.forEach(function(img) {
+                var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
+                var arch = img.Architecture || 'unknown';
+                html += '<div class="release">';
+                html += '<div class="release-head"><span class="badge primary">' + branch + '</span><span class="platform-tag">' + arch + '</span></div>';
+                html += '</div>';
+              });
+              html += '</div>';
+            }
+            html += '</div>';
+          });
+          container.innerHTML = html;
+        })
+        .catch(function() {
+          container.innerHTML = '<div class="empty-state">Unable to load app list.</div>';
+        });
+    })();
+  </script>
+</body>
+</html>
