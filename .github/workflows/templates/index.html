@@ -176,6 +176,19 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    .theme-toggle-btn:hover {
+      color: var(--text);
+      border-color: var(--primary);
+    }
+
+    .theme-toggle-btn svg {
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .theme-toggle-btn:hover svg {
+      transform: rotate(15deg);
+    }
+
     .theme-toggle-btn .sun-icon {
       display: none;
     }
@@ -208,8 +221,8 @@
     }
 
     .card {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--bg) 0%, var(--card) 100%);
+      border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
       border-radius: 16px;
       padding: 1.5rem;
       margin-bottom: 1.5rem;
@@ -240,11 +253,6 @@
     .card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-hover);
-    }
-
-    .card.setup {
-      background: linear-gradient(180deg, var(--bg) 0%, var(--card) 100%);
-      border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
     }
 
     .card-number {
@@ -449,6 +457,21 @@
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border);
       color: var(--text-muted);
+    }
+
+    .release-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .release-date {
+      margin-left: auto;
     }
 
     .skeleton-list {
@@ -790,78 +813,18 @@
         </button>
       </div>
       <h1>Kardbord's Boxes</h1>
-      <p class="subtitle">Custom build specifications for upstream FOSS projects. Built by OBS and GitHub Actions. Flatpaks, RPMs, and DEBs.</p>
+      <p class="subtitle">Custom packaging of upstream FOSS projects. RPMs, DEBs, and Flatpaks built with the Open Build Service and GitHub Actions + Aetherpak.</p>
     </header>
 
     <nav class="section-nav" aria-label="Page sections">
-      <a href="#distro"><span class="nav-number">1</span>Distro Packages</a>
-      <a href="#flatpak"><span class="nav-number">2</span>Flatpak Repository</a>
-      <a href="#links"><span class="nav-number">3</span>Links</a>
+      <a href="#links"><span class="nav-number">1</span>Links</a>
+      <a href="#distro"><span class="nav-number">2</span>Distro Packages</a>
+      <a href="#flatpak"><span class="nav-number">3</span>Flatpak Repository</a>
       <a href="#apps"><span class="nav-number">4</span>Packages</a>
     </nav>
 
-    <section class="card" id="distro">
-      <span class="card-number">01</span>
-      <h2>Distro Packages</h2>
-      <p>RPM and DEB packages are published via the Open Build Service and can be added to your system's package manager.
-      </p>
-      <h3>openSUSE (zypper)</h3>
-      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
-sudo zypper addrepo --refresh "$REPO_URL"
-sudo zypper refresh
-sudo zypper install [PACKAGE]</code></pre>
-      <h3>Rocky Linux / Alma Linux (dnf)</h3>
-      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
-sudo dnf config-manager --add-repo "$REPO_URL"
-sudo dnf makecache
-sudo dnf install [PACKAGE]</code></pre>
-      <h3>Debian-based (Ubuntu, Debian, Raspbian)</h3>
-      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]"
-curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
-  | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
-echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
-  | sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
-sudo apt update
-sudo apt install [PACKAGE]</code></pre>
-      <p>Replace <code>[REPOSITORY]</code> with your distribution's repo name (e.g.
-          <code>openSUSE_Tumbleweed</code>, <code>RockyLinux_9</code>, <code>Debian_13</code>) and
-          <code>[PACKAGE]</code> with a package name from the README.</p>
-      <div class="actions">
-        <a class="btn ghost" href="https://build.opensuse.org/project/show/home:Kardbord:Boxes">View OBS Project</a>
-        <a class="btn ghost" href="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/">Browse
-          Binaries</a>
-      </div>
-      <div class="obs-status">
-        <span class="dot"></span>
-        <span>Builds triggered automatically on push to the Boxes project. View build results and package status on the OBS project
-          page.</span>
-      </div>
-    </section>
-
-    <section class="card setup" id="flatpak">
-      <span class="card-number">02</span>
-      <h2>Flatpak Repository</h2>
-      <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
-        Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.
-      </p>
-      <h3>Quick Start</h3>
-      <pre><code>flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
-  oci+{{ .PagesURL }}</code></pre>
-      <p>Then install and run the apps you want:</p>
-      <pre><code>flatpak install {{ .RemoteName }} io.github.kardbord.neovim
-flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
-      <p>Pass additional <code>--filesystem=</code> flags as needed. See the <a
-            href="https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-run">Flatpak documentation</a>.</p>
-      <div class="actions">
-        <a class="btn primary" href="{{ .PagesURL }}/{{ .RemoteName }}.flatpakrepo" download>
-          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download .flatpakrepo
-        </a>
-      </div>
-    </section>
-
     <section class="card" id="links">
-      <span class="card-number">03</span>
+      <span class="card-number">01</span>
       <h2>Links</h2>
       <div class="links-grid">
         <a class="link-item" href="https://github.com/Kardbord/Boxes">
@@ -903,6 +866,66 @@ flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
       </div>
     </section>
 
+    <section class="card" id="distro">
+      <span class="card-number">02</span>
+      <h2>Distro Packages</h2>
+      <p>RPM and DEB packages are published via the Open Build Service and can be added to your system's package manager.
+      </p>
+      <h3>openSUSE (zypper)</h3>
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
+sudo zypper addrepo --refresh "$REPO_URL"
+sudo zypper refresh
+sudo zypper install [PACKAGE]</code></pre>
+      <h3>Rocky Linux / Alma Linux (dnf)</h3>
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
+sudo dnf config-manager --add-repo "$REPO_URL"
+sudo dnf makecache
+sudo dnf install [PACKAGE]</code></pre>
+      <h3>Debian-based (Ubuntu, Debian, Raspbian)</h3>
+      <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]"
+curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
+  | sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
+sudo apt update
+sudo apt install [PACKAGE]</code></pre>
+      <p>Replace <code>[REPOSITORY]</code> with your distribution's repo name (e.g.
+          <code>openSUSE_Tumbleweed</code>, <code>RockyLinux_9</code>, <code>Debian_13</code>) and
+          <code>[PACKAGE]</code> with a package name from the README.</p>
+      <div class="actions">
+        <a class="btn ghost" href="https://build.opensuse.org/project/show/home:Kardbord:Boxes">View OBS Project</a>
+        <a class="btn ghost" href="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/">Browse
+          Binaries</a>
+      </div>
+      <div class="obs-status">
+        <span class="dot"></span>
+        <span>Builds triggered automatically on push to the Boxes project. View build results and package status on the OBS project
+          page.</span>
+      </div>
+    </section>
+
+    <section class="card" id="flatpak">
+      <span class="card-number">03</span>
+      <h2>Flatpak Repository</h2>
+      <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
+        Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.
+      </p>
+      <h3>Quick Start</h3>
+      <pre><code>flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
+  oci+{{ .PagesURL }}</code></pre>
+      <p>Then install and run the apps you want:</p>
+      <pre><code>flatpak install {{ .RemoteName }} io.github.kardbord.neovim
+flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
+      <p>Pass additional <code>--filesystem=</code> flags as needed. See the <a
+            href="https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-run">Flatpak documentation</a>.</p>
+      <div class="actions">
+        <a class="btn primary" href="{{ .PagesURL }}/{{ .RemoteName }}.flatpakrepo" download>
+          <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download .flatpakrepo
+        </a>
+      </div>
+    </section>
+
     <section class="card" id="apps">
       <span class="card-number">04</span>
       <h2>Available Flatpak Packages</h2>
@@ -935,6 +958,8 @@ flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
         d.appendChild(document.createTextNode(text));
         return d.innerHTML;
       }
+      function fmtSize(b) { b = +b || 0; var u = ['B','KB','MB','GB']; var i = 0; while (b >= 1024 && i < u.length-1) { b /= 1024; i++; } return b.toFixed(b < 10 && i > 0 ? 1 : 0) + ' ' + u[i]; }
+      function fmtDate(ts) { var d = new Date((+ts) * 1000); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }); }
       var remoteName = '{{ .RemoteName }}';
       var ICON_COPY = '<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
 
@@ -1071,17 +1096,35 @@ flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
               app.images.forEach(function (img) {
                 var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
                 var arch = img.Architecture || 'unknown';
-                if (!branchMap[branch]) branchMap[branch] = [];
-                branchMap[branch].push(arch);
+                var L = img.Labels || {};
+                if (!branchMap[branch]) branchMap[branch] = { arches: [], isize: 0, dsize: 0, commit: '', ts: 0 };
+                branchMap[branch].arches.push(arch);
+                branchMap[branch].isize = Math.max(branchMap[branch].isize, +(L['org.flatpak.installed-size'] || 0));
+                branchMap[branch].dsize = Math.max(branchMap[branch].dsize, +(L['org.flatpak.download-size'] || 0));
+                if (L['org.flatpak.commit']) branchMap[branch].commit = L['org.flatpak.commit'];
+                branchMap[branch].ts = Math.max(branchMap[branch].ts, +(L['org.flatpak.timestamp'] || 0));
               });
               html += '<div class="image-tags">';
               Object.keys(branchMap).forEach(function (branch) {
+                var b = branchMap[branch];
                 html += '<span class="badge primary">' + branch + '</span>';
-                branchMap[branch].forEach(function (arch) {
+                b.arches.forEach(function (arch) {
                   html += '<span class="platform-tag">' + arch + '</span>';
                 });
               });
               html += '</div>';
+              Object.keys(branchMap).forEach(function (branch) {
+                var b = branchMap[branch];
+                var meta = [];
+                if (b.isize) meta.push(fmtSize(b.isize) + ' installed');
+                if (b.dsize) meta.push(fmtSize(b.dsize) + ' download');
+                if (b.commit) meta.push(b.commit.slice(0, 10));
+                if (meta.length) {
+                  html += '<div class="release-meta">' + meta.join(' &bull; ');
+                  if (b.ts) html += '<span class="release-date">' + fmtDate(b.ts) + '</span>';
+                  html += '</div>';
+                }
+              });
             }
             html += codeBlock('flatpak install --user ' + remoteName + ' ' + app.id);
             html += '</article>';
