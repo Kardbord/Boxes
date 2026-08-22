@@ -17,22 +17,23 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/anomalyco/opencode/releases/download/v1.18.18/opencode-linux-x64.tar.gz
-        sha256: 0cddc222418b8553669905a8980c0cda7088f00da24d83d6ac76b01c9fdb2aaf
+        url: https://github.com/anomalyco/opencode/releases/download/v1.18.21/opencode-linux-x64.tar.gz
+        sha256: d910c3ed7613bb5791a328904615d41cc25b7d3a6b470e3199ab0426a995b38a
         strip-components: 0
         x-checker-data:
           type: json
           url: https://api.github.com/repos/anomalyco/opencode/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("linux-x64\\.tar\\.gz$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("linux-x64\\.tar\\.gz$")) | .browser_download_url
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/anomalyco/opencode/releases/download/v1.18.18/opencode-linux-arm64.tar.gz
-        sha256: dcb1b5ec5687b43f87749560021f9203f3809e0ce5ae44ff9be8ae17083fe4ba
+        url: https://github.com/anomalyco/opencode/releases/download/v1.18.21/opencode-linux-arm64.tar.gz
+        sha256: d30d2cba74617f4e7b96e25563c9572ffe453f9eae70fc0df16286813537ee72
         strip-components: 0
         x-checker-data:
           type: json
           url: https://api.github.com/repos/anomalyco/opencode/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("linux-arm64\\.tar\\.gz$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("linux-arm64\\.tar\\.gz$")) |
+            .browser_download_url
