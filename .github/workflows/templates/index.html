@@ -85,12 +85,12 @@
     body::before {
       content: '';
       position: fixed;
-      top: -50%;
+      top: -30%;
       left: 50%;
       transform: translateX(-50%);
-      width: 100vw;
-      height: 100vh;
-      background: radial-gradient(ellipse at 50% 0%, var(--primary-glow) 0%, transparent 60%);
+      width: 120vw;
+      height: 80vh;
+      background: radial-gradient(ellipse at 50% 0%, var(--primary-glow) 0%, transparent 50%);
       pointer-events: none;
       z-index: -1;
     }
@@ -130,10 +130,19 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .theme-toggle-btn:hover {
-      color: var(--text);
-      border-color: var(--primary);
-      transform: translateY(-2px);
+    .theme-toggle-btn .sun-icon { display: none; }
+
+    html.dark .theme-toggle-btn .sun-icon { display: block; }
+    html.dark .theme-toggle-btn .moon-icon { display: none; }
+
+    @media (prefers-color-scheme: light) {
+      html:not(.dark) .theme-toggle-btn .sun-icon { display: block; }
+      html:not(.dark) .theme-toggle-btn .moon-icon { display: none; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      html:not(.light) .theme-toggle-btn .sun-icon { display: none; }
+      html:not(.light) .theme-toggle-btn .moon-icon { display: block; }
     }
 
     h1 {
@@ -572,17 +581,12 @@
       <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
         Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.</p>
       <h3>Quick Start</h3>
-      <pre><code># Add the remote
-flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
-oci+{{ .PagesURL }}
-
-# Install the custom Neovim + extensions
-flatpak install {{ .RemoteName }} io.github.kardbord.neovim
-io.github.kardbord.neovim
+      <pre><code>flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
+oci+{{ .PagesURL }}</code></pre>
+      <p>Then install the apps you want:</p>
+      <pre><code>flatpak install {{ .RemoteName }} io.github.kardbord.neovim
 flatpak install {{ .RemoteName }} io.github.kardbord.tool.ripgrep
-io.github.kardbord.tool.ripgrep
-flatpak install {{ .RemoteName }} io.github.kardbord.tool.fd
-io.github.kardbord.tool.fd</code></pre>
+flatpak install {{ .RemoteName }} io.github.kardbord.tool.fd</code></pre>
       <p><small>Pass additional <code>--filesystem=</code> flags as needed. See the <a
             href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">Flatpak guide</a> for developer
           documentation.</small></p>
