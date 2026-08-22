@@ -18,14 +18,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run FEDC on manifests with x-checker-data
-        container: ghcr.io/flathub/flatpak-external-data-checker:latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           for manifest in $(grep -rl 'x-checker-data' flatpak/manifests/); do
             echo "Checking $manifest..."
-            flatpak-external-data-checker --edit-only --never-fork "$manifest" || true
+            docker run --rm \
+              -v "$PWD:/workspace" \
+              -v "$PWD/.git:/workspace/.git" \
+              -w /workspace \
+              ghcr.io/flathub/flatpak-external-data-checker:latest \
+              flatpak-external-data-checker --edit-only --never-fork "$manifest" || true
           done
 
       - name: Create or update PR
