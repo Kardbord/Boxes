@@ -180,37 +180,24 @@
       display: none;
     }
 
+    .theme-toggle-btn .moon-icon {
+      display: inline;
+    }
+
     html.dark .theme-toggle-btn .sun-icon {
-      display: block;
+      display: inline;
     }
 
     html.dark .theme-toggle-btn .moon-icon {
       display: none;
     }
 
-    @media (prefers-color-scheme: light) {
-      html:not(.dark) .theme-toggle-btn .sun-icon {
-        display: block;
-      }
-      html:not(.dark) .theme-toggle-btn .moon-icon {
-        display: none;
-      }
-    }
-
-    @media (prefers-color-scheme: dark) {
-      html:not(.light) .theme-toggle-btn .sun-icon {
-        display: none;
-      }
-      html:not(.light) .theme-toggle-btn .moon-icon {
-        display: block;
-      }
-    }
-
     h1 {
       font-size: 2.5rem;
       font-weight: 800;
       letter-spacing: -0.04em;
-      background: linear-gradient(to right, var(--text-heading), var(--primary));
+      background: linear-gradient(135deg, var(--text), var(--primary));
+      background-clip: text;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -253,6 +240,11 @@
     .card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow-hover);
+    }
+
+    .card.setup {
+      background: linear-gradient(180deg, var(--bg) 0%, var(--card) 100%);
+      border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
     }
 
     .card-number {
@@ -808,7 +800,7 @@
       <a href="#apps"><span class="nav-number">4</span>Packages</a>
     </nav>
 
-    <section class="card" id="flatpak">
+    <section class="card setup" id="flatpak">
       <span class="card-number">01</span>
       <h2>Flatpak Repository</h2>
       <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
@@ -1003,6 +995,14 @@ sudo apt install [PACKAGE]</code></pre>
       document.addEventListener('DOMContentLoaded', function () {
         setupThemeToggle();
         processCodeBlocks();
+
+        document.querySelectorAll('.card').forEach(function (card) {
+          card.addEventListener('mousemove', function (e) {
+            var r = card.getBoundingClientRect();
+            card.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+            card.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+          });
+        });
 
         document.addEventListener('click', function (e) {
           var btn = e.target.closest('.btn-copy-floating');
