@@ -17,20 +17,22 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/skim-rs/skim/releases/download/v5.6.5/skim-x86_64-unknown-linux-musl.tar.xz
-        sha256: 9d11a259718ca30fd4aacd962d1db9153bdb7b389a7d980b2a3a0907b94cb7fa
+        url: https://github.com/skim-rs/skim/releases/download/v5.6.6/skim-x86_64-unknown-linux-musl.tar.xz
+        sha256: 858e59f72c16fbe32b95987b90e31a14df1c592b4ca1a88821f0e044c9b5602d
         x-checker-data:
           type: json
           url: https://api.github.com/repos/skim-rs/skim/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("x86_64-unknown-linux-musl\\.tar\\.xz$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("x86_64-unknown-linux-musl\\.tar\\.xz$"))
+            | .browser_download_url
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/skim-rs/skim/releases/download/v5.6.5/skim-aarch64-unknown-linux-musl.tar.xz
-        sha256: 0b347b30fe01f709ead7733505432206016443dba6939d266b2db20c0cae5234
+        url: https://github.com/skim-rs/skim/releases/download/v5.6.6/skim-aarch64-unknown-linux-musl.tar.xz
+        sha256: 508173e4eda04a65facf5e268070509604a0bf983071e8c578118172b4b1bf56
         x-checker-data:
           type: json
           url: https://api.github.com/repos/skim-rs/skim/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.xz$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.xz$"))
+            | .browser_download_url

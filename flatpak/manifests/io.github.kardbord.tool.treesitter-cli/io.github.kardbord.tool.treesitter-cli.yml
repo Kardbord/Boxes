@@ -19,20 +19,20 @@ modules:
       - type: file
         only-arches:
           - x86_64
-        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.12/tree-sitter-linux-x64.gz
-        sha256: d00ac0daefc4bf8c4b57842a5c0509927232faad1d83157b64fbad4e2e8d9a8b
+        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.12/tree-sitter-cli-linux-x64.zip
+        sha256: c33ace12fa7a94d09c97054da621bf7a6a3159f765b1839a898232de283d641d
         x-checker-data:
           type: json
           url: https://api.github.com/repos/tree-sitter/tree-sitter/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("linux-x64\\.zip$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("linux-x64\\.zip$")) | .browser_download_url
       - type: file
         only-arches:
           - aarch64
-        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.12/tree-sitter-linux-arm64.gz
-        sha256: cfbf3d9aad8e326878ab1846885a9c2b782a0333273591616f34bf556d525586
+        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.12/tree-sitter-cli-linux-arm64.zip
+        sha256: be970bfad7b557ffc62b1a7b4c92341a9c6e16d619e9880e43f07c4a4e6eb52a
         x-checker-data:
           type: json
           url: https://api.github.com/repos/tree-sitter/tree-sitter/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("linux-arm64\\.zip$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("linux-arm64\\.zip$")) | .browser_download_url
