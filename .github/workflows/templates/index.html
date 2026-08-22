@@ -6,26 +6,26 @@
   <title>Kardbord's Boxes</title>
   <style>
     :root {
-      --bg: #f9f9fb;
+      --bg: #f8fafc;
       --card: #ffffff;
-      --border: #e4e4e7;
-      --text: #09090b;
-      --text-muted: #5e5e64;
-      --primary: #7c3aed;
-      --primary-glow: rgba(124, 58, 237, 0.15);
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #475569;
+      --primary-glow: rgba(71, 85, 105, 0.12);
       --success: #10b981;
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #09090b;
-        --card: #121214;
-        --border: #222226;
-        --text: #f4f4f5;
-        --text-muted: #a1a1aa;
-        --primary: #8b5cf6;
-        --primary-glow: rgba(139, 92, 246, 0.15);
+        --bg: #0f172a;
+        --card: #1e293b;
+        --border: #334155;
+        --text: #f1f5f9;
+        --text-muted: #94a3b8;
+        --primary: #94a3b8;
+        --primary-glow: rgba(148, 163, 184, 0.12);
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -76,7 +76,7 @@
     code {
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      background: rgba(124, 58, 237, 0.08);
+      background: rgba(71, 85, 105, 0.08);
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
       color: var(--primary);
@@ -343,25 +343,46 @@ sudo apt install &lt;PACKAGE&gt;</code></pre>
             container.innerHTML = '<div class="empty-state">No packages available yet.</div>';
             return;
           }
-          var html = '';
+
+          var apps = {};
           data.Results.forEach(function(pkg) {
             var appId = pkg.Name;
+            if (appId.indexOf('.Sdk') !== -1 || appId.indexOf('.Platform') !== -1) return;
             var parts = appId.split('.');
             var appName = parts[parts.length - 1];
             var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+            if (!apps[appId]) {
+              apps[appId] = { id: appId, name: displayName, images: [] };
+            }
+            if (pkg.Images) {
+              pkg.Images.forEach(function(img) {
+                apps[appId].images.push(img);
+              });
+            }
+          });
+
+          var appIds = Object.keys(apps);
+          if (appIds.length === 0) {
+            container.innerHTML = '<div class="empty-state">No user-facing packages available yet.</div>';
+            return;
+          }
+
+          var html = '';
+          appIds.forEach(function(appId) {
+            var app = apps[appId];
             html += '<div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);">';
             html += '<div class="app-head">';
-            html += '<div class="app-icon placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.2rem;">' + displayName.charAt(0) + '</div>';
-            html += '<div><h2 class="app-name">' + displayName + '</h2>';
-            html += '<span class="app-id">' + appId + '</span></div></div>';
-            if (pkg.Images && pkg.Images.length > 0) {
-              html += '<div class="releases">';
-              pkg.Images.forEach(function(img) {
+            html += '<div class="app-icon placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.2rem;">' + app.name.charAt(0) + '</div>';
+            html += '<div><h2 class="app-name">' + app.name + '</h2>';
+            html += '<span class="app-id">' + app.id + '</span></div></div>';
+
+            if (app.images.length > 0) {
+              html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">';
+              app.images.forEach(function(img) {
                 var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
                 var arch = img.Architecture || 'unknown';
-                html += '<div class="release">';
-                html += '<div class="release-head"><span class="badge primary">' + branch + '</span><span class="platform-tag">' + arch + '</span></div>';
-                html += '</div>';
+                html += '<span class="badge primary">' + branch + '</span>';
+                html += '<span class="platform-tag">' + arch + '</span>';
               });
               html += '</div>';
             }

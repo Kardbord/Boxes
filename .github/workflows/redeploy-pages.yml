@@ -1,0 +1,37 @@
+name: Redeploy GitHub Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/templates/index.html
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Deploy site
+        uses: aetherpak/actions/publish-site@v3
+        env:
+          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
+        with:
+          pages-artifact-name: github-pages-redeploy
+          records-dir: _records
+          pages-url: https://kardbord.github.io/Boxes
+          signing: auto
+          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+          index-template: .github/workflows/templates/index.html
+
+      - uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages-redeploy
