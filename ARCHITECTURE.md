@@ -375,19 +375,11 @@ ensures stale images are cleaned up automatically after packages are removed.
 
 ### Upstream Tracking
 
-Two mechanisms detect upstream changes independently:
-
-1. **App base dependencies**: Apps that use `base:` to inherit from Flathub
-   builds are tracked via GitHub Actions variables. The
-   `flatpak-upstream-check.yml` workflow runs daily, queries Flathub for the
-   latest stable commit of each base app, and triggers the build workflow if
-   upstream has changed. Currently tracks `io.neovim.nvim` via the
-   `FLATPAK_NEOVIM_UPSTREAM_COMMIT` variable; additional apps can be added as
-   new manifests are introduced.
-
-2. **Extension sources**: The `flatpak-external-data-checker` (FEDC) runs daily,
-   using `x-checker-data` annotations in the extension manifests to detect new
-   GitHub releases. FEDC auto-commits updated manifests and opens PRs.
+Extension sources are checked weekly by the `flatpak-updates.yml` workflow,
+which uses `flatpak-external-data-checker` (FEDC) with the `x-checker-data`
+annotations in the extension manifests to detect new upstream releases.
+FEDC updates the manifests in-place and opens a single PR with all changes
+for review before merging.
 
 ### GPG Signing
 
@@ -418,10 +410,8 @@ signature lookaside are published alongside the index on Pages.
    \- mkdir -p ${FLATPAK_DEST}/lib/sdk` to create the extension mount points.
    Without this, bwrap will fail with a read-only filesystem error when
    mounting extensions.
-5. If the app uses `base:`, add an upstream tracking variable and extend the
-   `flatpak-upstream-check.yml` workflow (see [Upstream Tracking](#upstream-tracking)).
-6. Do not grant filesystem access in `finish-args` beyond what the app needs to
-   function. See [Sandbox Permissions Policy](flatpak/README.md#sandbox-permissions-policy).
-7. Test locally with `flatpak-builder`.
-8. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
-   the new manifest at CI time.
+5. Do not grant filesystem access in `finish-args` beyond what the app needs to
+    function. See [Sandbox Permissions Policy](flatpak/README.md#sandbox-permissions-policy).
+ 6. Test locally with `flatpak-builder`.
+ 7. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
+    the new manifest at CI time.

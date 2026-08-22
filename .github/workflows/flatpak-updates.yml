@@ -1,0 +1,42 @@
+name: Check Flatpak upstream updates
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'   # Weekly, Monday at 05:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install FEDC
+        run: pip install flatpak-external-data-checker
+
+      - name: Run FEDC on manifests with x-checker-data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          for manifest in $(grep -rl 'x-checker-data' flatpak/manifests/); do
+            echo "Checking $manifest..."
+            flatpak-external-data-checker --edit-only --never-fork "$manifest" || true
+          done
+
+      - name: Create or update PR
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Update flatpak sources via FEDC'
+          title: 'Update flatpak upstream sources'
+          body: |
+            Automated updates from FEDC checks.
+          branch: flatpak-updates
+          delete-branch: true

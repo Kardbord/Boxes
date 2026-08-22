@@ -58,19 +58,11 @@ example, `io.github.kardbord.neovim` uses `base: io.neovim.nvim`:
 
 ### Upstream Tracking
 
-Two mechanisms detect upstream changes:
-
-1. **App base dependencies**: Apps that use `base:` to inherit from Flathub
-   builds are tracked via GitHub Actions variables. The
-   `flatpak-upstream-check.yml` workflow runs daily, queries Flathub for the
-   latest stable commit of each base app, and triggers the build workflow if
-   upstream has changed. Currently tracks `io.neovim.nvim` via the
-   `FLATPAK_NEOVIM_UPSTREAM_COMMIT` variable; additional apps can be added as
-   new manifests are introduced.
-
-2. **Extension sources**: The `flatpak-external-data-checker` (FEDC) runs daily,
-   using `x-checker-data` annotations in the extension manifests to detect new
-   GitHub releases. FEDC auto-commits updated manifests and opens PRs.
+Extension sources are checked weekly by the `flatpak-updates.yml` workflow,
+which uses `flatpak-external-data-checker` (FEDC) with the `x-checker-data`
+annotations in the extension manifests to detect new upstream releases.
+FEDC updates the manifests in-place and opens a single PR with all changes
+for review before merging.
 
 ## Adding a New Extension
 
@@ -125,7 +117,8 @@ Two mechanisms detect upstream changes:
      flatpak/manifests/io.github.kardbord.tool.<name>/io.github.kardbord.tool.<name>.yml
    ```
 
-5. **Add x-checker-data to the manifest** (shown above) so FEDC can auto-update it.
+5. **Add x-checker-data to the manifest** (shown above) so the
+    weekly FEDC workflow can detect upstream updates.
 
 6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
    the new manifest at CI time.
