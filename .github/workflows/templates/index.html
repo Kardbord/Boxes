@@ -6,26 +6,27 @@
   <title>{{ .RepoTitle }}</title>
   <style>
     :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-muted: #64748b;
-      --primary: #0369a1;
-      --primary-glow: rgba(3, 105, 161, 0.12);
+      --bg: #09090b;
+      --card: #18181b;
+      --border: #27272a;
+      --text: #e4e4e7;
+      --text-muted: #71717a;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.10);
       --success: #10b981;
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
-    @media (prefers-color-scheme: dark) {
+    @media (prefers-color-scheme: light) {
       :root {
-        --bg: #0f172a;
-        --card: #1e293b;
-        --border: #334155;
-        --text: #f1f5f9;
-        --text-muted: #94a3b8;
-        --primary: #38bdf8;
-        --primary-glow: rgba(56, 189, 248, 0.12);
+        --bg: #f8fafc;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --primary: #4f46e5;
+        --primary-glow: rgba(79, 70, 229, 0.10);
+        --success: #059669;
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -76,13 +77,13 @@
     code {
       font-family: var(--font-mono);
       font-size: 0.85rem;
-      background: rgba(3, 105, 161, 0.08);
+      background: var(--primary-glow);
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
       color: var(--primary);
     }
     pre {
-      background: #111513;
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 1rem;
@@ -92,7 +93,7 @@
     pre code {
       background: transparent;
       padding: 0;
-      color: #ecf1ed;
+      color: var(--text);
       font-size: 0.83rem;
       line-height: 1.6;
     }
@@ -134,7 +135,7 @@
       height: 52px;
       border-radius: 12px;
       flex-shrink: 0;
-      background: rgba(255,255,255,0.04);
+      background: var(--primary-glow);
       border: 1px solid var(--border);
       object-fit: contain;
     }
@@ -146,7 +147,7 @@
       font-size: 0.72rem;
       font-family: var(--font-mono);
       border-radius: 6px;
-      background: rgba(255,255,255,0.05);
+      background: var(--primary-glow);
       border: 1px solid var(--border);
       color: var(--text-muted);
     }
@@ -218,7 +219,7 @@
       font-size: 0.7rem;
       font-family: var(--font-mono);
       border-radius: 4px;
-      background: rgba(255,255,255,0.05);
+      background: var(--primary-glow);
       border: 1px solid var(--border);
       color: var(--text-muted);
     }
@@ -226,19 +227,19 @@
     .syn-str { color: #86efac; }
     .syn-cmt { color: #64748b; font-style: italic; }
     .syn-flag { color: #fbbf24; }
-    .syn-url { color: #38bdf8; text-decoration: underline; text-underline-offset: 3px; }
+    .syn-url { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
     .syn-num { color: #c084fc; }
     .syn-op { color: #94a3b8; }
     .syn-attr { color: #f472b6; }
-    @media (prefers-color-scheme: dark) {
-      .syn-kw { color: #7dd3fc; }
-      .syn-str { color: #86efac; }
-      .syn-cmt { color: #94a3b8; }
-      .syn-flag { color: #fbbf24; }
-      .syn-url { color: #38bdf8; }
-      .syn-num { color: #c084fc; }
-      .syn-op { color: #94a3b8; }
-      .syn-attr { color: #f472b6; }
+    @media (prefers-color-scheme: light) {
+      .syn-kw { color: #4338ca; }
+      .syn-str { color: #047857; }
+      .syn-cmt { color: #6b7280; }
+      .syn-flag { color: #d97706; }
+      .syn-url { color: #4f46e5; }
+      .syn-num { color: #7c3aed; }
+      .syn-op { color: #6b7280; }
+      .syn-attr { color: #db2777; }
     }
   </style>
 </head>
