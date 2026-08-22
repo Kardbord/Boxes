@@ -10,10 +10,12 @@
       --bg: #09090b;
       --card: #18181b;
       --border: #27272a;
+      --code-border: #202723;
       --text: #e4e4e7;
-      --text-heading: #c4c4c8;
+      --text-heading: #a0a0a4;
       --text-muted: #71717a;
       --primary: #6366f1;
+      --link: #a5b4fc;
       --primary-glow: rgba(99, 102, 241, 0.10);
       --success: #10b981;
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -25,13 +27,43 @@
         --bg: #f8fafc;
         --card: #ffffff;
         --border: #e2e8f0;
+        --code-border: #d0d7de;
         --text: #0f172a;
         --text-heading: #0f172a;
         --text-muted: #64748b;
         --primary: #4f46e5;
+        --link: #4338ca;
         --primary-glow: rgba(79, 70, 229, 0.10);
         --success: #059669;
       }
+    }
+
+    html.light {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --code-border: #d0d7de;
+      --text: #0f172a;
+      --text-heading: #0f172a;
+      --text-muted: #64748b;
+      --primary: #4f46e5;
+      --link: #4338ca;
+      --primary-glow: rgba(79, 70, 229, 0.10);
+      --success: #059669;
+    }
+
+    html.dark {
+      --bg: #09090b;
+      --card: #18181b;
+      --border: #27272a;
+      --code-border: #202723;
+      --text: #e4e4e7;
+      --text-heading: #a0a0a4;
+      --text-muted: #71717a;
+      --primary: #6366f1;
+      --link: #a5b4fc;
+      --primary-glow: rgba(99, 102, 241, 0.10);
+      --success: #10b981;
     }
 
     * {
@@ -47,6 +79,20 @@
       line-height: 1.6;
       padding: 2rem 1rem;
       min-height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(ellipse at 50% 0%, var(--primary-glow) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: -1;
     }
 
     .container {
@@ -58,6 +104,36 @@
       text-align: center;
       margin-bottom: 2.5rem;
       padding-top: 1.5rem;
+      position: relative;
+    }
+
+    .header-actions {
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      gap: 0.5rem;
+      z-index: 10;
+    }
+
+    .theme-toggle-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .theme-toggle-btn:hover {
+      color: var(--text);
+      border-color: var(--primary);
+      transform: translateY(-2px);
     }
 
     h1 {
@@ -109,23 +185,6 @@
       padding: 0.15rem 0.4rem;
       border-radius: 4px;
       color: var(--primary);
-    }
-
-    pre {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1rem;
-      overflow-x: auto;
-      margin: 0.75rem 0;
-    }
-
-    pre code {
-      background: transparent;
-      padding: 0;
-      color: var(--text);
-      font-size: 0.83rem;
-      line-height: 1.6;
     }
 
     .btn {
@@ -302,7 +361,7 @@
     }
 
     .link-item a {
-      color: var(--primary);
+      color: var(--link);
       text-decoration: none;
       font-weight: 500;
       word-break: break-all;
@@ -325,12 +384,21 @@
     }
 
     footer a {
-      color: var(--primary);
+      color: var(--link);
       text-decoration: none;
       font-weight: 500;
     }
 
     footer a:hover {
+      text-decoration: underline;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    a:hover {
       text-decoration: underline;
     }
 
@@ -362,84 +430,141 @@
       color: var(--text-muted);
     }
 
-    .syn-kw {
-      color: #7dd3fc;
+    /* Clean Code blocks styling from AetherPak */
+    .code-container {
+      margin: 1rem 0;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--code-border);
+      background: #111513;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: #0b0e0c;
+      border-bottom: 1px solid var(--code-border);
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
       font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
-    .syn-str {
-      color: #86efac;
+    .code-lang {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    .syn-cmt {
-      color: #64748b;
-      font-style: italic;
+    .code-lang::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
     }
 
-    .syn-flag {
-      color: #fbbf24;
+    .code-container .code-block {
+      padding: 0.85rem 1rem;
+      margin: 0;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      overflow-x: auto;
     }
 
-    .syn-url {
-      color: var(--primary);
-      text-decoration: underline;
-      text-underline-offset: 3px;
+    .code-container .code-block code {
+      display: block;
+      white-space: pre;
+      font-family: var(--font-mono);
+      font-size: 0.83rem;
+      line-height: 1.6;
+      color: #ecf1ed;
     }
 
-    .syn-num {
-      color: #c084fc;
+    .code-container .btn-copy {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      color: var(--text-muted);
+      display: flex;
+      padding: 0.35rem;
+      border-radius: 6px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      align-items: center;
+      justify-content: center;
     }
 
-    .syn-op {
-      color: #94a3b8;
+    .code-container .btn-copy:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.1);
+      border-color: var(--primary);
     }
 
-    .syn-attr {
-      color: #f472b6;
+    .code-container .btn-copy.success {
+      color: var(--success);
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.15);
     }
+
+    .code-keyword { color: #58a6ff; font-weight: 600; }
+    .code-subcommand { color: #f28b54; }
+    .code-flag { color: #ff7b72; }
+    .code-url { color: #34d399; text-decoration: underline; text-underline-offset: 3px; }
 
     @media (prefers-color-scheme: light) {
-      .syn-kw {
-        color: #4338ca;
+      .code-container {
+        background: #f6f8fa;
+        border-color: #d0d7de;
       }
-
-      .syn-str {
-        color: #047857;
+      .code-header {
+        background: #f0f3f6;
+        border-bottom-color: #d0d7de;
+        color: #57606a;
       }
-
-      .syn-cmt {
-        color: #6b7280;
+      .code-container .code-block code {
+        color: #1f2328;
       }
-
-      .syn-flag {
-        color: #d97706;
-      }
-
-      .syn-url {
-        color: #4f46e5;
-      }
-
-      .syn-num {
-        color: #7c3aed;
-      }
-
-      .syn-op {
-        color: #6b7280;
-      }
-
-      .syn-attr {
-        color: #db2777;
-      }
+      .code-keyword { color: #0550ae; }
+      .code-subcommand { color: #953800; }
+      .code-flag { color: #cf222e; }
+      .code-url { color: #0550ae; }
     }
+
+    html.light .code-container {
+      background: #f6f8fa;
+      border-color: #d0d7de;
+    }
+    html.light .code-header {
+      background: #f0f3f6;
+      border-bottom-color: #d0d7de;
+      color: #57606a;
+    }
+    html.light .code-container .code-block code {
+      color: #1f2328;
+    }
+    html.light .code-keyword { color: #0550ae; }
+    html.light .code-subcommand { color: #953800; }
+    html.light .code-flag { color: #cf222e; }
+    html.light .code-url { color: #0550ae; }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <header>
+<header>
+      <div class="header-actions">
+        <button class="theme-toggle-btn" id="theme-toggle" aria-label="Toggle theme">
+          <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
       <h1>Kardbord's Boxes</h1>
-      <p class="subtitle">Custom build specifications for upstream FOSS projects. Built by OBS and GitHub Actions.
-        Flatpaks, RPMs, and DEBs.</p>
+      <p class="subtitle">Custom build specifications for upstream FOSS projects. Built by OBS and GitHub Actions. Flatpaks, RPMs, and DEBs.</p>
     </header>
 
     <section class="card" id="flatpak">
@@ -447,18 +572,17 @@
       <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
         Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.</p>
       <h3>Quick Start</h3>
-      <pre><code><span class="syn-cmt"># Add the remote</span>
-          <span class="syn-kw">flatpak</span> <span class="syn-kw">remote-add</span> <span
-            class="syn-flag">--if-not-exists</span> <span class="syn-flag">--user</span> {{ .RemoteName }} \
-          oci+<span class="syn-url">{{ .PagesURL }}</span>
+      <pre><code># Add the remote
+flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
+oci+{{ .PagesURL }}
 
-          <span class="syn-cmt"># Install the custom Neovim + extensions</span>
-          <span class="syn-kw">flatpak</span> <span class="syn-kw">install</span> {{ .RemoteName }}
-          io.github.kardbord.neovim
-          <span class="syn-kw">flatpak</span> <span class="syn-kw">install</span> {{ .RemoteName }}
-          io.github.kardbord.tool.ripgrep
-          <span class="syn-kw">flatpak</span> <span class="syn-kw">install</span> {{ .RemoteName }}
-          io.github.kardbord.tool.fd</code></pre>
+# Install the custom Neovim + extensions
+flatpak install {{ .RemoteName }} io.github.kardbord.neovim
+io.github.kardbord.neovim
+flatpak install {{ .RemoteName }} io.github.kardbord.tool.ripgrep
+io.github.kardbord.tool.ripgrep
+flatpak install {{ .RemoteName }} io.github.kardbord.tool.fd
+io.github.kardbord.tool.fd</code></pre>
       <p><small>Pass additional <code>--filesystem=</code> flags as needed. See the <a
             href="https://github.com/Kardbord/Boxes/blob/main/flatpak/README.md">Flatpak guide</a> for developer
           documentation.</small></p>
@@ -469,32 +593,19 @@
       <p>RPM and DEB packages are published to the Open Build Service and can be added to your system's package manager.
       </p>
       <h3>RPM-based (openSUSE, Rocky Linux, Alma Linux)</h3>
-      <pre><code><span
-            class="syn-str">REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/&lt;REPOSITORY&gt;/home:Kardbord:Boxes.repo"</span>
-          <span class="syn-kw">sudo</span> <span class="syn-kw">zypper</span> <span class="syn-kw">addrepo</span> <span
-            class="syn-flag">--refresh</span> <span class="syn-str">"$REPO_URL"</span> <span class="syn-cmt">#
-            openSUSE</span>
-          <span class="syn-kw">sudo</span> <span class="syn-kw">dnf</span> <span class="syn-kw">config-manager</span>
-          <span class="syn-flag">--add-repo</span> <span class="syn-str">"$REPO_URL"</span> <span class="syn-cmt">#
-            Rocky/Alma</span>
-          <span class="syn-kw">sudo</span> <span class="syn-kw">zypper</span> <span class="syn-kw">refresh</span> <span
-            class="syn-cmt"># or: sudo dnf makecache</span>
-          <span class="syn-kw">sudo</span> <span class="syn-kw">zypper</span> <span class="syn-kw">install</span>
-          &lt;PACKAGE&gt;</code></pre>
+<pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>/home:Kardbord:Boxes.repo"
+sudo zypper addrepo --refresh "$REPO_URL" # openSUSE
+sudo dnf config-manager --add-repo "$REPO_URL" # Rocky/Alma
+sudo zypper refresh # or: sudo dnf makecache
+sudo zypper install <PACKAGE></code></pre>
       <h3>Debian-based (Ubuntu, Debian, Raspbian)</h3>
-      <pre><code><span
-            class="syn-str">REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/&lt;REPOSITORY&gt;"</span>
-          <span class="syn-kw">curl</span> <span class="syn-flag">-fsSL</span> <span
-            class="syn-str">"$REPO_URL/Release.key"</span> | gpg <span class="syn-flag">--dearmor</span> \
-          | <span class="syn-kw">sudo</span> <span class="syn-kw">tee</span> /usr/share/keyrings/home_Kardbord_Boxes.gpg
-          > /dev/null
-          <span class="syn-kw">echo</span> <span class="syn-str">"deb
-            [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./"</span> \
-          | <span class="syn-kw">sudo</span> <span class="syn-kw">tee</span>
-          /etc/apt/sources.list.d/home:Kardbord:Boxes.list
-          <span class="syn-kw">sudo</span> <span class="syn-kw">apt</span> <span class="syn-kw">update</span>
-          <span class="syn-kw">sudo</span> <span class="syn-kw">apt</span> <span class="syn-kw">install</span>
-          &lt;PACKAGE&gt;</code></pre>
+<pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>"
+curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
+| sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
+echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
+| sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
+sudo apt update
+sudo apt install <PACKAGE></code></pre>
       <p><small>Replace <code>&lt;REPOSITORY&gt;</code> with your distribution's repo name (e.g.
           <code>openSUSE_Tumbleweed</code>, <code>RockyLinux_9</code>, <code>Debian_13</code>) and
           <code>&lt;PACKAGE&gt;</code> with a package name from the README.</small></p>
@@ -568,75 +679,154 @@
     </footer>
   </div>
 
-  <script>
+<script>
     (function () {
-      var pagesUrl = window.location.origin + window.location.pathname;
-      var indexUrl = pagesUrl.replace(/\/$/, '') + '/index/static';
-      var container = document.getElementById('app-list');
-      if (!container) return;
+      var saved = localStorage.getItem('theme');
+      var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.className = theme;
+      function esc(text) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(text));
+        return d.innerHTML;
+      }
 
-      fetch(indexUrl)
-        .then(function (r) {return r.json();})
-        .then(function (data) {
-          if (!data || !data.Results || data.Results.length === 0) {
-            container.innerHTML = '<div class="empty-state">No packages available yet.</div>';
-            return;
-          }
-
-          var apps = {};
-          data.Results.forEach(function (pkg) {
-            if (!pkg.Images) return;
-            pkg.Images.forEach(function (img) {
-              var ref = img.Labels && img.Labels['org.flatpak.ref'];
-              if (!ref) return;
-              var parts = ref.split('/');
-              if (parts.length < 4) return;
-              var kind = parts[0];
-              var appId = parts[1];
-              if (kind !== 'app') return;
-              if (appId.indexOf('.Sdk') !== -1 || appId.indexOf('.Platform') !== -1) return;
-              var nameParts = appId.split('.');
-              var appName = nameParts[nameParts.length - 1];
-              var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function (c) {return c.toUpperCase();});
-              if (!apps[appId]) {
-                apps[appId] = {id: appId, name: displayName, images: []};
-              }
-              apps[appId].images.push(img);
-            });
-          });
-
-          var appIds = Object.keys(apps);
-          if (appIds.length === 0) {
-            container.innerHTML = '<div class="empty-state">No user-facing packages available yet.</div>';
-            return;
-          }
-
-          var html = '';
-          appIds.forEach(function (appId) {
-            var app = apps[appId];
-            html += '<div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);">';
-            html += '<div class="app-head">';
-            html += '<div class="app-icon placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.2rem;">' + app.name.charAt(0) + '</div>';
-            html += '<div><h2 class="app-name">' + app.name + '</h2>';
-            html += '<span class="app-id">' + app.id + '</span></div></div>';
-
-            if (app.images.length > 0) {
-              html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">';
-              app.images.forEach(function (img) {
-                var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
-                var arch = img.Architecture || 'unknown';
-                html += '<span class="badge primary">' + branch + '</span>';
-                html += '<span class="platform-tag">' + arch + '</span>';
-              });
-              html += '</div>';
-            }
-            html += '</div>';
-          });
-          container.innerHTML = html;
-        })
-        .catch(function () {
-          container.innerHTML = '<div class="empty-state">Unable to load app list.</div>';
+      function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(function () {
+          var o = btn.innerHTML;
+          btn.classList.add('success');
+          btn.innerHTML = ' ';
+          setTimeout(function () {
+            btn.classList.remove('success');
+            btn.innerHTML = o;
+          }, 1500);
         });
+      }
+
+      function highlightCmd(cmd) {
+        var htmlStr = esc(cmd);
+        htmlStr = htmlStr.replace(/(^|\s)(--?[a-zA-Z0-9-]+)/g, '$1<span class="code-flag">$2</span>');
+        htmlStr = htmlStr.replace(/\b(flatpak)\b/g, '<span class="code-keyword">$1</span>');
+        htmlStr = htmlStr.replace(/\b(install|remote-add|remote-modify)\b/g, '<span class="code-subcommand">$1</span>');
+        htmlStr = htmlStr.replace(/((?:oci\+)?https?:\/\/[^\s\\]+|sigs\/[^\s\\]+)/g, '<span class="code-url">$1</span>');
+        return htmlStr;
+      }
+
+      function codeBlock(label, cmd) {
+        var labelHtml = label ? ' <span class="code-lang">' + esc(label) + '</span>' : '';
+        return '<div class="code-container">' +
+          '<div class="code-header">' +
+          labelHtml +
+          '<button class="btn-copy" aria-label="Copy to clipboard">' + esc('Copy') + '</button>' +
+          '</div>' +
+          '<div class="code-block"><code>' + highlightCmd(cmd) + '</code></div>' +
+          '</div>';
+      }
+
+      function setupThemeToggle() {
+        var toggle = document.getElementById('theme-toggle');
+        if (!toggle) return;
+        toggle.addEventListener('click', function () {
+          var current = document.documentElement.classList.contains('dark')
+            || (window.matchMedia('(prefers-color-scheme: dark)').matches && !document.documentElement.classList.contains('light'))
+            ? 'dark' : 'light';
+          var next = current === 'dark' ? 'light' : 'dark';
+          document.documentElement.className = next;
+          localStorage.setItem('theme', next);
+        });
+      }
+
+      function processCodeBlocks() {
+        var pres = document.querySelectorAll('pre code');
+        pres.forEach(function (codeEl) {
+          var pre = codeEl.parentElement;
+          if (pre.classList.contains('code-container')) return;
+          var text = codeEl.textContent;
+          pre.innerHTML = codeBlock('', text);
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        setupThemeToggle();
+        processCodeBlocks();
+
+        document.addEventListener('click', function (e) {
+          var btn = e.target.closest('.btn-copy');
+          if (!btn) return;
+          var container = btn.closest('.code-container');
+          if (!container) return;
+          var code = container.querySelector('.code-block code');
+          if (!code) return;
+          copyToClipboard(code.textContent, btn);
+        });
+
+        var pagesUrl = window.location.origin + window.location.pathname;
+        var indexUrl = pagesUrl.replace(/\/$/, '') + '/index/static';
+        var container = document.getElementById('app-list');
+        if (!container) return;
+
+        fetch(indexUrl)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data || !data.Results || data.Results.length === 0) {
+              container.innerHTML = '<div class="empty-state">No packages available yet.</div>';
+              return;
+            }
+
+            var apps = {};
+            data.Results.forEach(function (pkg) {
+              if (!pkg.Images) return;
+              pkg.Images.forEach(function (img) {
+                var ref = img.Labels && img.Labels['org.flatpak.ref'];
+                if (!ref) return;
+                var parts = ref.split('/');
+                if (parts.length < 4) return;
+                var kind = parts[0];
+                var appId = parts[1];
+                if (kind !== 'app') return;
+                if (appId.indexOf('.Sdk') !== -1 || appId.indexOf('.Platform') !== -1) return;
+                var nameParts = appId.split('.');
+                var appName = nameParts[nameParts.length - 1];
+                var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+                if (!apps[appId]) {
+                  apps[appId] = { id: appId, name: displayName, images: [] };
+                }
+                apps[appId].images.push(img);
+              });
+            });
+
+            var appIds = Object.keys(apps);
+            if (appIds.length === 0) {
+              container.innerHTML = '<div class="empty-state">No user-facing packages available yet.</div>';
+              return;
+            }
+
+            var html = '';
+            appIds.forEach(function (appId) {
+              var app = apps[appId];
+              html += '<div style="margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);">';
+              html += '<div class="app-head">';
+              html += '<div class="app-icon placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--primary);font-weight:700;font-size:1.2rem;">' + app.name.charAt(0) + '</div>';
+              html += '<div><h2 class="app-name">' + app.name + '</h2>';
+              html += '<span class="app-id">' + app.id + '</span></div></div>';
+
+              if (app.images.length > 0) {
+                html += '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;">';
+                app.images.forEach(function (img) {
+                  var branch = img.Tags && img.Tags.length > 0 ? img.Tags[0] : 'stable';
+                  var arch = img.Architecture || 'unknown';
+                  html += '<span class="badge primary">' + branch + '</span>';
+                  html += '<span class="platform-tag">' + arch + '</span>';
+                });
+                html += '</div>';
+              }
+              html += '</div>';
+            });
+            container.innerHTML = html;
+          })
+          .catch(function () {
+            container.innerHTML = '<div class="empty-state">Unable to load app list.</div>';
+          });
+      });
     })();
   </script>
 </body>
