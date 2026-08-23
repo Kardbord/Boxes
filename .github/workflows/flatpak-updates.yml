@@ -20,17 +20,31 @@ jobs:
           persist-credentials: false
 
       - name: Run FEDC on manifests with x-checker-data
+        id: fedc
         run: |
-          set -euo pipefail
+          set -uo pipefail
+          > fedc-errors.txt
           for manifest in $(grep -rl 'x-checker-data' flatpak/manifests/); do
             echo "Checking $manifest..."
-            docker run --rm \
+            if ! docker run --rm \
               -v "$PWD:/workspace" \
               -v "$PWD/.git:/workspace/.git" \
               -w /workspace \
               ghcr.io/flathub/flatpak-external-data-checker:latest \
-               --edit-only --never-fork "$manifest" || true
+              --edit-only --never-fork "$manifest"; then
+              echo "- ❌ $manifest" >> fedc-errors.txt
+            fi
           done
+          if [ -s fedc-errors.txt ]; then
+            {
+              echo "## FEDC Errors"
+              echo ""
+              cat fedc-errors.txt
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "errors<<EOF" >> "$GITHUB_OUTPUT"
+            cat fedc-errors.txt >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Create or update PR
         uses: peter-evans/create-pull-request@v5
@@ -40,5 +54,6 @@ jobs:
           title: 'Update flatpak upstream sources'
           body: |
             Automated updates from FEDC checks.
+            ${{ steps.fedc.outputs.errors }}
           branch: flatpak-updates
           delete-branch: true

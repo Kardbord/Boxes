@@ -23,4 +23,4 @@ modules:
           type: json
           url: https://api.github.com/repos/ruby/ruby/releases/latest
           version-query: .tag_name | sub("^v"; "")
-          url-query: https://cache.ruby-lang.org/pub/ruby/4.0/ruby- + (.tag_name | sub("^v"; "")) + ".tar.gz"
+          url-query: '"https://cache.ruby-lang.org/pub/ruby/4.0/ruby-\(.tag_name | sub("^v"; "")).tar.gz"'

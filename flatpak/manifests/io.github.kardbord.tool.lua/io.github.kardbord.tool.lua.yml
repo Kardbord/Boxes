@@ -37,4 +37,4 @@ modules:
           type: json
           url: https://api.github.com/repos/luarocks/luarocks/releases/latest
           version-query: '.tag_name | sub("^v"; "")'
-          url-query: "https://github.com/luarocks/luarocks/archive/refs/tags/\\(.tag_name).tar.gz"
+          url-query: '"https://github.com/luarocks/luarocks/archive/refs/tags/\(.tag_name).tar.gz"'
