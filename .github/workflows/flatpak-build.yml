@@ -329,6 +329,7 @@ jobs:
       - name: Prune old Actions caches
         env:
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           MAX_BYTES=$((10 * 1024 * 1024 * 1024))
