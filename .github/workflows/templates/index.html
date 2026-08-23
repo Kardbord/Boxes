@@ -871,17 +871,17 @@
       <h2>Distro Packages</h2>
       <p>RPM and DEB packages are published via the Open Build Service and can be added to your system's package manager.
       </p>
-      <h3>openSUSE (zypper)</h3>
+      <h3>RPM-based (zypper)</h3>
       <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
 sudo zypper addrepo --refresh "$REPO_URL"
 sudo zypper refresh
 sudo zypper install [PACKAGE]</code></pre>
-      <h3>Rocky Linux / Alma Linux (dnf)</h3>
+      <h3>RPM-based (dnf)</h3>
       <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
 sudo dnf config-manager --add-repo "$REPO_URL"
 sudo dnf makecache
 sudo dnf install [PACKAGE]</code></pre>
-      <h3>Debian-based (Ubuntu, Debian, Raspbian)</h3>
+      <h3>Debian-based (apt)</h3>
       <pre><code>REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]"
 curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
   | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
