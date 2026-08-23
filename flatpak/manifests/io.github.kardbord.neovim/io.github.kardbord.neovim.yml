@@ -16,6 +16,16 @@ modules:
     sources:
       - type: file
         path: nvim-wrapper-wrapper
+      # Dummy source for FEDC to check for updates to the upstream manifest
+      - type: file
+        url: https://raw.githubusercontent.com/flathub/io.neovim.nvim/master/io.neovim.nvim.yaml
+        sha256: f77af45551daeab35e0b5b36ef2aa7c29e6031493cc4336979a66f59fa504c16
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/flathub/io.neovim.nvim/commits?per_page=1
+          version-query: ".[0].sha[:7]"
+          url-query: '"https://raw.githubusercontent.com/flathub/io.neovim.nvim/" + .[0].sha + "/io.neovim.nvim.yaml"'
+          timestamp-query: ".[0].commit.author.date"
 
 finish-args:
   - --filesystem=/tmp
