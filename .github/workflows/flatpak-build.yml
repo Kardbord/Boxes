@@ -320,3 +320,48 @@ jobs:
       - uses: actions/deploy-pages@v5
         with:
           artifact_name: github-pages-apps
+
+  cleanup-caches:
+    needs: deploy-apps
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prune old Actions caches
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          set -uo pipefail
+          MAX_BYTES=$((10 * 1024 * 1024 * 1024))
+
+          echo "Fetching GitHub Actions caches for ${REPO}..."
+          ALL_CACHES=$(gh api --paginate "repos/${REPO}/actions/caches?per_page=100" | jq -s '[.[].actions_caches[]]')
+
+          TOTAL_BYTES=$(echo "$ALL_CACHES" | jq '[.[].size_in_bytes] | add // 0')
+          echo "Total cache size: $((TOTAL_BYTES / 1024 / 1024)) MB / $((MAX_BYTES / 1024 / 1024 / 1024)) GB"
+
+          if [ "$TOTAL_BYTES" -lt "$MAX_BYTES" ]; then
+            echo "Cache size is under the 10 GB budget. No pruning needed."
+            exit 0
+          fi
+
+          echo "Cache size exceeds 10 GB budget. Pruning oldest caches..."
+          SORTED=$(echo "$ALL_CACHES" | jq -r 'sort_by(.last_accessed_at) | .[] | "\(.id)\t\(.size_in_bytes)"')
+
+          DELETED_BYTES=0
+          DELETED_COUNT=0
+
+          while IFS=$'\t' read -r id size; do
+            CURRENT_TOTAL=$((TOTAL_BYTES - DELETED_BYTES))
+            if [ "$CURRENT_TOTAL" -lt "$MAX_BYTES" ]; then
+              break
+            fi
+            echo "Deleting cache ${id} ($((size / 1024 / 1024)) MB)..."
+            if gh api --method DELETE "repos/${REPO}/actions/caches/${id}" >/dev/null 2>&1; then
+              DELETED_BYTES=$((DELETED_BYTES + size))
+              DELETED_COUNT=$((DELETED_COUNT + 1))
+            else
+              echo "Warning: failed to delete cache ${id}, skipping."
+            fi
+          done <<< "$SORTED"
+
+          echo "Pruned ${DELETED_COUNT} cache(s), reclaimed $((DELETED_BYTES / 1024 / 1024)) MB."
