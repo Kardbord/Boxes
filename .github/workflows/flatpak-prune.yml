@@ -9,12 +9,17 @@ on:
         description: 'Dry run (list only, no deletion)'
         type: boolean
         default: true
+  workflow_run:
+    workflows: ['Build and publish Flatpak repository']
+    types: [completed]
+    branches: [main]
 
 permissions:
   packages: write
 
 jobs:
   prune:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     uses: aetherpak/actions/.github/workflows/prune-github-container-registry.yml@v3
     with:
       oci-repository: boxes
