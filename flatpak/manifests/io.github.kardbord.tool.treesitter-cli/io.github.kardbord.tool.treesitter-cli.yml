@@ -12,8 +12,7 @@ modules:
   - name: treesitter-cli
     buildsystem: simple
     build-commands:
-      - gunzip *.gz
-      - mv tree-sitter* tree-sitter
+      - unzip *.zip
       - install -Dm755 tree-sitter ${FLATPAK_DEST}/bin/tree-sitter
     sources:
       - type: file
