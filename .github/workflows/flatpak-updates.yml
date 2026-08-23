@@ -23,7 +23,7 @@ jobs:
         id: fedc
         run: |
           set -uo pipefail
-          > fedc-errors.txt
+          > /tmp/fedc-errors.txt
           for manifest in $(grep -rl 'x-checker-data' flatpak/manifests/); do
             echo "Checking $manifest..."
             if ! docker run --rm \
@@ -32,17 +32,17 @@ jobs:
               -w /workspace \
               ghcr.io/flathub/flatpak-external-data-checker:latest \
               --edit-only --never-fork "$manifest"; then
-              echo "- ❌ $manifest" >> fedc-errors.txt
+              echo "- ❌ $manifest" >> /tmp/fedc-errors.txt
             fi
           done
-          if [ -s fedc-errors.txt ]; then
+          if [ -s /tmp/fedc-errors.txt ]; then
             {
               echo "## FEDC Errors"
               echo ""
-              cat fedc-errors.txt
+              cat /tmp/fedc-errors.txt
             } >> "$GITHUB_STEP_SUMMARY"
             echo "errors<<EOF" >> "$GITHUB_OUTPUT"
-            cat fedc-errors.txt >> "$GITHUB_OUTPUT"
+            cat /tmp/fedc-errors.txt >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"
           fi
 
