@@ -191,6 +191,46 @@ affected Flatpak packages. See
 6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
    the new manifest at CI time.
 
+## Removing a Package
+
+Removal is a two-step process. The index is cumulative (each deploy seeds from
+the previously deployed site and only drops entries whose OCI image no longer
+exists in GHCR), so deleting the manifest alone is not sufficient.
+
+1. **Delete the manifest directory** and commit:
+   ```bash
+   git rm -r flatpak/manifests/io.github.kardbord.<name>/
+   git commit -m "Remove io.github.kardbord.<name>"
+   git push
+   ```
+   The push triggers a rebuild, but the app remains in the index because its
+   image still exists in GHCR.
+
+2. **Delete the OCI image tags from GHCR.** Images are tagged
+   `<app-id>-<branch>-<arch>` with `.` in the app-id encoded as `_` (Flatpak
+   signature constraint). For `io.github.kardbord.<name>` on `stable`, delete:
+   - `io_github_kardbord_<name>-stable-x86_64`
+   - `io_github_kardbord_<name>-stable-aarch64`
+
+   Via the GitHub web UI (Packages → `boxes` → delete the tagged versions),
+   or via the API:
+   ```bash
+   # List version IDs for the package
+   gh api /user/packages/container/boxes/versions --paginate \
+     | jq -r '.[] | "\(.id) \(.metadata.container.tags | join(","))"'
+   # Delete by version ID
+   gh api --method DELETE /user/packages/container/boxes/versions/<version-id>
+   ```
+
+3. The **next successful build** reconciles the index: entries whose image is
+   definitively missing from GHCR are dropped. Alternatively, trigger the
+   weekly `Prune stale Flatpak OCI images` workflow manually with `dry-run`
+   first to confirm what will be removed.
+
+Note that the prune workflow only deletes images *unreferenced* by the index,
+so it cannot remove an app on its own — the manual GHCR deletion in step 2 is
+what definitively removes the app.
+
 ## Local Development
 
 ### Prerequisites

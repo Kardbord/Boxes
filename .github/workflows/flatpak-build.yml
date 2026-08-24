@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Plan SDK
         uses: aetherpak/actions/plan@v3
@@ -187,14 +187,14 @@ jobs:
   # ────────────────────────────────────────────────────────────
   plan-apps:
     needs: deploy-sdk
-    if: needs.deploy-sdk.result == 'success' || needs.plan-sdk.outputs.matrix == ''
+    if: needs.plan-sdk.result == 'success' && (needs.deploy-sdk.result == 'success' || needs.plan-sdk.outputs.matrix == '')
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.wrap.outputs.matrix }}
     steps:
       - uses: actions/checkout@v7
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Generate aetherpak-apps.yaml
         run: scripts/generate-aetherpak-config.sh
@@ -261,7 +261,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: build-apps-results
+          name: build-apps-results-${{ matrix.app-id }}-${{ matrix.arch }}
           path: _build-results/
 
   build-apps-gate:
@@ -283,7 +283,7 @@ jobs:
       - name: Download build results
         uses: actions/download-artifact@v8
         with:
-          name: build-apps-results
+          pattern: build-apps-results-*
           path: _build_results
           merge-multiple: true
 
