@@ -257,18 +257,10 @@ was published in `openSUSE:Tools`.
 
 ### Adding a New Package
 
-1. **Create a directory** in this repository named after the package, e.g. `mypkg/`.
-2. **Add the source-service definition** — create `mypkg/_service` with an `obs_scm`
-   block pointing at the upstream git repository (following the pattern in `kardbord-breakout/_service`).
-3. **Add the build recipes** — create the RPM `.spec` and, if you want `.deb`
-   artifacts, the `debian.*` files and a `.dsc`. Follow the conventions noted in
-   this document (placeholder `Version: 0`, `%{_docdir}` doc paths, EL8 conditional
-   flags, etc.).
-4. **Commit and push** to the `main` branch in GitHub. The mirror to src.opensuse.org
-   propagates the change, and `scmsync` picks it up.
-5. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
-   that the package builds for the targets you care about; iterate on any distribution-specific
-   failures the way `kardbord-breakout` did.
+The step-by-step procedure for adding a new OBS package lives in
+[docs/OBS-MAINTENANCE.md](./docs/OBS-MAINTENANCE.md#adding-a-new-package). It
+covers creating the directory, the `_service` definition, the build recipes, and
+registering the package in `_manifest`.
 
 ## Flatpak Packaging
 
@@ -337,27 +329,28 @@ runtime.
 ```
 Boxes/
 ├── .github/workflows/
-│   ├── flatpak-build.yml           # Build + deploy workflow
-│   └── flatpak-prune.yml           # Weekly OCI image pruning
+│   ├── flatpak-build.yml           # Build + publish workflow
+│   ├── flatpak-prune.yml           # OCI image pruning workflow
+│   └── fedc.yml                    # Upstream update check workflow
 ├── scripts/
 │   └── generate-aetherpak-config.sh  # Generates apps config from manifests
 ├── flatpak/
 │   ├── aetherpak-sdk.yaml          # AetherPak config for SDK (committed)
-│   ├── README.md                   # Developer/maintainer documentation
 │   └── manifests/
 │       ├── io.github.kardbord.Sdk/
-│       │   └── io.github.kardbord.Sdk.yml
+│       │   ├── io.github.kardbord.Sdk.yml
+│       │   └── activate-kardbord-env
 │       ├── io.github.kardbord.neovim/
 │       │   ├── io.github.kardbord.neovim.yml
-│       │   ├── neovim-first-run.txt
-│       │   └── neovim-sdk-update.txt
+│       │   └── nvim-wrapper-wrapper
 │       ├── io.github.kardbord.ripgrep/
 │       │   ├── io.github.kardbord.ripgrep.yml
-│       │   └── ripgrep
-│       ├── io.github.kardbord.tool.ripgrep/
-│       │   └── io.github.kardbord.tool.ripgrep.yml
-│       └── io.github.kardbord.tool.fd/
-│           └── io.github.kardbord.tool.fd.yml
+│       │   └── rg-wrapper
+│       ├── io.github.kardbord.tool.*/        # more extensions...
+│       └── ...
+├── docs/
+│   ├── FLATPAK-MAINTENANCE.md               # Flatpak maintainer guide
+│   └── OBS-MAINTENANCE.md                   # OBS packaging guide
 ├── kardbord-breakout/              # OBS package
 ├── _manifest                       # Does NOT list flatpak/
 └── ...
@@ -368,18 +361,22 @@ does not treat it as a package.
 
 ### OCI Image Pruning
 
-A weekly scheduled workflow (`flatpak-prune.yml`) runs AetherPak's
-`prune-github-container-registry.yml`, which compares the active index against
-GHCR container versions and deletes any that are no longer referenced. This
-ensures stale images are cleaned up automatically after packages are removed.
+The `flatpak-prune.yml` workflow (weekly scheduled, and also after each
+successful Flatpak build) runs AetherPak's `prune-github-container-registry.yml`,
+which compares the active index against GHCR container versions and deletes any
+that are no longer referenced. A dry-run input is supported to list stale images
+without deleting. This ensures stale images are cleaned up automatically after
+packages are removed.
 
 ### Upstream Tracking
 
-Extension sources are checked weekly by the `flatpak-updates.yml` workflow,
+Upstream sources for tracked packages are checked by the `fedc.yml` workflow,
 which uses `flatpak-external-data-checker` (FEDC) with the `x-checker-data`
-annotations in the extension manifests to detect new upstream releases.
-FEDC updates the manifests in-place and opens a single PR with all changes
-for review before merging.
+annotations in manifests to detect new upstream releases. FEDC updates the
+manifests in-place and opens a single PR with all changes for review before
+merging. Merging pushes to `main`, which triggers both a Flatpak rebuild and,
+for `_manifest`-listed OBS packages, the `scmsync`/`obs_scm` re-fetch that keeps
+those packages current.
 
 ### GPG Signing
 
@@ -392,7 +389,7 @@ signature lookaside are published alongside the index on Pages.
 
 1. Create a directory `flatpak/manifests/io.github.kardbord.tool.<name>/`.
 2. Write the manifest with `build-extension: true` and `x-checker-data` annotations
-   (see [flatpak/README.md](flatpak/README.md) for the template).
+   (see [FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) for the template).
 3. Test locally with `flatpak-builder`.
 4. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
    the new manifest at CI time.
@@ -402,7 +399,7 @@ signature lookaside are published alongside the index on Pages.
 1. Create a directory `flatpak/manifests/io.github.kardbord.<name>/`.
 2. Write the manifest (`io.github.kardbord.<name>.yml`). If the app exists on
    Flathub, use `base:` to inherit its build and layer your changes on top (see
-   the [flatpak/README.md](flatpak/README.md) `base` field documentation). If
+   the [FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) `base` field documentation). If
    building from source, define `modules` directly.
 3. Use `runtime: io.github.kardbord.Platform` and `sdk: io.github.kardbord.Sdk`
    to inherit the `io.github.kardbord.tool` extension point automatically.
@@ -411,7 +408,7 @@ signature lookaside are published alongside the index on Pages.
    Without this, bwrap will fail with a read-only filesystem error when
    mounting extensions.
 5. Do not grant filesystem access in `finish-args` beyond what the app needs to
-    function. See [Sandbox Permissions Policy](flatpak/README.md#sandbox-permissions-policy).
+    function. See [Sandbox Permissions Policy](./docs/FLATPAK-MAINTENANCE.md#sandbox-permissions-policy).
  6. Test locally with `flatpak-builder`.
  7. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
     the new manifest at CI time.

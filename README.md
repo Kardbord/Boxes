@@ -6,34 +6,64 @@ SUSE Open Build Service (OBS) or GitHub Actions, and binaries are hosted via the
 OBS or GitHub Pages. Software built from upstream sources retains its original
 license.
 
-## Available Packages
+## Links
 
-| Package                                     | Description                                                         | Build Status                                                                                                                                                                          |
-|---------------------------------------------|---------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [kardbord-breakout](./kardbord-breakout/)   | A terminal-based clone of the classic brick-breaking arcade game.   | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
-| [io.github.kardbord.Sdk](./flatpak/)     | Custom Flatpak runtime and SDK for all io.github.kardbord.* apps. Provides the `io.github.kardbord.tool` extension point. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.neovim](./flatpak/)     | Custom Neovim Flatpak with independently-updatable tool extensions. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
-| [io.github.kardbord.ripgrep](./flatpak/)   | Standalone ripgrep Flatpak with tool extension.                   | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
-| [io.github.kardbord.tool.ripgrep](./flatpak/) | ripgrep extension for the Neovim Flatpak (Telescope `live_grep`).   | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
-| [io.github.kardbord.tool.fd](./flatpak/)      | fd extension for the Neovim Flatpak (Telescope `find_files`).       | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml)            |
+- [GitHub Repository](https://github.com/Kardbord/Boxes)
+- [OBS Project](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
+- [OBS Mirror](https://src.opensuse.org/Kardbord/Boxes)
+- [Homepage (GitHub Pages)](https://kardbord.github.io/Boxes)
+- [OCI Index](https://kardbord.github.io/Boxes/index/static)
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — how the pipeline works end-to-end
+- [docs/OBS-MAINTENANCE.md](./docs/OBS-MAINTENANCE.md) — OBS packaging guide
+- [docs/FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) — Flatpak packaging guide
 
-## Supported Platforms
+## Distro Packages
 
-Packages are built for the following distribution and architecture combinations:
+`.rpm` and `.deb` packages are published to
+[download.opensuse.org](https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/)
+by the Open Build Service and can be added to your system's package manager.
+Select the repository that matches your distribution, then install the desired
+package by name.
 
-| Distribution           | Architectures   |
-|------------------------|-----------------|
-| openSUSE Tumbleweed    | x86_64, aarch64 |
-| Rocky Linux 8 / 9 / 10 | x86_64, aarch64 |
-| AlmaLinux 8 / 9 / 10   | x86_64, aarch64 |
-| Ubuntu 26.04           | x86_64, aarch64 |
-| Debian 13              | x86_64, aarch64 |
-| Raspbian 13            | armv7l          |
-| Flatpak                | x86_64, aarch64 |
+**RPM-based distributions (openSUSE, Rocky Linux, AlmaLinux):**
 
-## Installation
+```bash
+REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]/home:Kardbord:Boxes.repo"
 
-### Flatpak Apps & Extensions
+# openSUSE (zypper)
+sudo zypper addrepo --refresh "$REPO_URL"
+
+# Rocky Linux / AlmaLinux (dnf)
+sudo dnf config-manager --add-repo "$REPO_URL"
+
+# refresh and install a package
+sudo zypper refresh   # or: sudo dnf makecache
+sudo zypper install [PACKAGE]   # or: sudo dnf install [PACKAGE]
+```
+
+**Debian-based distributions (Ubuntu, Debian, Raspbian):**
+
+```bash
+REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/[REPOSITORY]"
+
+# import the repository signing key
+curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
+  | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
+
+# add the OBS repository for your distribution
+echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
+  | sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
+
+# refresh and install a package
+sudo apt update
+sudo apt install [PACKAGE]
+```
+
+Replace `[REPOSITORY]` with your distribution's repository name
+(e.g. `openSUSE_Tumbleweed`, `RockyLinux_9`, `AlmaLinux_8`, `Debian_13`,
+`Ubuntu_26.04`, `Raspbian_13`) and `[PACKAGE]` with a package name.
+
+## Flatpak Repository
 
 Flatpak apps and extensions are hosted as OCI images on GHCR, with the index
 and landing page served from [kardbord.github.io/Boxes](https://kardbord.github.io/Boxes).
@@ -47,95 +77,55 @@ on the `io.github.kardbord.Platform` runtime.
 flatpak remote-add --if-not-exists --user kardbord-boxes \
   oci+https://kardbord.github.io/Boxes
 
-# Install the custom Neovim + extensions
-# (io.github.kardbord.Platform runtime is pulled automatically)
+# Install an app (the io.github.kardbord.Platform runtime is pulled automatically)
 flatpak install kardbord-boxes io.github.kardbord.neovim
-flatpak install kardbord-boxes io.github.kardbord.tool.ripgrep
-flatpak install kardbord-boxes io.github.kardbord.tool.fd
+
+# Run with the host access you need
+flatpak run --filesystem="${PWD}" io.github.kardbord.neovim
 ```
 
-> **Note:** Apps use a minimal sandbox — only the host access they need to
-> function is granted. Pass additional `--filesystem=` flags as needed (e.g.
-> `--filesystem=${PWD}`).
+Add or remove `--filesystem=` flags as needed for each app. For language
+toolchains (Go, Rust, Java, etc.), install SDK extensions directly from Flathub.
 
-For language toolchains (Go, Rust, Java, etc.), install SDK extensions directly
-from Flathub:
+See [docs/FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) for the
+developer and maintainer guide.
 
-```bash
-flatpak install flathub org.freedesktop.Sdk.Extension.golang
-flatpak install flathub org.freedesktop.Sdk.Extension.rust-stable
-```
-
-See [flatpak/README.md](flatpak/README.md) for developer documentation and setup
-details.
-
-### Distro Packages
-
-`.rpm` and `.deb` Packages are published to [download.opensuse.org](https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/)
-by the Open Build Service and can be added to your system's package manager.
-Select the repository that matches your distribution, then install the desired package
-by name.
-
-**RPM-based distributions (openSUSE, Rocky Linux, Alma Linux):**
-
-```bash
-REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>/home:Kardbord:Boxes.repo"
-
-# openSUSE (zypper)
-sudo zypper addrepo --refresh "$REPO_URL"
-
-# Rocky Linux / AlmaLinux (dnf)
-sudo dnf config-manager --add-repo "$REPO_URL"
-
-# refresh and install a package
-sudo zypper refresh   # or: sudo dnf makecache
-sudo zypper install <PACKAGE>   # or: sudo dnf install <PACKAGE>
-```
-
-**Debian-based distributions (Ubuntu, Debian, Raspbian):**
-
-```bash
-REPO_URL="https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/<REPOSITORY>"
-
-# import the repository signing key
-curl -fsSL "$REPO_URL/Release.key" | gpg --dearmor \
-  | sudo tee /usr/share/keyrings/home_Kardbord_Boxes.gpg > /dev/null
-
-# add the OBS repository for your distribution
-echo "deb [signed-by=/usr/share/keyrings/home_Kardbord_Boxes.gpg] $REPO_URL/ ./" \
-  | sudo tee /etc/apt/sources.list.d/home:Kardbord:Boxes.list
-
-# refresh and install a package
-sudo apt update
-sudo apt install <PACKAGE>
-```
-
-Replace `<REPOSITORY>` with your distribution's repository name (e.g. `openSUSE_Tumbleweed`,
-`RockyLinux_9`, `AlmaLinux_8`, `Debian_13`, `Ubuntu_26.04`, `Raspbian_13`) and `<PACKAGE>`
-with a package name from the table above.
+## How It Works
 
 <details>
-<summary><b>How It Works</b></summary>
+<summary><b>OBS Builds</b></summary>
 
-This repository is the source of truth for the packaging of the projects listed
-above.
-
-#### Distro Packages (OBS)
+This repository is the source of truth for the packaging of the projects above.
 
 1. **Source** — Each package directory contains a `_service` file describing where
    the upstream sources come from, plus the packaging files (RPM `.spec`, Debian
    `debian.*`, etc.) needed to build it.
-2. **Mirror** — The repository is mirrored to [src.opensuse.org](https://src.opensuse.org/Kardbord/Boxes).
-    The Open Build Service's `scmsync` integration requires a gitea git host,
-    so it cannot consume GitHub directly.
-3. **Build** — The OBS project [`home:Kardbord:Boxes`](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
+2. **Mirror** — The repository is mirrored to
+   [src.opensuse.org](https://src.opensuse.org/Kardbord/Boxes). The Open Build
+   Service's `scmsync` integration requires a gitea git host, so it cannot
+   consume GitHub directly.
+3. **Build** — The OBS project
+   [`home:Kardbord:Boxes`](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
    watches the mirror and builds every package for the distribution/architecture
-   matrix above. New commits trigger rebuilds automatically.
+   matrix in the README. New commits trigger rebuilds automatically.
 4. **Publish** — Completed binaries are published to
    [download.opensuse.org](https://download.opensuse.org/repositories/home:/Kardbord:/Boxes/),
    from which they can be installed by the commands above.
 
-#### Flatpak Packages (AetherPak)
+#### Keeping Upstream Current
+
+Tracked OBS packages stay up to date through the FEDC check workflow, which
+scans the `_manifest`-listed packages for upstream releases, updates their
+sources, and opens a single pull request. On merge the push to `main` is what
+`scmsync`/`obs_scm` pick up to re-fetch upstream and queue a rebuild. See
+[docs/OBS-MAINTENANCE.md](./docs/OBS-MAINTENANCE.md) for the maintenance
+runbook.
+
+</details>
+
+<details>
+
+<summary><b>Flatpak Builds (AetherPak)</b></summary>
 
 Flatpak packages are built and published using
 [AetherPak](https://github.com/aetherpak/actions), which stores application
@@ -149,37 +139,54 @@ JSON index from GitHub Pages.
 2. **Publish** — Each package is pushed to GHCR as a signed OCI image. The index
    (`index/static`) is merged and reconciled against the registry, then deployed
    to GitHub Pages along with a landing page and `.flatpakref` files.
-3. **Prune** — A weekly scheduled workflow removes stale OCI images from GHCR
-   that are no longer referenced in the active index.
+3. **Prune** — A scheduled workflow removes stale OCI images from GHCR that are
+   no longer referenced in the active index.
 
 New packages are auto-discovered from the `flatpak/manifests/` directory at CI
 time. Adding or removing a package only requires creating or deleting its
-manifest directory.
+manifest directory. See
+[docs/FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) for the guide.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed deep-dive into the pipeline,
-configuration files, and the cross-distribution packaging infrastructure.
+</details>
 
-#### Rebuilding and Re-running Services
+## Supported Platforms
 
-Because the whole project is managed by `scmsync`, new package builds are normally
-triggered by pushing to this repository: the mirror propagates the change and
-`obs_scm` re-fetches upstream sources automatically.
+<details>
 
-Sometimes you want to trigger a build without a git change:
+<summary><b>Distribution / Architecture matrix</b></summary>
 
-| Goal                                  | Command                                                             | Notes                                                                                            |
-|---------------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| Rebuild with the current sources      | `osc rebuild home:Kardbord:Boxes kardbord-breakout`                 | Use `--all` for all packages; useful for retrying failed builds. Does **not** re-fetch upstream. |
-| Re-run `_service` (re-fetch upstream) | *(not directly possible pending openSUSE/open-build-service#20168)* | Requires pushing any commit to this repo to trigger `scmsync`.                                   |
+Packages are built for the following distribution and architecture combinations:
 
-**Known limitation:** OBS source-service trigger tokens (`osc token --trigger`,
-`POST /trigger/runservice`) and `osc service remoterun` cannot re-run `_service`
-for packages in project-level `scmsync` projects. This is an upstream bug in
-`Token::ServicePolicy`; see openSUSE/open-build-service#20168 for the proposed fix.
+| Distribution           | Architectures   |
+|------------------------|-----------------|
+| openSUSE Tumbleweed    | x86_64, aarch64 |
+| Rocky Linux 8 / 9 / 10 | x86_64, aarch64 |
+| AlmaLinux 8 / 9 / 10   | x86_64, aarch64 |
+| Ubuntu 26.04           | x86_64, aarch64 |
+| Debian 13              | x86_64, aarch64 |
+| Raspbian 13            | armv7l          |
+| Flatpak                | x86_64, aarch64 |
 
-**Workaround:** to re-fetch upstream sources, make a commit to this repository
-(e.g. bump a version in the relevant `.spec`/`.dsc` or a trivial documentation
-change). `scmsync` then re-syncs and `obs_scm` runs.
+</details>
+
+## Available Packages
+
+<details>
+
+<summary><b>Packages in this repository</b></summary>
+
+The authoritative inventory is discoverable in the repository (`kardbord-breakout/`
+for OBS, `flatpak/manifests/` for Flatpak), via the OBS project, or via the
+package repositories. Commonly installed packages:
+
+| Package                                                   | Description                                                       | Build Status |
+|-----------------------------------------------------------|-------------------------------------------------------------------|--------------|
+| [kardbord-breakout](./kardbord-breakout/)                | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
+| [io.github.kardbord.Sdk](./flatpak/)                      | Custom Flatpak runtime and SDK for all io.github.kardbord.* apps. Provides the `io.github.kardbord.tool` extension point. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.neovim](./flatpak/)                   | Custom Neovim Flatpak with independently-updatable tool extensions. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.ripgrep](./flatpak/)                  | Standalone ripgrep Flatpak with tool extension. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.ripgrep](./flatpak/)             | ripgrep extension for the Neovim Flatpak (Telescope `live_grep`). | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.fd](./flatpak/)                  | fd extension for the Neovim Flatpak (Telescope `find_files`). | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
 
 </details>
 

@@ -1,30 +1,22 @@
 # Flatpak — Developer & Maintainer Guide
 
-This directory contains the Flatpak packaging infrastructure for the Boxes project.
+This document is the operational guide for maintaining the Flatpak packaging
+infrastructure in this repository. For a deep-dive into how the pipeline fits
+together end-to-end, see [ARCHITECTURE.md](../ARCHITECTURE.md).
+
 User-facing installation instructions are on the [landing page](https://kardbord.github.io/Boxes/).
 
 ## Architecture
 
-### Runtime Hierarchy
+This guide intentionally omits the full runtime/extension-point walkthrough
+(the custom `io.github.kardbord.Platform`/`io.github.kardbord.Sdk` runtimes and
+the `io.github.kardbord.tool` extension point are documented in
+[ARCHITECTURE.md](../ARCHITECTURE.md#custom-runtime)). In short:
 
-```
-org.freedesktop.Platform / org.freedesktop.Sdk (upstream)
-  └── io.github.kardbord.Platform / io.github.kardbord.Sdk (custom)
-        └── io.github.kardbord.neovim, ... (apps)
-```
-
-All `io.github.kardbord.*` apps use the custom runtime, which provides the
-`io.github.kardbord.tool` extension point.
-
-### Extension Points
-
-The custom runtime (`io.github.kardbord.Sdk`) declares the
-`io.github.kardbord.tool` extension point. Any app built on
-`io.github.kardbord.Platform` inherits it automatically — apps do not need to
-declare it themselves.
-
-Extensions with IDs matching `io.github.kardbord.tool.*` are automatically
-mounted into the app sandbox.
+- All `io.github.kardbord.*` apps run on the custom runtime, which provides the
+  `io.github.kardbord.tool` extension point.
+- Extensions with IDs matching `io.github.kardbord.tool.*` are automatically
+  mounted into the app sandbox.
 
 ### Sandbox Permissions Policy
 
@@ -58,11 +50,13 @@ example, `io.github.kardbord.neovim` uses `base: io.neovim.nvim`:
 
 ### Upstream Tracking
 
-Extension sources are checked weekly by the `flatpak-updates.yml` workflow,
-which uses `flatpak-external-data-checker` (FEDC) with the `x-checker-data`
-annotations in the extension manifests to detect new upstream releases.
-FEDC updates the manifests in-place and opens a single PR with all changes
-for review before merging.
+Upstream sources for extensions are tracked by the FEDC check workflow, which
+uses `flatpak-external-data-checker` (FEDC) with the `x-checker-data`
+annotations in manifests to detect new upstream releases. FEDC updates the
+manifests in-place and opens a single PR with all changes for review before
+merging. Merging the PR pushes to `main`, which triggers a rebuild of the
+affected Flatpak packages. See
+[ARCHITECTURE.md](../ARCHITECTURE.md#upstream-tracking) for the full mechanism.
 
 ## Adding a New Extension
 
@@ -118,7 +112,7 @@ for review before merging.
    ```
 
 5. **Add x-checker-data to the manifest** (shown above) so the
-    weekly FEDC workflow can detect upstream updates.
+    FEDC check workflow can detect upstream updates.
 
 6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
    the new manifest at CI time.
@@ -247,7 +241,7 @@ flatpak run --command=sh io.github.kardbord.neovim -c "which rg"
 ## GPG Key Management
 
 The Flatpak repository is GPG-signed. The private key is stored as the GitHub
-Actions secret `FLATPAK_GPG_PRIVATE_KEY`. AetherPak handles signing via the
+Actions secret `FLATPAK_GPG_PRIVATE_KEY`. AetherPak handles the signing via its
 `signing` input (default: `auto` — sign when a key is set). The public key and
 signature lookaside are published alongside the index on Pages.
 
@@ -290,9 +284,9 @@ flatpak list --app --extensions | grep kardbord
 flatpak info io.github.kardbord.tool.ripgrep
 ```
 
-### Tool not on PATH inside app
+### Tool not on PATH inside the app
 
-Apps that use `base: io.neovim.nvim` get `ide-flatpak-wrapper`, which adds
+Apps that use `base:` (e.g. `io.neovim.nvim`) get a wrapper that adds
 `/app/tools/*/bin` to PATH. For other apps, verify the app's entrypoint does
 the same. Check the mount:
 ```bash
@@ -301,6 +295,6 @@ flatpak run --command=sh io.github.kardbord.neovim -c "ls /app/tools/"
 
 ### FEDC not detecting updates
 
-Check that `x-checker-data` annotations are correct in the manifest. The
+Check that the `x-checker-data` annotations are correct in the manifest. The
 `url-query` must be a valid jq expression matching the GitHub Releases API
 response structure.
