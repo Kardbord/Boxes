@@ -27,6 +27,8 @@ jobs:
       matrix: ${{ steps.wrap.outputs.matrix }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - name: Plan SDK
         uses: aetherpak/actions/plan@v3
@@ -68,6 +70,8 @@ jobs:
             runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - uses: aetherpak/actions/build@v3
         env:
@@ -97,6 +101,8 @@ jobs:
           - arch: aarch64
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - uses: actions/download-artifact@v8
         with:
@@ -145,6 +151,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - uses: actions/download-artifact@v8
         with:
@@ -179,12 +187,14 @@ jobs:
   # ────────────────────────────────────────────────────────────
   plan-apps:
     needs: deploy-sdk
-    if: needs.deploy-sdk.result == 'success' || needs.deploy-sdk.result == 'skipped'
+    if: needs.deploy-sdk.result == 'success' || needs.plan-sdk.outputs.matrix == ''
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.wrap.outputs.matrix }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - name: Generate aetherpak-apps.yaml
         run: scripts/generate-aetherpak-config.sh
@@ -218,6 +228,8 @@ jobs:
       options: --privileged
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - name: Generate aetherpak-apps.yaml
         run: scripts/generate-aetherpak-config.sh
@@ -240,6 +252,18 @@ jobs:
           path: _repo
           retention-days: 1
 
+      - name: Record build result
+        if: always()
+        run: |
+          mkdir -p _build-results
+          echo "${{ matrix.app-id }} ${{ matrix.arch }} ${{ job.status }}" > _build-results/${{ matrix.app-id }}-${{ matrix.arch }}.txt
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: build-apps-results
+          path: _build-results/
+
   build-apps-gate:
     needs: [plan-apps, build-apps]
     if: always() && needs.plan-apps.outputs.matrix != ''
@@ -256,6 +280,35 @@ jobs:
             exit 1
           fi
 
+      - name: Download build results
+        uses: actions/download-artifact@v8
+        with:
+          name: build-apps-results
+          path: _build_results
+          merge-multiple: true
+
+      - name: Report failed cells
+        if: always()
+        run: |
+          set -euo pipefail
+          echo "## Build cell results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          FAILED=0
+          for f in _build_results/*.txt; do
+            [ -f "$f" ] || continue
+            read -r app arch status < "$f"
+            if [[ "$status" != "success" ]]; then
+              echo "- ❌ $app ($arch): $status" >> "$GITHUB_STEP_SUMMARY"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+          if [[ "$FAILED" -eq 0 ]]; then
+            echo "All cells succeeded" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "$FAILED cell(s) failed" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   publish-oci:
     needs: [plan-apps, build-apps-gate]
     if: needs.plan-apps.outputs.matrix != ''
@@ -265,6 +318,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - name: Download OSTree repo
         continue-on-error: true
@@ -303,6 +358,8 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - name: Generate aetherpak-apps.yaml
         run: scripts/generate-aetherpak-config.sh
