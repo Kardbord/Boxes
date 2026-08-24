@@ -1,0 +1,15 @@
+# Dummy flatpak manifest for FEDC to check for upstream updates.
+id: kardbord-breakout
+modules:
+  - name: kardbord-breakout
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/Kardbord/breakout/archive/refs/tags/v1.0.3.tar.gz
+        sha256: cfcc1bd50624dc893325fddac926ab53ba19cdbae48e7d41bd1d05a321b04e76
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/Kardbord/breakout/releases/latest
+          version-query: .tag_name
+          url-query: '"https://github.com/Kardbord/breakout/archive/refs/tags/\(.tag_name).tar.gz"'

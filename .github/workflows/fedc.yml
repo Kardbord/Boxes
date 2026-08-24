@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
-name: Check Flatpak upstream updates
+name: Check for upstream updates
 
 on:
   schedule:
@@ -24,7 +24,7 @@ jobs:
         run: |
           set -uo pipefail
           > /tmp/fedc-errors.txt
-          for manifest in $(grep -rl 'x-checker-data' flatpak/manifests/); do
+          for manifest in $(grep -rl 'x-checker-data' .); do
             echo "Checking $manifest..."
             if ! docker run --rm \
               -v "$PWD:/workspace" \
