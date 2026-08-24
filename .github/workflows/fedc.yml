@@ -24,7 +24,7 @@ jobs:
         run: |
           set -uo pipefail
           > /tmp/fedc-errors.txt
-          for manifest in $(grep -rl 'x-checker-data' .); do
+          for manifest in $(grep -rl 'x-checker-data' flatpak/manifests "$(yq .packages[] < _manifest)"); do
             echo "Checking $manifest..."
             if ! docker run --rm \
               -v "$PWD:/workspace" \
