@@ -170,13 +170,6 @@ jobs:
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
           index-template: .github/workflows/templates/index.html
 
-      - uses: actions/upload-artifact@v7
-        with:
-          name: aetherpak-records
-          path: _records
-          overwrite: true
-          retention-days: 90
-
       - uses: actions/deploy-pages@v5
         with:
           artifact_name: github-pages-sdk
@@ -341,13 +334,6 @@ jobs:
           signing: auto
           gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
           index-template: .github/workflows/templates/index.html
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: aetherpak-records
-          path: _records
-          overwrite: true
-          retention-days: 90
 
       - uses: actions/deploy-pages@v5
         with:
