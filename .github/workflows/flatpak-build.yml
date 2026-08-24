@@ -19,6 +19,31 @@ concurrency:
 
 jobs:
   # ────────────────────────────────────────────────────────────
+  # Phase 0: Plan SDK changes (detect if SDK manifest changed)
+  # ────────────────────────────────────────────────────────────
+  plan-sdk:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.wrap.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Plan SDK
+        uses: aetherpak/actions/plan@v3
+        with:
+          config: flatpak/aetherpak-sdk.yaml
+          force: ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
+          base-sha: ${{ github.event_name == 'push' && github.event.before || '' }}
+
+      - name: Wrap matrix for strategy
+        id: wrap
+        if: steps.plan.outputs.matrix != ''
+        env:
+          MATRIX: ${{ steps.plan.outputs.matrix }}
+        run: |
+          echo "matrix=$(printf '%s' "$MATRIX" | jq -c '{include: .}')" >> "$GITHUB_OUTPUT"
+
+  # ────────────────────────────────────────────────────────────
   # Phase 1: Build SDK (produces Platform + SDK runtimes)
   # ────────────────────────────────────────────────────────────
   # Phase 1 cannot use the reusable workflow (aetherpak/actions/.github/workflows/publish.yml@v3)
@@ -27,6 +52,8 @@ jobs:
   # have no repo to push from. Composite actions let us push both SDK and Platform OCI images
   # from the SDK's repo.
   build-sdk:
+    needs: plan-sdk
+    if: needs.plan-sdk.outputs.matrix != ''
     runs-on: ${{ matrix.runner }}
     container:
       image: ghcr.io/aetherpak/cli:v0.32.0-builder
@@ -60,6 +87,7 @@ jobs:
 
   publish-sdk:
     needs: build-sdk
+    if: needs.build-sdk.result == 'success'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -110,6 +138,7 @@ jobs:
 
   deploy-sdk:
     needs: publish-sdk
+    if: needs.publish-sdk.result == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -157,6 +186,7 @@ jobs:
   # ────────────────────────────────────────────────────────────
   plan-apps:
     needs: deploy-sdk
+    if: needs.deploy-sdk.result == 'success' || needs.deploy-sdk.result == 'skipped'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.wrap.outputs.matrix }}
@@ -171,7 +201,8 @@ jobs:
         uses: aetherpak/actions/plan@v3
         with:
           config: aetherpak-apps.yaml
-          force: all
+          force: ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
+          base-sha: ${{ github.event_name == 'push' && github.event.before || '' }}
 
       - name: Wrap matrix for strategy
         id: wrap
