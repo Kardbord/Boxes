@@ -292,8 +292,12 @@ both `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
 All other packages depend on these runtimes at build time. AetherPak builds
 packages in a parallel matrix, so the SDK must be built first:
 
-1. **Phase 1** — Build the SDK from `flatpak/aetherpak-sdk.yaml` and push the
-   Sdk/Platform OCI images. The site deploy uses the committed full apps
+1. **Phase 1** — Build the SDK from `flatpak/aetherpak-sdk.yaml` directly on
+   the runner (no container). `aetherpak/actions/build` calls
+   `aetherpak/setup-cli`, which installs `flatpak`, `flatpak-builder`, and
+   `ostree` via `apt` if they are missing. The SDK build produces both
+   `io.github.kardbord.Sdk` and `io.github.kardbord.Platform` OCI images
+   from the same OSTree repo. The site deploy uses the committed full apps
    config (`flatpak/aetherpak-apps.yaml`) rather than the SDK-only config, so
    `build-site` reconcile retains every app's existing index entry.
 2. **Phase 2** — Delegated to AetherPak's reusable `publish.yml` workflow,
