@@ -33,7 +33,19 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify aetherpak-apps.yaml is in sync with manifests
+        run: |
+          set -euo pipefail
+          cp flatpak/aetherpak-apps.yaml /tmp/aetherpak-apps.committed.yaml
+          scripts/generate-aetherpak-config.sh
+          if ! diff -u /tmp/aetherpak-apps.committed.yaml flatpak/aetherpak-apps.yaml; then
+            echo "::error::flatpak/aetherpak-apps.yaml is out of sync with flatpak/manifests/."
+            echo "::error::Run scripts/generate-aetherpak-config.sh and commit the result."
+            exit 1
+          fi
+
       - name: Plan SDK
+        id: plan
         uses: aetherpak/actions/plan@v3
         with:
           config: flatpak/aetherpak-sdk.yaml
@@ -41,13 +53,12 @@ jobs:
           base-sha: ${{ github.event_name == 'push' && github.event.before || '' }}
           workflow-path: .github/workflows/flatpak-build.yml
 
-      - name: Wrap matrix for strategy
+      - name: Gate SDK build on plan output
         id: wrap
         if: steps.plan.outputs.matrix != ''
         env:
           MATRIX: ${{ steps.plan.outputs.matrix }}
-        run: |
-          echo "matrix=$(printf '%s' "$MATRIX" | jq -c '{include: .}')" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
 
   # ────────────────────────────────────────────────────────────
   # Phase 1: Build SDK (produces Platform + SDK runtimes)
@@ -169,10 +180,13 @@ jobs:
           mkdir -p _records
           for dir in _records_in/*/; do cp -r "$dir." _records/; done
 
+      # Publish with the committed full config (not aetherpak-sdk.yaml):
+      # build-site reconcile prunes index entries for apps not listed in the
+      # config, so an SDK-only config would drop every app from the index.
       - uses: aetherpak/actions/publish-site@v3
         id: deploy
         with:
-          config: flatpak/aetherpak-sdk.yaml
+          config: flatpak/aetherpak-apps.yaml
           pages-artifact-name: github-pages-sdk
           records-dir: _records
           pages-url: https://kardbord.github.io/Boxes

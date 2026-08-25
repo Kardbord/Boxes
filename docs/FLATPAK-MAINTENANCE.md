@@ -334,13 +334,19 @@ signature lookaside are published alongside the index on Pages.
   but if any cell fails, nothing from that run is published or deployed — all
   apps keep their last-good index entries and OCI images. Fix the failure and
   push again (or re-run the workflow) to publish.
-- **Missed changes after a failed or superseded run:** change detection diffs
-  against `github.event.before`. If a queued run fails — or is cancelled while
-  pending because a third push arrived (GitHub keeps only one running and one
-  pending run per concurrency group) — the next push does not re-diff the
-  skipped commits. Re-run the workflow manually
+- **Missed changes after a failed run:** change detection diffs against
+  `github.event.before`. A superseded pending run (GitHub keeps only one
+  running and one pending run per concurrency group) is not a problem on
+  linear history: the surviving newest run diffs against its own
+  `github.event.before`, which covers the skipped pushes. A *failed* run is
+  the real loss case — later pushes diff only their own ranges. Re-run the
+  workflow manually
   (**Actions → Build and publish Flatpak repository → Run workflow**) — a
   manual dispatch forces a full rebuild of everything.
+- **Config drift is caught in CI.** The build workflow regenerates
+  `flatpak/aetherpak-apps.yaml` during planning and fails fast if it differs
+  from the committed copy. Fix: run `scripts/generate-aetherpak-config.sh`
+  and commit the result.
 - Touching `.github/workflows/flatpak-build.yml` or
   `scripts/generate-aetherpak-config.sh` also triggers the build workflow, and
   touching the workflow file itself forces a full rebuild.

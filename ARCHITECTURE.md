@@ -292,15 +292,25 @@ both `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
 All other packages depend on these runtimes at build time. AetherPak builds
 packages in a parallel matrix, so the SDK must be built first:
 
-1. **Phase 1** — Build and publish the SDK using `flatpak/aetherpak-sdk.yaml`.
+1. **Phase 1** — Build the SDK from `flatpak/aetherpak-sdk.yaml` and push the
+   Sdk/Platform OCI images. The site deploy uses the committed full apps
+   config (`flatpak/aetherpak-apps.yaml`) rather than the SDK-only config, so
+   `build-site` reconcile retains every app's existing index entry.
 2. **Phase 2** — Delegated to AetherPak's reusable `publish.yml` workflow,
    driven by the committed `flatpak/aetherpak-apps.yaml` (generated from the
    manifests directory by `scripts/generate-aetherpak-config.sh`). The
    reusable workflow plans the changed apps, builds them in a parallel
-   matrix, pushes OCI images, merges the index, and deploys to Pages.
+   matrix, pushes OCI images, merges the index, and deploys to Pages. Phase 2
+   waits on Phase 1's deploy, so apps always build against the freshly
+   published SDK.
 
 The apps config references the Phase 1 deployment as a custom Flatpak remote so
 `flatpak-builder` can resolve `io.github.kardbord.Platform` at build time.
+
+When the SDK changes, the SDK/Platform entries in the apps config also cause
+Phase 2 to rebuild the SDK a second time — redundant but idempotent (same
+tags/digests), and required so that reconcile does not prune the runtimes
+from the index.
 
 ### Package Discovery
 
@@ -314,7 +324,8 @@ directory, re-running the script, and committing the updated config.
 The SDK/Platform entries are **required** in the committed config: AetherPak's
 `build-site` reconcile prunes index entries for apps not listed in the
 config, so an SDK-excluded config would drop the runtimes from the published
-index on the next Phase 2 deploy.
+index on the next deploy. The build workflow verifies at plan time that the
+committed config matches a fresh regeneration and fails fast on drift.
 
 ### Custom Runtime
 
@@ -385,11 +396,13 @@ serialize: a prune can never read a stale index while a build is mid-push
 (which would delete freshly-pushed images), and queued runs each diff against
 their own `github.event.before`, so rapid pushes are never silently dropped.
 
-Change detection diffs against `github.event.before`. If a queued run *fails*,
-or is *superseded* before it starts (GitHub keeps at most one running and one
-pending run per concurrency group, so a third rapid push cancels the pending
-one), the next run diffs only its own push range and the skipped commits'
-changes are not retried automatically. Recovery: re-run the workflow manually
+Change detection diffs against `github.event.before`. GitHub keeps at most one
+running and one pending run per concurrency group, so a third rapid push
+cancels the pending one — this is safe on linear history because the surviving
+(newest) run diffs against *its own* `github.event.before`, which already
+includes the skipped pushes' commits. The real loss case is a *failed* run:
+subsequent pushes diff only their own ranges, so the failed range is not
+retried automatically. Recovery: re-run the workflow manually
 (`workflow_dispatch` forces a full rebuild). Touching
 `.github/workflows/flatpak-build.yml` also forces a full rebuild via the `plan`
 action's `workflow-path` input.
