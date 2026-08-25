@@ -321,9 +321,15 @@ signature lookaside are published alongside the index on Pages.
 - **Hub builds are staged before extensions.** `flatpak-build.yml` runs the
   reusable publish workflow twice in sequence: a hub-only phase
   (`io.github.kardbord.dev`) followed by a full-app-matrix phase that `needs`
-  the hub phase. Both phases share the `flatpak-repo` concurrency group; the
-  `needs` link enforces order, so the hub is always published before any
-  extension resolves it. If the hub phase fails, the extension phase is skipped.
+  the hub phase. The `needs` link enforces order, so the hub is always
+  published before any extension resolves it. If the hub phase fails, the
+  extension phase is skipped.
+- **Two concurrency layers must stay distinct.** Top-level runs share the
+  `flatpak-repo` group; the reusable workflow's Pages-deploy job uses
+  `flatpak-repo-deploy` (via `concurrency-group`). These names must never be
+  equal — a job-level group matching the top-level group makes GitHub detect a
+  deadlock and cancel the run ("Canceling since a deadlock was detected for
+  concurrency group").
 - **Failed app builds block publishing.** All matrix cells run to completion,
   but if any cell fails, nothing from that run is published or deployed — all
   apps keep their last-good index entries and OCI images. Fix the failure and

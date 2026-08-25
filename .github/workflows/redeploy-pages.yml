@@ -28,7 +28,7 @@ jobs:
     with:
       config: flatpak/aetherpak-apps.yaml
       reconcile-only: true
-      concurrency-group: flatpak-repo
+      concurrency-group: flatpak-repo-deploy
       index-template: .github/workflows/templates/index.html
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}

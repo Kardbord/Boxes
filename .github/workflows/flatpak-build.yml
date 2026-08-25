@@ -48,7 +48,7 @@ jobs:
     with:
       config: flatpak/aetherpak-apps.yaml
       app: io.github.kardbord.dev
-      concurrency-group: flatpak-repo
+      concurrency-group: flatpak-repo-deploy
       index-template: .github/workflows/templates/index.html
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
@@ -63,7 +63,7 @@ jobs:
     uses: aetherpak/actions/.github/workflows/publish.yml@v3
     with:
       config: flatpak/aetherpak-apps.yaml
-      concurrency-group: flatpak-repo
+      concurrency-group: flatpak-repo-deploy
       index-template: .github/workflows/templates/index.html
       workflow-path: .github/workflows/flatpak-build.yml
       force-all: ${{ github.event_name == 'workflow_dispatch' }}

@@ -337,6 +337,14 @@ serialize: a prune can never read a stale index while a build is mid-push
 (which would delete freshly-pushed images), and queued runs each diff against
 their own `github.event.before`, so rapid pushes are never silently dropped.
 
+The reusable publish workflow's deploy job uses a *second*, distinct
+concurrency group (`flatpak-repo-deploy`), passed via the `concurrency-group`
+input. The two group names must never collide: if a job-level concurrency group
+equals the top-level workflow group, GitHub detects a deadlock (the deploy job
+waits on a group the parent run already holds) and cancels the run. Keeping the
+deploy group separate still serializes Pages deploys among themselves while the
+top-level group continues to serialize entire runs (including OCI pushes).
+
 Change detection diffs against `github.event.before`. GitHub keeps at most one
 running and one pending run per concurrency group, so a third rapid push
 cancels the pending one — this is safe on linear history because the surviving
