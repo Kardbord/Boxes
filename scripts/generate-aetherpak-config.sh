@@ -70,9 +70,13 @@ HEADER
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
 EOF
     else
       cat <<EOF

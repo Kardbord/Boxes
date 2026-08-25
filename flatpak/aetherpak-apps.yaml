@@ -17,9 +17,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.fzf
     manifest: flatpak/manifests/io.github.kardbord.tool.fzf/io.github.kardbord.tool.fzf.yml
     arches: [x86_64, aarch64]
@@ -27,9 +31,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.lua
     manifest: flatpak/manifests/io.github.kardbord.tool.lua/io.github.kardbord.tool.lua.yml
     arches: [x86_64, aarch64]
@@ -37,9 +45,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.neovim
     manifest: flatpak/manifests/io.github.kardbord.tool.neovim/io.github.kardbord.tool.neovim.yml
     arches: [x86_64, aarch64]
@@ -47,9 +59,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.opencode
     manifest: flatpak/manifests/io.github.kardbord.tool.opencode/io.github.kardbord.tool.opencode.yml
     arches: [x86_64, aarch64]
@@ -57,9 +73,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.ripgrep
     manifest: flatpak/manifests/io.github.kardbord.tool.ripgrep/io.github.kardbord.tool.ripgrep.yml
     arches: [x86_64, aarch64]
@@ -67,9 +87,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.ruby4
     manifest: flatpak/manifests/io.github.kardbord.tool.ruby4/io.github.kardbord.tool.ruby4.yml
     arches: [x86_64, aarch64]
@@ -77,9 +101,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.sk
     manifest: flatpak/manifests/io.github.kardbord.tool.sk/io.github.kardbord.tool.sk.yml
     arches: [x86_64, aarch64]
@@ -87,9 +115,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.treesitter-cli
     manifest: flatpak/manifests/io.github.kardbord.tool.treesitter-cli/io.github.kardbord.tool.treesitter-cli.yml
     arches: [x86_64, aarch64]
@@ -97,9 +129,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.uv
     manifest: flatpak/manifests/io.github.kardbord.tool.uv/io.github.kardbord.tool.uv.yml
     arches: [x86_64, aarch64]
@@ -107,9 +143,13 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.viu
     manifest: flatpak/manifests/io.github.kardbord.tool.viu/io.github.kardbord.tool.viu.yml
     arches: [x86_64, aarch64]
@@ -117,6 +157,10 @@ apps:
     remotes:
       kardbord-boxes:
         url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
     flatpaks:
       - remote: kardbord-boxes
         ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
