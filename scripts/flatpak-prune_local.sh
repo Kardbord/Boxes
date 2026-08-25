@@ -10,6 +10,6 @@ is_local_install() {
 	return $?
 }
 
-for dir in * io.github.kardbord.Platform; do
+for dir in *; do
 	is_local_install "${dir}" && flatpak --user uninstall "${dir}" || true
 done

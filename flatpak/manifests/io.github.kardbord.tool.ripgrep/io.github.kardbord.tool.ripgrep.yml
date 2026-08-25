@@ -2,9 +2,9 @@
 
 id: io.github.kardbord.tool.ripgrep
 default-branch: stable
-runtime: io.github.kardbord.Platform
-runtime-version: 'stable'
-sdk: io.github.kardbord.Sdk
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
 build-extension: true
 separate-locales: false
 

@@ -56,7 +56,6 @@ Boxes/
 │   ├── kardbord-breakout.changes  # OBS changelog (RPM)
 │   ├── debian.changelog  # Debian changelog
 │   ├── debian.control    # Debian binary package definitions
-│   ├── debian.copyright  # Debian license/copyright info
 │   ├── debian.rules      # Debian build rules (debhelper + cmake)
 │   └── ...
 └── ...
@@ -276,8 +275,7 @@ GitHub (source of truth)
    │  push to flatpak/**
    ▼
 GitHub Actions (flatpak-build.yml)
-   │  Phase 1: Build SDK → OCI in GHCR + index on Pages
-   │  Phase 2: Build apps/extensions → OCI in GHCR + index on Pages
+   │  Build apps/extensions → OCI in GHCR + index on Pages
    ▼
 GHCR (OCI images) + Pages (index/static)
    │  flatpak install kardbord-boxes <package>
@@ -285,102 +283,35 @@ GHCR (OCI images) + Pages (index/static)
 User systems
 ```
 
-### Two-Phase Build
+The hub app and extensions are all built by AetherPak's reusable
+`publish.yml` workflow in a parallel matrix.
 
-The SDK (`io.github.kardbord.Sdk`) declares `build-runtime: true`, producing
-both `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
-All other packages depend on these runtimes at build time. AetherPak builds
-packages in a parallel matrix, so the SDK must be built first:
+### Hub App and Extensions
 
-1. **Phase 1** — Build the SDK from `flatpak/aetherpak-sdk.yaml` directly on
-   the runner (no container). `aetherpak/actions/build` calls
-   `aetherpak/setup-cli`, which installs `flatpak`, `flatpak-builder`, and
-   `ostree` via `apt` if they are missing. The SDK build produces both
-   `io.github.kardbord.Sdk` and `io.github.kardbord.Platform` OCI images
-   from the same OSTree repo. The site deploy uses the committed full apps
-   config (`flatpak/aetherpak-apps.yaml`) rather than the SDK-only config, so
-   `build-site` reconcile retains every app's existing index entry.
-2. **Phase 2** — Delegated to AetherPak's reusable `publish.yml` workflow,
-   driven by the committed `flatpak/aetherpak-apps.yaml` (generated from the
-   manifests directory by `scripts/generate-aetherpak-config.sh`). The
-   reusable workflow plans the changed apps, builds them in a parallel
-   matrix, pushes OCI images, merges the index, and deploys to Pages. Phase 2
-   waits on Phase 1's deploy, so apps always build against the freshly
-   published SDK.
+The hub app (`io.github.kardbord.dev`) declares the `io.github.kardbord.tool`
+extension point and provides the `activate-kardbord-env` script for PATH setup.
+All tools are delivered as extensions (`io.github.kardbord.tool.*`) built with
+`build-extension: true` against `org.freedesktop.Platform`/`org.freedesktop.Sdk`.
 
-The apps config references the Phase 1 deployment as a custom Flatpak remote so
-`flatpak-builder` can resolve `io.github.kardbord.Platform` at build time.
+Extensions are mounted into the hub's sandbox at `/app/lib/kardbord-tools/<name>/`.
+The `activate-kardbord-env` script prepends each extension's `bin/` directory to PATH
+and activates any `org.freedesktop.Sdk.Extension.*` extensions found at `/usr/lib/sdk/*`.
 
-When the SDK changes, the SDK/Platform entries in the apps config also cause
-Phase 2 to rebuild the SDK a second time — redundant but idempotent (same
-tags/digests), and required so that reconcile does not prune the runtimes
-from the index.
+The hub has zero sandbox permissions — users must provide their desired
+sandboxing flags at runtime (e.g. `flatpak run --filesystem=host io.github.kardbord.dev nvim`).
+Users who want a shorter command can create shell aliases for their preferred flags.
+
+### Other Apps
+
+Other apps not following the io.github.kardbord.tool scheme may be available as standalone apps.
 
 ### Package Discovery
 
 Packages are discovered from the `flatpak/manifests/` directory by the
 `generate-aetherpak-config.sh` script, which scans the directory and emits the
-`flatpak/aetherpak-apps.yaml` config, including `io.github.kardbord.Sdk` and
-`io.github.kardbord.Platform`. The config is committed to the repository —
-adding or removing a package requires creating or deleting its manifest
-directory, re-running the script, and committing the updated config.
-
-The SDK/Platform entries are **required** in the committed config: AetherPak's
-`build-site` reconcile prunes index entries for apps not listed in the
-config, so an SDK-excluded config would drop the runtimes from the published
-index on the next deploy. The build workflow verifies at plan time that the
-committed config matches a fresh regeneration and fails fast on drift.
-
-### Custom Runtime
-
-All `io.github.kardbord.*` flatpak apps are built on a custom runtime
-(`io.github.kardbord.Platform`) and SDK (`io.github.kardbord.Sdk`), derived
-from `org.freedesktop.Platform`/`org.freedesktop.Sdk`. The custom
-runtime declares the `io.github.kardbord.tool` extension point.
-
-Any app built on `io.github.kardbord.Platform` automatically inherits this
-extension point. Extensions with IDs matching `io.github.kardbord.tool.*` are
-mounted into the app sandbox.
-
-Apps that use `base:` to inherit from a Flathub build (e.g. `io.neovim.nvim`)
-and switch to the custom runtime will have the extension point injected by the
-runtime.
-
-### Flatpak Repository Structure
-
-```
-Boxes/
-├── .github/workflows/
-│   ├── flatpak-build.yml           # Build + publish workflow
-│   ├── flatpak-prune.yml           # OCI image pruning workflow
-│   └── fedc.yml                    # Upstream update check workflow
-├── scripts/
-│   └── generate-aetherpak-config.sh  # Generates apps config from manifests
-├── flatpak/
-│   ├── aetherpak-sdk.yaml          # AetherPak config for SDK (committed)
-│   ├── aetherpak-apps.yaml         # AetherPak config for apps (committed, generated)
-│   └── manifests/
-│       ├── io.github.kardbord.Sdk/
-│       │   ├── io.github.kardbord.Sdk.yml
-│       │   └── activate-kardbord-env
-│       ├── io.github.kardbord.neovim/
-│       │   ├── io.github.kardbord.neovim.yml
-│       │   └── nvim-wrapper-wrapper
-│       ├── io.github.kardbord.ripgrep/
-│       │   ├── io.github.kardbord.ripgrep.yml
-│       │   └── rg-wrapper
-│       ├── io.github.kardbord.tool.*/        # more extensions...
-│       └── ...
-├── docs/
-│   ├── FLATPAK-MAINTENANCE.md               # Flatpak maintainer guide
-│   └── OBS-MAINTENANCE.md                   # OBS packaging guide
-├── kardbord-breakout/              # OBS package
-├── _manifest                       # Does NOT list flatpak/
-└── ...
-```
-
-The `flatpak/` directory is intentionally excluded from `_manifest` so that OBS
-does not treat it as a package.
+`flatpak/aetherpak-apps.yaml` config. The config is committed to the repository —
+adding or removing a package requires creating or deleting its manifest directory,
+re-running the script, and committing the updated config.
 
 ### OCI Image Pruning
 
@@ -446,21 +377,32 @@ signature lookaside are published alongside the index on Pages.
 4. Re-run `scripts/generate-aetherpak-config.sh`, then commit and push the
    manifest directory together with the updated `flatpak/aetherpak-apps.yaml`.
 
-### Adding a New Flatpak App
+### Flatpak Repository Structure
 
-1. Create a directory `flatpak/manifests/io.github.kardbord.<name>/`.
-2. Write the manifest (`io.github.kardbord.<name>.yml`). If the app exists on
-   Flathub, use `base:` to inherit its build and layer your changes on top (see
-   the [FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) `base` field documentation). If
-   building from source, define `modules` directly.
-3. Use `runtime: io.github.kardbord.Platform` and `sdk: io.github.kardbord.Sdk`
-   to inherit the `io.github.kardbord.tool` extension point automatically.
-4. Add `cleanup-commands: - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
-   \- mkdir -p ${FLATPAK_DEST}/lib/sdk` to create the extension mount points.
-   Without this, bwrap will fail with a read-only filesystem error when
-   mounting extensions.
-5. Do not grant filesystem access in `finish-args` beyond what the app needs to
-    function. See [Sandbox Permissions Policy](./docs/FLATPAK-MAINTENANCE.md#sandbox-permissions-policy).
- 6. Test locally with `flatpak-builder`.
- 7. Re-run `scripts/generate-aetherpak-config.sh`, then commit and push the
-    manifest directory together with the updated `flatpak/aetherpak-apps.yaml`.
+```
+Boxes/
+├── .github/workflows/
+│   ├── flatpak-build.yml           # Build + publish workflow
+│   ├── flatpak-prune.yml           # OCI image pruning workflow
+│   └── fedc.yml                    # Upstream update check workflow
+├── scripts/
+│   └── generate-aetherpak-config.sh  # Generates apps config from manifests
+├── flatpak/
+│   ├── aetherpak-apps.yaml         # AetherPak config for apps (committed, generated)
+│   └── manifests/
+│       ├── io.github.kardbord.dev/
+│       │   ├── io.github.kardbord.dev.yml
+│       │   ├── activate-kardbord-env
+│       │   └── kardbord-dev
+│       ├── io.github.kardbord.tool.*/        # extensions...
+│       └── ...
+├── docs/
+│   ├── FLATPAK-MAINTENANCE.md               # Flatpak maintainer guide
+│   └── OBS-MAINTENANCE.md                   # OBS packaging guide
+├── kardbord-breakout/              # OBS package
+├── _manifest                       # Does NOT list flatpak/
+└── ...
+```
+
+The `flatpak/` directory is intentionally excluded from `_manifest` so that OBS
+does not treat it as a package.

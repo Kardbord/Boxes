@@ -4,9 +4,9 @@ set -euo pipefail
 # Generate flatpak/aetherpak-apps.yaml from flatpak/manifests/*/
 #
 # Scans the manifests directory and produces an AetherPak config for all
-# packages, including io.github.kardbord.Sdk and io.github.kardbord.Platform.
-# The SDK/Platform entries must be present: build-site prunes index entries
-# for apps not listed in the config during reconcile.
+# packages. The config is committed to the repository — adding or removing
+# a package requires creating or deleting its manifest directory, re-running
+# the script, and committing the updated config.
 #
 # Usage:
 #   scripts/generate-aetherpak-config.sh   # Write flatpak/aetherpak-apps.yaml
@@ -30,14 +30,9 @@ remote_name: kardbord-boxes
 defaults:
   remotes:
     flathub: https://dl.flathub.org/repo/flathub.flatpakrepo
-    kardbord-boxes: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
   flatpaks:
     - remote: flathub
       ref: org.freedesktop.Sdk//25.08
-    - remote: kardbord-boxes
-      ref: io.github.kardbord.Sdk//stable
-    - remote: kardbord-boxes
-      ref: io.github.kardbord.Platform//stable
 apps:
 HEADER
 
@@ -68,16 +63,6 @@ HEADER
     arches: [x86_64, aarch64]
     branch: stable
 EOF
-
-    # Platform is a side-effect of the SDK build — emit both entries
-    if [[ "$name" == "io.github.kardbord.Sdk" ]]; then
-      cat <<EOF
-  - id: io.github.kardbord.Platform
-    manifest: $rel_path
-    arches: [x86_64, aarch64]
-    branch: stable
-EOF
-    fi
   done
 }
 

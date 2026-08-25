@@ -1,0 +1,313 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.neovim
+default-branch: stable
+build-extension: true
+separate-locales: false
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+
+modules:
+  - name: LuaJIT
+    no-autogen: true
+    make-args:
+      - PREFIX=/app
+    make-install-args:
+      - PREFIX=/app
+    sources:
+      - type: archive
+        url: https://github.com/luajit/luajit/archive/fbb36bb6bfa88716a47c58bcf9ce9f2ef752abac.tar.gz
+        sha256: e60cd2f3057aa39d33d1c895a20087ab54494d9a1ca45aa488ff0378af42df48
+        x-checker-data:
+          type: anitya
+          project-id: 2108
+          url-template: https://github.com/LuaJIT/LuaJIT/archive/v$version.tar.gz
+        cleanup:
+          - /bin
+          - /include
+          - /lib/pkgconfig
+          - /share/man
+          - '*.a'
+
+  - name: lpeg
+    no-autogen: true
+    no-make-install: true
+    make-args:
+      - LUADIR=/app/include/luajit-2.1/
+    post-install:
+      - install -Dm755 -t /app/lib/lua/5.1/ lpeg.so
+      - install -Dm644 -t /app/share/lua/5.1/ re.lua
+    sources:
+      - type: archive
+        url: https://github.com/neovim/deps/raw/d495ee6f79e7962a53ad79670cb92488abe0b9b4/opt/lpeg-1.1.0.tar.gz
+        sha256: 4b155d67d2246c1ffa7ad7bc466c1ea899bbc40fef0257cc9c03cecbaed4352a
+
+  - name: mpack-lua
+    no-autogen: true
+    make-args:
+      - USE_SYSTEM_MPACK=yes
+      - LUA_INCLUDE=-I/app/include/luajit-2.1/
+    make-install-args:
+      - USE_SYSTEM_MPACK=yes
+    sources:
+      - type: archive
+        url: https://github.com/libmpack/libmpack-lua/archive/1.0.13.tar.gz
+        sha256: 436a6a3973207403d3f20082002c32e74c25d9149ff2516dc06b0b41514044bf
+      - type: shell
+        commands:
+          - sed -i 's|/usr/lib|/app/lib|' ./Makefile
+    cleanup:
+      - '*'
+    modules:
+      - name: mpack
+        no-autogen: true
+        make-install-args:
+          - PREFIX=/app
+        sources:
+          - type: archive
+            url: https://github.com/libmpack/libmpack/archive/1.0.5.tar.gz
+            sha256: 4ce91395d81ccea97d3ad4cb962f8540d166e59d3e2ddce8a22979b49f108956
+        cleanup:
+          - '*'
+
+  - name: luv
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_MODULE=OFF
+      - -DBUILD_SHARED_LIBS=ON
+      - -DWITH_SHARED_LIBUV=ON
+      - -DLUA_BUILD_TYPE=System
+    sources:
+      - type: archive
+        url: https://github.com/luvit/luv/releases/download/1.52.1-0/luv-1.52.1-0.tar.gz
+        sha256: 3e6eb820a3aee034f85f9cce9bd77b5d42f34d128a1ccec877adf28c913577c7
+        x-checker-data:
+          type: anitya
+          project-id: 21510
+          url-template: https://github.com/luvit/luv/releases/download/$version/luv-$version.tar.gz
+    modules:
+      - name: libuv
+        sources:
+          - type: archive
+            url: https://github.com/libuv/libuv/archive/v1.52.1.tar.gz
+            sha256: 478baf2599bfbc882c355288c9cb6f92e0e7dda435fa04031fa5b607cf3f414c
+            x-checker-data:
+              type: anitya
+              project-id: 10784
+              url-template: https://github.com/libuv/libuv/archive/v$version.tar.gz
+
+  - name: msgpack-c
+    buildsystem: cmake-ninja
+    sources:
+      - type: archive
+        url: https://github.com/msgpack/msgpack-c/releases/download/c-6.1.0/msgpack-c-6.1.0.tar.gz
+        sha256: 674119f1a85b5f2ecc4c7d5c2859edf50c0b05e0c10aa0df85eefa2c8c14b796
+        cleanup:
+          - /include
+          - /lib/cmake
+          - /lib/pkgconfig
+          - '*.a'
+
+  - name: unibilium
+    buildsystem: cmake-ninja
+    sources:
+      - type: archive
+        url: https://github.com/neovim/unibilium/archive/v2.1.2.tar.gz
+        sha256: 370ecb07fbbc20d91d1b350c55f1c806b06bf86797e164081ccc977fc9b3af7a
+
+  - name: libvterm
+    no-autogen: true
+    make-install-args:
+      - PREFIX=/app
+    sources:
+      - type: archive
+        url: https://github.com/neovim/libvterm/archive/0a15c6e983b0db7ef8276e0792414a805d01bdaf.tar.gz
+        sha256: c4683e7a2d71c04781fd0ab7719a94202800e97a9e091514c16983bb732b0fa7
+        cleanup:
+          - /bin
+          - /include
+          - /lib/pkgconfig
+          - '*.a'
+          - '*.la'
+
+  - name: libtermkey
+    no-autogen: true
+    make-install-args:
+      - PREFIX=/app
+    sources:
+      - type: archive
+        url: http://www.leonerd.org.uk/code/libtermkey/libtermkey-0.22.tar.gz
+        sha256: 6945bd3c4aaa83da83d80a045c5563da4edd7d0374c62c0d35aec09eb3014600
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - /share/man
+          - '*.la'
+
+  - name: wl-clipboard
+    buildsystem: meson
+    config-opts:
+      - -Dzshcompletiondir=no
+      - -Dfishcompletiondir=no
+    sources:
+      - type: archive
+        url: https://github.com/bugaevc/wl-clipboard/archive/v2.3.0.tar.gz
+        sha256: b4dc560973f0cd74e02f817ffa2fd44ba645a4f1ea94b7b9614dacc9f895f402
+        x-checker-data:
+          type: anitya
+          project-id: 49082
+          url-template: https://github.com/bugaevc/wl-clipboard/archive/v$version.tar.gz
+    cleanup:
+      - /share/man
+
+  - name: xclip
+    sources:
+      - type: archive
+        url: https://github.com/astrand/xclip/archive/0.13.tar.gz
+        sha256: ca5b8804e3c910a66423a882d79bf3c9450b875ac8528791fb60ec9de667f758
+        cleanup:
+          - /share/man
+          - /bin/xclip-*file
+    modules:
+      - name: libXmu
+        config-opts:
+          - --disable-static
+          - --disable-docs
+        sources:
+          - type: archive
+            url: https://www.x.org/releases/individual/lib/libXmu-1.1.3.tar.bz2
+            sha256: 9c343225e7c3dc0904f2122b562278da5fed639b1b5e880d25111561bac5b731
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - '*.la'
+
+  - name: tree-sitter
+    no-autogen: true
+    make-install-args:
+      - PREFIX=/app
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter/tree-sitter/archive/v0.26.10.tar.gz
+        sha256: 450cb85fd1af34111eb162e931e0e9e4d4dbf23fc09b9cb56f6299a1a80483b6
+        x-checker-data:
+          type: anitya
+          project-id: 142464
+          url-template: https://github.com/tree-sitter/tree-sitter/archive/v$version.tar.gz
+    cleanup:
+      - /lib/pkgconfig
+
+  - name: utf8proc
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DBUILD_SHARED_LIBS=OFF
+      - -DUTF8PROC_INSTALL=ON
+      - -DUTF8PROC_ENABLE_TESTING=OFF
+    builddir: true
+    sources:
+      - type: git
+        url: https://github.com/JuliaStrings/utf8proc.git
+        tag: v2.11.3
+        commit: e5e799221b45bbb90f5fdc5c69b6b8dfbf017e78
+        x-checker-data:
+          type: git
+          tag-pattern: ^v([\d.]+)$
+
+  - name: tree-sitter-bash
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/bash.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter/tree-sitter-bash/archive/v0.25.0.tar.gz
+        sha256: 9d6bad618e712b51ff060515b0ce6872e33727148f35becb8aa3ad80044c2348
+
+  - name: tree-sitter-c
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/c.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter/tree-sitter-c/archive/v0.24.1.tar.gz
+        sha256: 25dd4bb3dec770769a407e0fc803f424ce02c494a56ce95fedc525316dcf9b48
+
+  - name: tree-sitter-lua
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o /app/lib/nvim/parser/lua.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter-grammars/tree-sitter-lua/archive/v0.5.0.tar.gz
+        sha256: cf01b93f4b61b96a6d27942cf28eeda4cbce7d503c3bef773a8930b3d778a2d9
+
+  - name: tree-sitter-markdown
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC tree-sitter-markdown/src/parser.c tree-sitter-markdown/src/scanner.c -I tree-sitter-markdown/src -o /app/lib/nvim/parser/markdown.so
+      - cc -shared -fPIC tree-sitter-markdown-inline/src/parser.c tree-sitter-markdown-inline/src/scanner.c -I tree-sitter-markdown-inline/src -o /app/lib/nvim/parser/markdown_inline.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter-grammars/tree-sitter-markdown/archive/v0.5.3.tar.gz
+        sha256: df845b1ab7c7c163ec57d7fa17170c92b04be199bddab02523636efec5224ab6
+
+  - name: tree-sitter-python
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o /app/lib/nvim/parser/python.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter/tree-sitter-python/archive/v0.25.0.tar.gz
+        sha256: 4609a3665a620e117acf795ff01b9e965880f81745f287a16336f4ca86cf270c
+
+  - name: tree-sitter-query
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/query.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter-grammars/tree-sitter-query/archive/v0.8.0.tar.gz
+        sha256: c2b23b9a54cffcc999ded4a5d3949daf338bebb7945dece229f832332e6e6a7d
+
+  - name: tree-sitter-vim
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o /app/lib/nvim/parser/vim.so
+    sources:
+      - type: archive
+        url: https://github.com/tree-sitter-grammars/tree-sitter-vim/archive/v0.8.1.tar.gz
+        sha256: 93cafb9a0269420362454ace725a118ff1c3e08dcdfdc228aa86334b54d53c2a
+
+  - name: tree-sitter-vimdoc
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/vimdoc.so
+    sources:
+      - type: archive
+        url: https://github.com/neovim/tree-sitter-vimdoc/archive/v4.1.0.tar.gz
+        sha256: 020e8f117f648c8697fca967995c342e9dbd81dab137a115cc7555207fbc84f
+
+  - name: neovim
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DUSE_BUNDLED=OFF
+    sources:
+      - type: archive
+        url: https://github.com/neovim/neovim/archive/v0.12.4.tar.gz
+        sha256: 2727da95d2b8b809bc7c71e085452e47dfe1d8aa7cfaa15c68004e23f6f0a6dd
+        x-checker-data:
+          is-main-source: true
+          type: anitya
+          project-id: 9037
+          url-template: https://github.com/neovim/neovim/archive/v$version.tar.gz

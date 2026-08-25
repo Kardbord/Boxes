@@ -67,8 +67,8 @@ Replace `[REPOSITORY]` with your distribution's repository name
 
 Flatpak apps and extensions are hosted as OCI images on GHCR, with the index
 and landing page served from [kardbord.github.io/Boxes](https://kardbord.github.io/Boxes).
-Extensions (`io.github.kardbord.tool.*`) mount automatically into any app built
-on the `io.github.kardbord.Platform` runtime.
+Extensions (`io.github.kardbord.tool.*`) mount automatically into the
+hub app (`io.github.kardbord.dev`).
 
 **Quick start:**
 
@@ -77,11 +77,12 @@ on the `io.github.kardbord.Platform` runtime.
 flatpak remote-add --if-not-exists --user kardbord-boxes \
   oci+https://kardbord.github.io/Boxes
 
-# Install an app (the io.github.kardbord.Platform runtime is pulled automatically)
-flatpak install kardbord-boxes io.github.kardbord.neovim
+# Install the hub and a tool extension
+flatpak install kardbord-boxes io.github.kardbord.dev
+flatpak install kardbord-boxes io.github.kardbord.tool.neovim
 
-# Run with the host access you need
-flatpak run --filesystem="${PWD}" io.github.kardbord.neovim
+# Run neovim with host filesystem access
+flatpak run --filesystem=host io.github.kardbord.dev nvim
 ```
 
 Add or remove `--filesystem=` flags as needed for each app. For language
@@ -132,11 +133,9 @@ Flatpak packages are built and published using
 layers as OCI images in GitHub Container Registry (GHCR) and serves a small
 JSON index from GitHub Pages.
 
-1. **Build** — The custom SDK (`io.github.kardbord.Sdk`) is built first, producing
-   the `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
-   All other packages (apps and extensions) are then built in parallel by
-   AetherPak's reusable publish workflow, driven by the committed
-   `flatpak/aetherpak-apps.yaml` config.
+1. **Build** — The hub app (`io.github.kardbord.dev`) and all extensions
+    are built in parallel by AetherPak's reusable publish workflow, driven
+    by the committed `flatpak/aetherpak-apps.yaml` config.
 2. **Publish** — Each package is pushed to GHCR as a signed OCI image. The index
    (`index/static`) is merged and reconciled against the registry, then deployed
    to GitHub Pages along with a landing page and `.flatpakref` files.
@@ -185,11 +184,10 @@ package repositories. Commonly installed packages:
 | Package                                                   | Description                                                       | Build Status |
 |-----------------------------------------------------------|-------------------------------------------------------------------|--------------|
 | [kardbord-breakout](./kardbord-breakout/)                | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
-| [io.github.kardbord.Sdk](./flatpak/)                      | Custom Flatpak runtime and SDK for all io.github.kardbord.* apps. Provides the `io.github.kardbord.tool` extension point. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.neovim](./flatpak/)                   | Custom Neovim Flatpak with independently-updatable tool extensions. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.ripgrep](./flatpak/)                  | Standalone ripgrep Flatpak with tool extension. | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.tool.ripgrep](./flatpak/)             | ripgrep extension for the Neovim Flatpak (Telescope `live_grep`). | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.tool.fd](./flatpak/)                  | fd extension for the Neovim Flatpak (Telescope `find_files`). | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.dev](./flatpak/)                      | Hub app providing the `io.github.kardbord.tool` extension point.  | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.neovim](./flatpak/)            | Neovim extension for the hub app.                                 | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.ripgrep](./flatpak/)            | ripgrep extension for the hub app.                                | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.fd](./flatpak/)                 | fd extension for the hub app.                                     | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
 
 </details>
 

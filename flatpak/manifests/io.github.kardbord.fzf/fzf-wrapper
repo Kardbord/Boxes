@@ -1,2 +1,0 @@
-#!/bin/sh
-exec activate-kardbord-env fzf "$@"

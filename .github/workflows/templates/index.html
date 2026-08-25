@@ -908,14 +908,16 @@ sudo apt install [PACKAGE]</code></pre>
       <span class="card-number">03</span>
       <h2>Flatpak Repository</h2>
       <p>Flatpak apps and extensions are hosted as OCI images on GHCR, with the index served from GitHub Pages.
-        Extensions mount automatically into any app built on the <code>io.github.kardbord.Platform</code> runtime.
+        Extensions mount automatically into the hub app
+(`io.github.kardbord.dev`).
       </p>
       <h3>Quick Start</h3>
       <pre><code>flatpak remote-add --if-not-exists --user {{ .RemoteName }} \
   oci+{{ .PagesURL }}</code></pre>
       <p>Then install and run the apps you want:</p>
-      <pre><code>flatpak install {{ .RemoteName }} io.github.kardbord.neovim
-flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
+      <pre><code>flatpak install {{ .RemoteName }} io.github.kardbord.dev
+flatpak install {{ .RemoteName }} io.github.kardbord.tool.neovim
+flatpak run --filesystem=host io.github.kardbord.dev nvim</code></pre>
       <p>Pass additional <code>--filesystem=</code> flags as needed. See the <a
             href="https://docs.flatpak.org/en/latest/flatpak-command-reference.html#flatpak-run">Flatpak documentation</a>.</p>
       <div class="actions">
@@ -1078,7 +1080,7 @@ flatpak run --filesystem="${PWD}" io.github.kardbord.neovim</code></pre>
 
           var appIds = Object.keys(apps);
           if (appIds.length === 0) {
-            container.innerHTML = '<div class="empty-state empty"><span class="empty-icon">&#x1F512;</span><div class="empty-title">No user-facing packages</div><p class="empty-desc">Only SDK and Platform runtimes were found. Application packages will appear here once available.</p></div>';
+            container.innerHTML = '<div class="empty-state empty"><span class="empty-icon">&#x1F512;</span><div class="empty-title">No packages found</div><p class="empty-desc">Application packages will appear here once available.</p></div>';
             return;
           }
 

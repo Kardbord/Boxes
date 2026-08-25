@@ -8,54 +8,75 @@ User-facing installation instructions are on the [landing page](https://kardbord
 
 ## Architecture
 
-This guide intentionally omits the full runtime/extension-point walkthrough
-(the custom `io.github.kardbord.Platform`/`io.github.kardbord.Sdk` runtimes and
-the `io.github.kardbord.tool` extension point are documented in
-[ARCHITECTURE.md](../ARCHITECTURE.md#custom-runtime)). In short:
+Most `io.github.kardbord.*` flatpaks are built on `org.freedesktop.Platform`
+and `org.freedesktop.Sdk`. The hub app `io.github.kardbord.dev` declares the
+`io.github.kardbord.tool` extension point. All tools are delivered as
+extensions (`io.github.kardbord.tool.*`) that mount into the hub's sandbox.
 
-- All `io.github.kardbord.*` apps run on the custom runtime, which provides the
-  `io.github.kardbord.tool` extension point.
-- Extensions with IDs matching `io.github.kardbord.tool.*` are automatically
-  mounted into the app sandbox.
-
-### Sandbox Permissions Policy
-
-All `io.github.kardbord.*` apps use a minimal sandbox. Only the host access an
-app needs to function is granted — nothing more. This means some apps ship with
-no host filesystem access by default.
-
-Users must pass explicit filesystem arguments at runtime:
-
-```bash
-# Access only the user's home directory
-flatpak run --filesystem=home io.github.kardbord.ripgrep <args>
-
-# Access the entire host filesystem
-flatpak run --filesystem=host io.github.kardbord.ripgrep <args>
+```
+io.github.kardbord.dev          ← Hub app. Declares extension point.
+io.github.kardbord.tool.*       ← Extensions (ripgrep, fd, neovim, etc.)
 ```
 
-When adding a new app, grant only the permissions the app needs to function in
-`finish-args`. Do not add blanket permissions like `--filesystem=host` unless
-the app cannot function without it.
+Other apps may also be available, following the `io.github.kardbord.<app>`
+naming convention.
 
-### The `base` Field
+### Hub App
 
-Apps can use `base:` to inherit the entire build output of a Flathub app. For
-example, `io.github.kardbord.neovim` uses `base: io.neovim.nvim`:
+`io.github.kardbord.dev` is a minimal app with zero sandbox permissions. It
+provides the `activate-kardbord-env` script (sets up PATH for tool extensions)
+and the `kardbord-dev` entrypoint (forwards arguments through the env setup).
 
-- All upstream modules (binaries, libraries, wrappers, etc.) are inherited
-- The custom manifest only needs to specify the app ID, `finish-args`, and `add-extensions`
-- `finish-args` must be re-specified in full (they replace, not merge from base)
-- `base-version: stable` resolves dynamically to the latest Flathub stable commit at build time
+The hub declares the `io.github.kardbord.tool` extension point:
+- Extensions with IDs matching `io.github.kardbord.tool.*` are mounted at
+  `/app/lib/kardbord-tools/<name>/`
+- `activate-kardbord-env` prepends each extension's `bin/` directory to PATH
+- `org.freedesktop.Sdk.Extension.*` extensions are also activated automatically
+
+#### Sandbox Permissions Policy
+
+The hub app has **zero sandbox permissions** — no filesystem access, no network,
+no display socket. Users must provide the necessary flags at runtime:
+
+```bash
+# Access home directory and network (needed for opencode)
+flatpak run --filesystem=home --share=network io.github.kardbord.dev opencode
+
+# Access host filesystem (needed for neovim, ripgrep)
+flatpak run --filesystem=host io.github.kardbord.dev nvim
+
+# Access only /tmp (minimal)
+flatpak run io.github.kardbord.dev fd
+```
+
+Users who prefer a shorter command can create shell aliases for their preferred
+flags, e.g. `alias nvim='flatpak run --filesystem=host io.github.kardbord.dev nvim'`.
+
+When adding a new extension, grant only the permissions the tool needs to
+function in `finish-args`. Do not add blanket permissions like `--filesystem=host`
+unless the tool cannot function without it.
+
+#### Extension Points
+
+The `io.github.kardbord.tool` extension point is defined by the hub app:
+- `directory: lib/kardbord-tools`
+- `subdirectories: true` — each extension mounts at `lib/kardbord-tools/<name>/`
+- `no-autodownload: true` — extensions are not auto-installed with the hub
+- `version: stable`
+- `add-ld-path: lib` — adds each extension's `lib/` to the linker path
+
+Extensions are installed alongside the hub via `flatpak install kardbord-boxes
+io.github.kardbord.tool.<name>`. Once installed, they are automatically mounted
+into the hub's sandbox.
 
 ### Upstream Tracking
 
-Upstream sources for extensions are tracked by the FEDC check workflow, which
-uses `flatpak-external-data-checker` (FEDC) with the `x-checker-data`
-annotations in manifests to detect new upstream releases. FEDC updates the
-manifests in-place and opens a single PR with all changes for review before
-merging. Merging the PR pushes to `main`, which triggers a rebuild of the
-affected Flatpak packages. See
+Upstream sources for apps and extensions are tracked by the FEDC check
+workflow, which uses `flatpak-external-data-checker` (FEDC) with the
+`x-checker-data` annotations in manifests to detect new upstream releases.
+FEDC updates the manifests in-place and opens a single PR with all changes
+for review before merging. Merging the PR pushes to `main`, which triggers
+a rebuild of the affected Flatpak packages. See
 [ARCHITECTURE.md](../ARCHITECTURE.md#upstream-tracking) for the full mechanism.
 
 ## Adding a New Extension
@@ -66,9 +87,9 @@ affected Flatpak packages. See
    ```yaml
    id: io.github.kardbord.tool.<name>
    branch: stable
-   runtime: io.github.kardbord.Platform
-   runtime-version: 'stable'
-   sdk: io.github.kardbord.Sdk
+   runtime: org.freedesktop.Platform
+   runtime-version: '25.08'
+   sdk: org.freedesktop.Sdk
    build-extension: true
    separate-locales: false
 
@@ -76,7 +97,7 @@ affected Flatpak packages. See
      - name: <name>
        buildsystem: simple
        build-commands:
-         - install -Dm755 <binary> /app/tools/<name>/bin/<binary>
+         - install -Dm755 <binary> ${FLATPAK_DEST}/bin/<binary>
        sources:
          - type: archive
            only-arches: [x86_64]
@@ -112,90 +133,11 @@ affected Flatpak packages. See
    ```
 
 5. **Add x-checker-data to the manifest** (shown above) so the
-    FEDC check workflow can detect upstream updates.
+   FEDC check workflow can detect upstream updates.
 
 6. **Regenerate and commit the apps config**: Run
    `scripts/generate-aetherpak-config.sh` and commit the updated
-   `flatpak/aetherpak-apps.yaml` alongside the new manifest. The config must
-   stay complete (SDK/Platform included) — AetherPak's reconcile prunes index
-   entries for apps not listed in the config.
-
-## Adding a New App
-
-1. **Create a directory**: `flatpak/manifests/io.github.kardbord.<name>/`
-
-2. **Write the manifest** (`io.github.kardbord.<name>.yml`):
-   ```yaml
-   id: io.github.kardbord.<name>
-   branch: stable
-   runtime: io.github.kardbord.Platform
-   runtime-version: 'stable'
-   sdk: io.github.kardbord.Sdk
-   command: <name>
-
-   modules:
-     - name: <name>
-       buildsystem: simple
-       build-commands:
-         - install -Dm755 <wrapper-script> ${FLATPAK_DEST}/bin/<name>
-       sources:
-         - type: file
-           path: <wrapper-script>
-
-   cleanup-commands:
-     - mkdir -p ${FLATPAK_DEST}/lib/kardbord-tools
-     - mkdir -p ${FLATPAK_DEST}/lib/sdk
-   ```
-
-   The `cleanup-commands` entry is required for **all** apps on this runtime,
-   whether or not they actively use tool extensions. It creates the parent
-   directory for the `io.github.kardbord.tool` extension mount point. Without
-   it, bwrap will fail with a read-only filesystem error when mounting any
-   extension — including ones installed separately by the user.
-
-   If the app **requires** a specific tool extension to function (i.e. it will
-   not work without it), add an explicit `add-extensions` override to force
-   auto-download of that extension:
-   ```yaml
-   add-extensions:
-     io.github.kardbord.tool.<name>:
-       directory: lib/kardbord-tools/<name>
-       version: stable
-   ```
-
-   If the extension is optional (the app works without it), omit the
-   `add-extensions` override. The extension point is inherited from the runtime,
-   so optional extensions installed by the user will still be mounted
-   automatically. The `cleanup-commands` entry ensures the mount point exists in
-   either case.
-
-3. **Create the wrapper script** (if the app uses tool extensions): Use
-   `activate-kardbord-env` to set up PATH for tool extensions, then exec the
-   real command:
-   ```sh
-   #!/bin/sh
-   exec activate-kardbord-env <command> "$@"
-   ```
-
-   If the app does not use any tool extensions, set `command` directly to the
-   app's binary — no wrapper script is needed. The `cleanup-commands` entry is
-   still required in either case.
-
-4. **Follow the [Sandbox Permissions Policy](#sandbox-permissions-policy)**:
-   grant only the host access the app needs in `finish-args`.
-
-5. **Test locally**:
-   ```bash
-   flatpak-builder --force-clean --user --install-deps-from=flathub \
-     --repo=test-repo build-dir \
-     flatpak/manifests/io.github.kardbord.<name>/io.github.kardbord.<name>.yml
-   ```
-
-6. **Regenerate and commit the apps config**: Run
-   `scripts/generate-aetherpak-config.sh` and commit the updated
-   `flatpak/aetherpak-apps.yaml` alongside the new manifest. The config must
-   stay complete (SDK/Platform included) — AetherPak's reconcile prunes index
-   entries for apps not listed in the config.
+   `flatpak/aetherpak-apps.yaml` alongside the new manifest.
 
 ## Removing a Package
 
@@ -252,14 +194,12 @@ flatpak install flathub org.freedesktop.Sdk//25.08
 flatpak install flathub org.freedesktop.Platform//25.08
 ```
 
-### Building the Custom Runtime
-
-Before building apps or extensions, build and install the custom runtime:
+### Building the Hub App
 
 ```bash
 flatpak-builder --force-clean --user --install-deps-from=flathub \
   --repo=repo build-dir \
-  flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+  flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
 ```
 
 ### Building an Extension
@@ -270,20 +210,13 @@ flatpak-builder --force-clean --user --install-deps-from=flathub \
   flatpak/manifests/io.github.kardbord.tool.ripgrep/io.github.kardbord.tool.ripgrep.yml
 ```
 
-### Building the Neovim App
-
-```bash
-flatpak-builder --force-clean --user --install-deps-from=flathub \
-  --repo=repo build-dir \
-  flatpak/manifests/io.github.kardbord.neovim/io.github.kardbord.neovim.yml
-```
-
 ### Testing Locally
 
 ```bash
 flatpak --user remote-add --no-gpg-verify local-repo repo
-flatpak --user install local-repo io.github.kardbord.neovim
-flatpak run --command=sh io.github.kardbord.neovim -c "which rg"
+flatpak --user install local-repo io.github.kardbord.dev
+flatpak --user install local-repo io.github.kardbord.tool.ripgrep
+flatpak run --command=sh io.github.kardbord.dev -c "which rg"
 ```
 
 ## GPG Key Management
@@ -322,9 +255,7 @@ signature lookaside are published alongside the index on Pages.
      kardbord-boxes https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
    ```
 
-## Troubleshooting
-
-### CI concurrency, partial failures, and recovery
+## CI concurrency, partial failures, and recovery
 
 - **Builds, prunes, and redeploys serialize.** `flatpak-build.yml`,
   `flatpak-prune.yml`, and `redeploy-pages.yml` share the `flatpak-repo`
@@ -350,26 +281,3 @@ signature lookaside are published alongside the index on Pages.
 - Touching `.github/workflows/flatpak-build.yml` or
   `scripts/generate-aetherpak-config.sh` also triggers the build workflow, and
   touching the workflow file itself forces a full rebuild.
-
-### Extension not found in app
-
-Verify the extension is installed and the ID matches:
-```bash
-flatpak list --app --extensions | grep kardbord
-flatpak info io.github.kardbord.tool.ripgrep
-```
-
-### Tool not on PATH inside the app
-
-Apps that use `base:` (e.g. `io.neovim.nvim`) get a wrapper that adds
-`/app/tools/*/bin` to PATH. For other apps, verify the app's entrypoint does
-the same. Check the mount:
-```bash
-flatpak run --command=sh io.github.kardbord.neovim -c "ls /app/tools/"
-```
-
-### FEDC not detecting updates
-
-Check that the `x-checker-data` annotations are correct in the manifest. The
-`url-query` must be a valid jq expression matching the GitHub Releases API
-response structure.
