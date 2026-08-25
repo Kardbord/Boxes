@@ -291,7 +291,8 @@ The hub app and extensions are all built by AetherPak's reusable
 The hub app (`io.github.kardbord.dev`) declares the `io.github.kardbord.tool`
 extension point and provides the `activate-kardbord-env` script for PATH setup.
 All tools are delivered as extensions (`io.github.kardbord.tool.*`) built with
-`build-extension: true` against `org.freedesktop.Platform`/`org.freedesktop.Sdk`.
+`build-extension: true` against `io.github.kardbord.dev` (the hub app that
+declares the extension point) and `org.freedesktop.Sdk` as the build toolchain.
 
 Extensions are mounted into the hub's sandbox at `/app/lib/kardbord-tools/<name>/`.
 The `activate-kardbord-env` script prepends each extension's `bin/` directory to PATH
@@ -371,9 +372,10 @@ signature lookaside are published alongside the index on Pages.
 ### Adding a New Flatpak Extension
 
 1. Create a directory `flatpak/manifests/io.github.kardbord.tool.<name>/`.
-2. Write the manifest with `build-extension: true` and `x-checker-data` annotations
+2. Write the manifest with `build-extension: true`, `runtime: io.github.kardbord.dev`,
+   `runtime-version: stable`, and `x-checker-data` annotations
    (see [FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) for the template).
-3. Test locally with `flatpak-builder`.
+3. Test locally with `flatpak-builder` (the hub app must be available in the build repo).
 4. Re-run `scripts/generate-aetherpak-config.sh`, then commit and push the
    manifest directory together with the updated `flatpak/aetherpak-apps.yaml`.
 

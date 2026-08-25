@@ -84,40 +84,40 @@ a rebuild of the affected Flatpak packages. See
 1. **Create a directory**: `flatpak/manifests/io.github.kardbord.tool.<name>/`
 
 2. **Write the manifest** (`io.github.kardbord.tool.<name>.yml`):
-   ```yaml
-   id: io.github.kardbord.tool.<name>
-   branch: stable
-   runtime: org.freedesktop.Platform
-   runtime-version: '25.08'
-   sdk: org.freedesktop.Sdk
-   build-extension: true
-   separate-locales: false
+    ```yaml
+    id: io.github.kardbord.tool.<name>
+    branch: stable
+    runtime: io.github.kardbord.dev
+    runtime-version: stable
+    sdk: org.freedesktop.Sdk
+    build-extension: true
+    separate-locales: false
 
-   modules:
-     - name: <name>
-       buildsystem: simple
-       build-commands:
-         - install -Dm755 <binary> ${FLATPAK_DEST}/bin/<binary>
-       sources:
-         - type: archive
-           only-arches: [x86_64]
-           url: <upstream-x86_64-url>
-           sha256: <sha256>
-           x-checker-data:
-             type: json
-             url: https://api.github.com/repos/<owner>/<repo>/releases/latest
-             version-query: '.tag_name | sub("^v"; "")'
-             url-query: '.assets[] | select(.name | test("x86_64-unknown-linux-musl\\.tar\\.gz$")) | .browser_download_url'
-         - type: archive
-           only-arches: [aarch64]
-           url: <upstream-aarch64-url>
-           sha256: <sha256>
-           x-checker-data:
-             type: json
-             url: https://api.github.com/repos/<owner>/<repo>/releases/latest
-             version-query: '.tag_name | sub("^v"; "")'
-             url-query: '.assets[] | select(.name | test("aarch64-unknown-linux-musl\\.tar\\.gz$")) | .browser_download_url'
-   ```
+    modules:
+      - name: <name>
+        buildsystem: simple
+        build-commands:
+          - install -Dm755 <binary> ${FLATPAK_DEST}/bin/<binary>
+        sources:
+          - type: archive
+            only-arches: [x86_64]
+            url: <upstream-x86_64-url>
+            sha256: <sha256>
+            x-checker-data:
+              type: json
+              url: https://api.github.com/repos/<owner>/<repo>/releases/latest
+              version-query: '.tag_name | sub("^v"; "")'
+              url-query: <query>
+          - type: archive
+            only-arches: [aarch64]
+            url: <upstream-aarch64-url>
+            sha256: <sha256>
+            x-checker-data:
+              type: json
+              url: https://api.github.com/repos/<owner>/<repo>/releases/latest
+              version-query: '.tag_name | sub("^v"; "")'
+              url-query: <query>
+    ```
 
 3. **Get sha256 checksums**: Fetch from the GitHub API:
    ```
@@ -125,19 +125,53 @@ a rebuild of the affected Flatpak packages. See
      | jq -r '.assets[] | select(.name | test("musl")) | "\(.name) \(.digest)"'
    ```
 
-4. **Test locally**:
-   ```bash
-   flatpak-builder --force-clean --user --install-deps-from=flathub \
-     --repo=test-repo build-dir \
-     flatpak/manifests/io.github.kardbord.tool.<name>/io.github.kardbord.tool.<name>.yml
-   ```
+4. **Test locally** (the hub app must be installed in the build repo first):
+    ```bash
+    # Install the hub app into a local repo
+    flatpak-builder --force-clean --user --install-deps-from=flathub \
+      --repo=repo build-dir \
+      flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
+    flatpak --user remote-add --no-gpg-verify local-repo repo
+    flatpak --user install local-repo io.github.kardbord.dev
+
+    # Build the extension (hub is resolved from local-repo)
+    flatpak-builder --force-clean --user --install-deps-from=local-repo \
+      --repo=repo build-dir \
+      flatpak/manifests/io.github.kardbord.tool.<name>/io.github.kardbord.tool.<name>.yml
+    ```
 
 5. **Add x-checker-data to the manifest** (shown above) so the
    FEDC check workflow can detect upstream updates.
 
 6. **Regenerate and commit the apps config**: Run
-   `scripts/generate-aetherpak-config.sh` and commit the updated
-   `flatpak/aetherpak-apps.yaml` alongside the new manifest.
+    `scripts/generate-aetherpak-config.sh` and commit the updated
+    `flatpak/aetherpak-apps.yaml` alongside the new manifest.
+
+### Interdependency Model (Self-Referencing Remote)
+
+Extension builds depend on the hub app (`io.github.kardbord.dev`) being
+available in a Flatpak remote at build time. Each extension's
+`aetherpak.yaml` entry configures a `remotes` block pointing at the
+Boxes OCI repository (`https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo`)
+and a `flatpaks` dep that installs the hub before building. AetherPak
+auto-injects `--install-deps-from=kardbord-boxes` so flatpak-builder
+can resolve the hub's extension point during the build.
+
+Each extension is an independent parallel build cell, preserving per-tool
+update granularity and FEDC-driven rebuilds. The trade-off is a **bootstrap
+requirement**: the hub must already be published in the Boxes OCI repo before
+extensions can build.
+
+**Bootstrapping**: the first publish after adding or changing the hub
+must be done in two steps:
+1. Publish the hub alone (exclude extensions from the config temporarily,
+   or run `aetherpak publish` with `force-all` for the hub only).
+2. Once the hub is in the OCI repo, a subsequent push builds the
+   extensions normally.
+
+Subsequent hub-only changes follow the same two-step pattern: hub
+first, then extensions in the next push. Extension-only changes
+require no bootstrap since the hub is already live.
 
 ## Removing a Package
 
@@ -192,6 +226,9 @@ sudo dnf install flatpak flatpak-builder   # RedHat-family
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 flatpak install flathub org.freedesktop.Sdk//25.08
 flatpak install flathub org.freedesktop.Platform//25.08
+
+# For building extensions, the hub app must also be installed:
+flatpak install flathub io.github.kardbord.dev
 ```
 
 ### Building the Hub App
@@ -204,8 +241,20 @@ flatpak-builder --force-clean --user --install-deps-from=flathub \
 
 ### Building an Extension
 
+Extensions are built against the hub app as their runtime. The hub must be
+available in the build repo (installed from the Boxes OCI remote or a local
+repo).
+
 ```bash
+# Install the hub app into a local repo first
 flatpak-builder --force-clean --user --install-deps-from=flathub \
+  --repo=repo build-dir \
+  flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
+flatpak --user remote-add --no-gpg-verify local-repo repo
+flatpak --user install local-repo io.github.kardbord.dev
+
+# Build the extension against the hub
+flatpak-builder --force-clean --user --install-deps-from=local-repo \
   --repo=repo build-dir \
   flatpak/manifests/io.github.kardbord.tool.ripgrep/io.github.kardbord.tool.ripgrep.yml
 ```

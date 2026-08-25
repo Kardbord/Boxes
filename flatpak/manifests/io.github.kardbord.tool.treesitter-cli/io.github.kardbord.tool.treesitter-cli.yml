@@ -2,8 +2,8 @@
 
 id: io.github.kardbord.tool.treesitter-cli
 default-branch: stable
-runtime: org.freedesktop.Platform
-runtime-version: '25.08'
+runtime: io.github.kardbord.dev
+runtime-version: stable
 sdk: org.freedesktop.Sdk
 build-extension: true
 separate-locales: false

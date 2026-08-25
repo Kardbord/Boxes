@@ -54,15 +54,34 @@ HEADER
       continue
     fi
 
+    # Detect build-extension manifests (extensions of the hub app)
+    is_extension=false
+    grep -q '^build-extension:[[:space:]]*true' "$manifest" 2>/dev/null && is_extension=true
+
     # Path relative to repo root
     rel_path="${manifest#"$REPO_ROOT/"}"
 
-    cat <<EOF
+    if [[ "$is_extension" == "true" ]]; then
+      cat <<EOF
+  - id: $id
+    manifest: $rel_path
+    arches: [x86_64, aarch64]
+    branch: stable
+    remotes:
+      kardbord-boxes:
+        url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+    flatpaks:
+      - remote: kardbord-boxes
+        ref: io.github.kardbord.dev//stable
+EOF
+    else
+      cat <<EOF
   - id: $id
     manifest: $rel_path
     arches: [x86_64, aarch64]
     branch: stable
 EOF
+    fi
   done
 }
 
