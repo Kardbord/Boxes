@@ -89,7 +89,7 @@ a rebuild of the affected Flatpak packages. See
     branch: stable
     runtime: io.github.kardbord.dev
     runtime-version: stable
-    sdk: org.freedesktop.Sdk
+    sdk: org.freedesktop.Sdk//25.08
     build-extension: true
     separate-locales: false
 

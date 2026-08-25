@@ -6,7 +6,7 @@ build-extension: true
 separate-locales: false
 runtime: io.github.kardbord.dev
 runtime-version: stable
-sdk: org.freedesktop.Sdk
+sdk: org.freedesktop.Sdk//25.08
 
 modules:
   - name: LuaJIT
