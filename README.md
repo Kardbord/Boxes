@@ -134,17 +134,20 @@ JSON index from GitHub Pages.
 
 1. **Build** — The custom SDK (`io.github.kardbord.Sdk`) is built first, producing
    the `io.github.kardbord.Platform` and `io.github.kardbord.Sdk` runtimes.
-   All other packages (apps and extensions) are built in parallel after the SDK
-   is available.
+   All other packages (apps and extensions) are then built in parallel by
+   AetherPak's reusable publish workflow, driven by the committed
+   `flatpak/aetherpak-apps.yaml` config.
 2. **Publish** — Each package is pushed to GHCR as a signed OCI image. The index
    (`index/static`) is merged and reconciled against the registry, then deployed
    to GitHub Pages along with a landing page and `.flatpakref` files.
 3. **Prune** — A scheduled workflow removes stale OCI images from GHCR that are
    no longer referenced in the active index.
 
-New packages are auto-discovered from the `flatpak/manifests/` directory at CI
-time. Adding or removing a package only requires creating or deleting its
-manifest directory. See
+Packages are discovered from the `flatpak/manifests/` directory by
+`scripts/generate-aetherpak-config.sh`, which emits the committed
+`flatpak/aetherpak-apps.yaml` config. Adding or removing a package requires
+creating or deleting its manifest directory, re-running the script, and
+committing the updated config. See
 [docs/FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) for the guide.
 
 </details>

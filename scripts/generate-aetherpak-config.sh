@@ -1,23 +1,20 @@
 #!/bin/bash
 set -euo pipefail
 
-# Generate aetherpak-apps.yaml from flatpak/manifests/*/
+# Generate flatpak/aetherpak-apps.yaml from flatpak/manifests/*/
 #
 # Scans the manifests directory and produces an AetherPak config for all
-# packages except the SDK (which is handled by flatpak/aetherpak-sdk.yaml).
-#
-# Set INCLUDE_SDK=true to include io.github.kardbord.Sdk and
-# io.github.kardbord.Platform in the generated config (used at deploy time
-# so publish-site adds them to the final flatpakrepo index).
+# packages, including io.github.kardbord.Sdk and io.github.kardbord.Platform.
+# The SDK/Platform entries must be present: build-site prunes index entries
+# for apps not listed in the config during reconcile.
 #
 # Usage:
-#   scripts/generate-aetherpak-config.sh          # Write aetherpak-apps.yaml
-#   INCLUDE_SDK=true scripts/generate-aetherpak-config.sh  # Include SDK/Platform
+#   scripts/generate-aetherpak-config.sh   # Write flatpak/aetherpak-apps.yaml
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MANIFESTS_DIR="$REPO_ROOT/flatpak/manifests"
-OUTPUT="$REPO_ROOT/aetherpak-apps.yaml"
+OUTPUT="$REPO_ROOT/flatpak/aetherpak-apps.yaml"
 
 generate() {
   cat <<'HEADER'
@@ -38,12 +35,6 @@ HEADER
 
   for dir in "$MANIFESTS_DIR"/*/; do
     name="$(basename "$dir")"
-
-    # SDK is handled by flatpak/aetherpak-sdk.yaml (Phase 1)
-    # Include in deploy config so publish-site adds them to the index
-    if [[ "$name" == "io.github.kardbord.Sdk" && "${INCLUDE_SDK:-}" != "true" ]]; then
-      continue
-    fi
 
     # Find the manifest file (matches directory name)
     manifest="$dir${name}.yml"

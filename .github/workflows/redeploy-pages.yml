@@ -10,41 +10,25 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
+# Serialize with flatpak-build.yml and flatpak-prune.yml so a redeploy can
+# never race an in-flight build's OCI pushes / Pages deploys.
 concurrency:
   group: flatpak-repo
   cancel-in-progress: false
 
 jobs:
   redeploy:
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Prepare empty records directory
-        run: mkdir -p _records
-
-      - name: Generate aetherpak-apps.yaml
-        run: scripts/generate-aetherpak-config.sh
-        env:
-          INCLUDE_SDK: "true"
-
-      - name: Deploy site
-        uses: aetherpak/actions/publish-site@v3
-        env:
-          AETHERPAK_CONFIG: aetherpak-apps.yaml
-        with:
-          pages-artifact-name: github-pages-redeploy
-          records-dir: _records
-          pages-url: https://kardbord.github.io/Boxes
-          signing: auto
-          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-          index-template: .github/workflows/templates/index.html
-
-      - uses: actions/deploy-pages@v5
-        with:
-          artifact_name: github-pages-redeploy
+    permissions:
+      contents: read
+      packages: write
+      pages: write
+      id-token: write
+    uses: aetherpak/actions/.github/workflows/publish.yml@v3
+    with:
+      config: flatpak/aetherpak-apps.yaml
+      reconcile-only: true
+      concurrency-group: flatpak-repo
+      index-template: .github/workflows/templates/index.html
+    secrets:
+      gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}

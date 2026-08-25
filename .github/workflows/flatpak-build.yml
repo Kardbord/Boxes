@@ -62,7 +62,7 @@ jobs:
     if: needs.plan-sdk.outputs.matrix != ''
     runs-on: ${{ matrix.runner }}
     container:
-      image: ghcr.io/aetherpak/cli:v0.32.0-builder
+      image: ghcr.io/aetherpak/cli:v0.33.2-builder
       options: --privileged
     strategy:
       fail-fast: false
@@ -78,9 +78,8 @@ jobs:
           fetch-depth: 2
 
       - uses: aetherpak/actions/build@v3
-        env:
-          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
         with:
+          config: flatpak/aetherpak-sdk.yaml
           manifest-path: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
           app-id: io.github.kardbord.Sdk
           arch: ${{ matrix.arch }}
@@ -172,9 +171,8 @@ jobs:
 
       - uses: aetherpak/actions/publish-site@v3
         id: deploy
-        env:
-          AETHERPAK_CONFIG: flatpak/aetherpak-sdk.yaml
         with:
+          config: flatpak/aetherpak-sdk.yaml
           pages-artifact-name: github-pages-sdk
           records-dir: _records
           pages-url: https://kardbord.github.io/Boxes
@@ -188,210 +186,26 @@ jobs:
 
   # ────────────────────────────────────────────────────────────
   # Phase 2: Build, publish, and deploy apps + extensions
+  # Delegated to AetherPak's reusable publish workflow, driven by the
+  # committed flatpak/aetherpak-apps.yaml (SDK-inclusive — build-site
+  # prunes index entries for apps not listed in the config).
+  # Note: unlike the previous hand-rolled pipeline, a failed build cell
+  # blocks publishing of all cells in the run.
   # ────────────────────────────────────────────────────────────
-  plan-apps:
-    needs: deploy-sdk
+  publish-apps:
+    needs: [plan-sdk, deploy-sdk]
     if: needs.plan-sdk.result == 'success' && (needs.deploy-sdk.result == 'success' || needs.plan-sdk.outputs.matrix == '')
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.wrap.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Generate aetherpak-apps.yaml
-        run: scripts/generate-aetherpak-config.sh
-
-      - name: Compute build matrix
-        id: plan
-        uses: aetherpak/actions/plan@v3
-        with:
-          config: aetherpak-apps.yaml
-          force: ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
-          base-sha: ${{ github.event_name == 'push' && github.event.before || '' }}
-          workflow-path: .github/workflows/flatpak-build.yml
-
-      - name: Wrap matrix for strategy
-        id: wrap
-        if: steps.plan.outputs.matrix != ''
-        env:
-          MATRIX: ${{ steps.plan.outputs.matrix }}
-        run: |
-          echo "matrix=$(printf '%s' "$MATRIX" | jq -c '{include: .}')" >> "$GITHUB_OUTPUT"
-
-  build-apps:
-    needs: plan-apps
-    if: needs.plan-apps.outputs.matrix != ''
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
-    runs-on: ${{ matrix.runner }}
-    container:
-      image: ghcr.io/aetherpak/cli:v0.32.0-builder
-      options: --privileged
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-
-      - name: Generate aetherpak-apps.yaml
-        run: scripts/generate-aetherpak-config.sh
-
-      - name: Build
-        id: build
-        uses: aetherpak/actions/build@v3
-        env:
-          AETHERPAK_CONFIG: aetherpak-apps.yaml
-        with:
-          manifest-path: ${{ matrix.manifest }}
-          app-id: ${{ matrix.app-id }}
-          arch: ${{ matrix.arch }}
-          branch: ${{ matrix.branch }}
-          run-linter: ${{ matrix.run-linter }}
-
-      - name: Upload OSTree repo
-        uses: actions/upload-artifact@v7
-        with:
-          name: repo-${{ matrix.app-id }}-${{ matrix.arch }}
-          path: _repo
-          retention-days: 1
-
-      - name: Record build result
-        if: always()
-        run: |
-          mkdir -p _build-results
-          echo "${{ matrix.app-id }} ${{ matrix.arch }} ${{ steps.build.outcome }}" > _build-results/${{ matrix.app-id }}-${{ matrix.arch }}.txt
-
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: build-apps-results-${{ matrix.app-id }}-${{ matrix.arch }}
-          path: _build-results/
-
-  build-apps-gate:
-    needs: [plan-apps, build-apps]
-    if: always() && needs.plan-apps.outputs.matrix != ''
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download build results
-        uses: actions/download-artifact@v8
-        with:
-          pattern: build-apps-results-*
-          path: _build_results
-          merge-multiple: true
-
-      - name: Count successes and report failures
-        if: always()
-        run: |
-          set -euo pipefail
-          echo "## Build cell results" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          TOTAL=0
-          FAILED=0
-          for f in _build_results/*.txt; do
-            [ -f "$f" ] || continue
-            TOTAL=$((TOTAL + 1))
-            read -r app arch status < "$f"
-            if [[ "$status" != "success" ]]; then
-              echo "- ❌ $app ($arch): $status" >> "$GITHUB_STEP_SUMMARY"
-              FAILED=$((FAILED + 1))
-            fi
-          done
-          if [[ "$TOTAL" -eq 0 ]]; then
-            echo "No build cells ran" >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-          if [[ "$FAILED" -eq 0 ]]; then
-            echo "All $TOTAL cell(s) succeeded" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "$FAILED of $TOTAL cell(s) failed" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-  publish-oci:
-    needs: [plan-apps, build-apps-gate]
-    if: needs.plan-apps.outputs.matrix != '' && needs.build-apps-gate.result == 'success'
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-
-      - name: Download OSTree repo
-        continue-on-error: true
-        id: download
-        uses: actions/download-artifact@v8
-        with:
-          name: repo-${{ matrix.app-id }}-${{ matrix.arch }}
-          path: _repo
-
-      - name: Push OCI image
-        if: steps.download.outcome == 'success'
-        uses: aetherpak/actions/publish-oci@v3
-        with:
-          repo-path: _repo
-          app-id: ${{ matrix.app-id }}
-          arch: ${{ matrix.arch }}
-          branch: ${{ matrix.branch }}
-          signing: auto
-          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-
-      - name: Upload record
-        if: steps.download.outcome == 'success'
-        uses: actions/upload-artifact@v7
-        with:
-          name: aetherpak-record-${{ matrix.app-id }}-${{ matrix.arch }}
-          path: _records
-          include-hidden-files: true
-          retention-days: 1
-
-  deploy-apps:
-    needs: [plan-apps, build-apps-gate, publish-oci]
-    if: needs.plan-apps.outputs.matrix != '' && needs.build-apps-gate.result == 'success'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 2
-
-      - name: Generate aetherpak-apps.yaml
-        run: scripts/generate-aetherpak-config.sh
-        env:
-          INCLUDE_SDK: "true"
-
-      - name: Download all records
-        uses: actions/download-artifact@v8
-        with:
-          pattern: aetherpak-record-*
-          path: _records_in
-
-      - name: Flatten records
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          mkdir -p _records
-          for dir in _records_in/*/; do cp -r "$dir." _records/; done
-
-      - name: Build and deploy site
-        id: deploy
-        uses: aetherpak/actions/publish-site@v3
-        env:
-          AETHERPAK_CONFIG: aetherpak-apps.yaml
-        with:
-          pages-artifact-name: github-pages-apps
-          records-dir: _records
-          pages-url: https://kardbord.github.io/Boxes
-          signing: auto
-          gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-          index-template: .github/workflows/templates/index.html
-
-      - uses: actions/deploy-pages@v5
-        with:
-          artifact_name: github-pages-apps
+    permissions:
+      contents: read
+      packages: write
+      pages: write
+      id-token: write
+    uses: aetherpak/actions/.github/workflows/publish.yml@v3
+    with:
+      config: flatpak/aetherpak-apps.yaml
+      concurrency-group: flatpak-repo
+      index-template: .github/workflows/templates/index.html
+      workflow-path: .github/workflows/flatpak-build.yml
+      force-all: ${{ github.event_name == 'workflow_dispatch' }}
+    secrets:
+      gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}

@@ -293,21 +293,28 @@ All other packages depend on these runtimes at build time. AetherPak builds
 packages in a parallel matrix, so the SDK must be built first:
 
 1. **Phase 1** — Build and publish the SDK using `flatpak/aetherpak-sdk.yaml`.
-2. **Phase 2** — Generate `aetherpak-apps.yaml` from the manifests directory
-   at CI time (via `scripts/generate-aetherpak-config.sh`), compute the build
-   matrix, build all apps and extensions in parallel, push OCI images, merge the
-   index, and deploy to Pages.
+2. **Phase 2** — Delegated to AetherPak's reusable `publish.yml` workflow,
+   driven by the committed `flatpak/aetherpak-apps.yaml` (generated from the
+   manifests directory by `scripts/generate-aetherpak-config.sh`). The
+   reusable workflow plans the changed apps, builds them in a parallel
+   matrix, pushes OCI images, merges the index, and deploys to Pages.
 
 The apps config references the Phase 1 deployment as a custom Flatpak remote so
 `flatpak-builder` can resolve `io.github.kardbord.Platform` at build time.
 
-### Auto-Discovery
+### Package Discovery
 
-New packages are auto-discovered from the `flatpak/manifests/` directory. The
-`generate-aetherpak-config.sh` script scans the directory, skips the SDK, and
-emits an `aetherpak-apps.yaml` config. Adding or removing a package only
-requires creating or deleting its manifest directory — no config file to
-maintain.
+Packages are discovered from the `flatpak/manifests/` directory by the
+`generate-aetherpak-config.sh` script, which scans the directory and emits the
+`flatpak/aetherpak-apps.yaml` config, including `io.github.kardbord.Sdk` and
+`io.github.kardbord.Platform`. The config is committed to the repository —
+adding or removing a package requires creating or deleting its manifest
+directory, re-running the script, and committing the updated config.
+
+The SDK/Platform entries are **required** in the committed config: AetherPak's
+`build-site` reconcile prunes index entries for apps not listed in the
+config, so an SDK-excluded config would drop the runtimes from the published
+index on the next Phase 2 deploy.
 
 ### Custom Runtime
 
@@ -336,6 +343,7 @@ Boxes/
 │   └── generate-aetherpak-config.sh  # Generates apps config from manifests
 ├── flatpak/
 │   ├── aetherpak-sdk.yaml          # AetherPak config for SDK (committed)
+│   ├── aetherpak-apps.yaml         # AetherPak config for apps (committed, generated)
 │   └── manifests/
 │       ├── io.github.kardbord.Sdk/
 │       │   ├── io.github.kardbord.Sdk.yml
@@ -386,14 +394,14 @@ changes are not retried automatically. Recovery: re-run the workflow manually
 `.github/workflows/flatpak-build.yml` also forces a full rebuild via the `plan`
 action's `workflow-path` input.
 
-App builds use a fail-soft gate: all matrix cells run to completion
-(`fail-fast: false`), per-cell outcomes are recorded, and `build-apps-gate`
-fails the pipeline only when *zero* cells succeeded. Successful cells are still
-published and deployed, so a single broken app does not block updates to the
-others. Because the failing cells make the `build-apps` job conclusion
-`failure`, the workflow run goes red on partial failure (and the post-build
-prune is skipped), while the index entries and OCI images for failed apps
-remain at their last-good state.
+App builds run with `fail-fast: false` inside AetherPak's reusable publish
+workflow, so all matrix cells run to completion. However, the reusable
+workflow gates publishing on overall success: if any build cell fails, no
+cells from that run are published or deployed — the index entries and OCI
+images for all apps remain at their last-good state until the failure is
+fixed and the workflow re-runs. Recovery for a skipped or superseded run is
+the same as above: re-run manually via `workflow_dispatch` (forces a full
+rebuild).
 
 ### Upstream Tracking
 
@@ -418,8 +426,8 @@ signature lookaside are published alongside the index on Pages.
 2. Write the manifest with `build-extension: true` and `x-checker-data` annotations
    (see [FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md) for the template).
 3. Test locally with `flatpak-builder`.
-4. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
-   the new manifest at CI time.
+4. Re-run `scripts/generate-aetherpak-config.sh`, then commit and push the
+   manifest directory together with the updated `flatpak/aetherpak-apps.yaml`.
 
 ### Adding a New Flatpak App
 
@@ -437,5 +445,5 @@ signature lookaside are published alongside the index on Pages.
 5. Do not grant filesystem access in `finish-args` beyond what the app needs to
     function. See [Sandbox Permissions Policy](./docs/FLATPAK-MAINTENANCE.md#sandbox-permissions-policy).
  6. Test locally with `flatpak-builder`.
- 7. Commit and push — the `generate-aetherpak-config.sh` script auto-discovers
-    the new manifest at CI time.
+ 7. Re-run `scripts/generate-aetherpak-config.sh`, then commit and push the
+    manifest directory together with the updated `flatpak/aetherpak-apps.yaml`.

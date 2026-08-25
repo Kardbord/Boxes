@@ -114,8 +114,11 @@ affected Flatpak packages. See
 5. **Add x-checker-data to the manifest** (shown above) so the
     FEDC check workflow can detect upstream updates.
 
-6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
-   the new manifest at CI time.
+6. **Regenerate and commit the apps config**: Run
+   `scripts/generate-aetherpak-config.sh` and commit the updated
+   `flatpak/aetherpak-apps.yaml` alongside the new manifest. The config must
+   stay complete (SDK/Platform included) — AetherPak's reconcile prunes index
+   entries for apps not listed in the config.
 
 ## Adding a New App
 
@@ -188,8 +191,11 @@ affected Flatpak packages. See
      flatpak/manifests/io.github.kardbord.<name>/io.github.kardbord.<name>.yml
    ```
 
-6. **Commit and push**: The `generate-aetherpak-config.sh` script auto-discovers
-   the new manifest at CI time.
+6. **Regenerate and commit the apps config**: Run
+   `scripts/generate-aetherpak-config.sh` and commit the updated
+   `flatpak/aetherpak-apps.yaml` alongside the new manifest. The config must
+   stay complete (SDK/Platform included) — AetherPak's reconcile prunes index
+   entries for apps not listed in the config.
 
 ## Removing a Package
 
@@ -197,9 +203,11 @@ Removal is a two-step process. The index is cumulative (each deploy seeds from
 the previously deployed site and only drops entries whose OCI image no longer
 exists in GHCR), so deleting the manifest alone is not sufficient.
 
-1. **Delete the manifest directory** and commit:
+1. **Delete the manifest directory**, regenerate the apps config, and commit:
    ```bash
    git rm -r flatpak/manifests/io.github.kardbord.<name>/
+   scripts/generate-aetherpak-config.sh
+   git add flatpak/aetherpak-apps.yaml
    git commit -m "Remove io.github.kardbord.<name>"
    git push
    ```
@@ -322,11 +330,10 @@ signature lookaside are published alongside the index on Pages.
   `flatpak-prune.yml`, and `redeploy-pages.yml` share the `flatpak-repo`
   concurrency group (no cancellation). Rapid pushes queue rather than cancel
   each other, and a prune can never race an in-flight build.
-- **Partial app-build failures:** all matrix cells run to completion. If at
-  least one cell succeeds, the successful apps are still published and deployed,
-  but the workflow run is marked failed (red badge) and the post-build prune is
-  skipped. Failed apps keep their last-good index entries and OCI images; fix
-  the failure and push again to rebuild them.
+- **Failed app builds block publishing.** All matrix cells run to completion,
+  but if any cell fails, nothing from that run is published or deployed — all
+  apps keep their last-good index entries and OCI images. Fix the failure and
+  push again (or re-run the workflow) to publish.
 - **Missed changes after a failed or superseded run:** change detection diffs
   against `github.event.before`. If a queued run fails — or is cancelled while
   pending because a third push arrived (GitHub keeps only one running and one
