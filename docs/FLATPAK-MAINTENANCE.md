@@ -316,6 +316,28 @@ signature lookaside are published alongside the index on Pages.
 
 ## Troubleshooting
 
+### CI concurrency, partial failures, and recovery
+
+- **Builds, prunes, and redeploys serialize.** `flatpak-build.yml`,
+  `flatpak-prune.yml`, and `redeploy-pages.yml` share the `flatpak-repo`
+  concurrency group (no cancellation). Rapid pushes queue rather than cancel
+  each other, and a prune can never race an in-flight build.
+- **Partial app-build failures:** all matrix cells run to completion. If at
+  least one cell succeeds, the successful apps are still published and deployed,
+  but the workflow run is marked failed (red badge) and the post-build prune is
+  skipped. Failed apps keep their last-good index entries and OCI images; fix
+  the failure and push again to rebuild them.
+- **Missed changes after a failed or superseded run:** change detection diffs
+  against `github.event.before`. If a queued run fails — or is cancelled while
+  pending because a third push arrived (GitHub keeps only one running and one
+  pending run per concurrency group) — the next push does not re-diff the
+  skipped commits. Re-run the workflow manually
+  (**Actions → Build and publish Flatpak repository → Run workflow**) — a
+  manual dispatch forces a full rebuild of everything.
+- Touching `.github/workflows/flatpak-build.yml` or
+  `scripts/generate-aetherpak-config.sh` also triggers the build workflow, and
+  touching the workflow file itself forces a full rebuild.
+
 ### Extension not found in app
 
 Verify the extension is installed and the ID matches:

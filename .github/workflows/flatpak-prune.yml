@@ -18,6 +18,12 @@ on:
 permissions:
   packages: write
 
+# Serialize with flatpak-build.yml and redeploy-pages.yml so a prune can never
+# race an in-flight build's OCI pushes / Pages deploys (stale-index deletion).
+concurrency:
+  group: flatpak-repo
+  cancel-in-progress: false
+
 jobs:
   prune:
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'

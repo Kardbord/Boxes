@@ -368,6 +368,33 @@ that are no longer referenced. A dry-run input is supported to list stale images
 without deleting. This ensures stale images are cleaned up automatically after
 packages are removed.
 
+### Concurrency and Partial Failures
+
+`flatpak-build.yml`, `flatpak-prune.yml`, and `redeploy-pages.yml` share a
+single repository-wide concurrency group (`flatpak-repo`) with
+`cancel-in-progress: false`. Builds, prunes, and manual redeploys therefore
+serialize: a prune can never read a stale index while a build is mid-push
+(which would delete freshly-pushed images), and queued runs each diff against
+their own `github.event.before`, so rapid pushes are never silently dropped.
+
+Change detection diffs against `github.event.before`. If a queued run *fails*,
+or is *superseded* before it starts (GitHub keeps at most one running and one
+pending run per concurrency group, so a third rapid push cancels the pending
+one), the next run diffs only its own push range and the skipped commits'
+changes are not retried automatically. Recovery: re-run the workflow manually
+(`workflow_dispatch` forces a full rebuild). Touching
+`.github/workflows/flatpak-build.yml` also forces a full rebuild via the `plan`
+action's `workflow-path` input.
+
+App builds use a fail-soft gate: all matrix cells run to completion
+(`fail-fast: false`), per-cell outcomes are recorded, and `build-apps-gate`
+fails the pipeline only when *zero* cells succeeded. Successful cells are still
+published and deployed, so a single broken app does not block updates to the
+others. Because the failing cells make the `build-apps` job conclusion
+`failure`, the workflow run goes red on partial failure (and the post-build
+prune is skipped), while the index entries and OCI images for failed apps
+remain at their last-good state.
+
 ### Upstream Tracking
 
 Upstream sources for tracked packages are checked by the `fedc.yml` workflow,

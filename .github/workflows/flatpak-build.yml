@@ -4,7 +4,10 @@ name: Build and publish Flatpak repository
 on:
   push:
     branches: [main]
-    paths: [flatpak/**]
+    paths:
+      - flatpak/**
+      - scripts/generate-aetherpak-config.sh
+      - .github/workflows/flatpak-build.yml
   workflow_dispatch:
 
 permissions:
@@ -14,8 +17,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages-deploy
-  cancel-in-progress: true
+  group: flatpak-repo
+  cancel-in-progress: false
 
 jobs:
   # ────────────────────────────────────────────────────────────
@@ -36,6 +39,7 @@ jobs:
           config: flatpak/aetherpak-sdk.yaml
           force: ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
           base-sha: ${{ github.event_name == 'push' && github.event.before || '' }}
+          workflow-path: .github/workflows/flatpak-build.yml
 
       - name: Wrap matrix for strategy
         id: wrap
@@ -206,6 +210,7 @@ jobs:
           config: aetherpak-apps.yaml
           force: ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
           base-sha: ${{ github.event_name == 'push' && github.event.before || '' }}
+          workflow-path: .github/workflows/flatpak-build.yml
 
       - name: Wrap matrix for strategy
         id: wrap
@@ -218,7 +223,6 @@ jobs:
   build-apps:
     needs: plan-apps
     if: needs.plan-apps.outputs.matrix != ''
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
@@ -235,6 +239,7 @@ jobs:
         run: scripts/generate-aetherpak-config.sh
 
       - name: Build
+        id: build
         uses: aetherpak/actions/build@v3
         env:
           AETHERPAK_CONFIG: aetherpak-apps.yaml
@@ -256,7 +261,7 @@ jobs:
         if: always()
         run: |
           mkdir -p _build-results
-          echo "${{ matrix.app-id }} ${{ matrix.arch }} ${{ job.status }}" > _build-results/${{ matrix.app-id }}-${{ matrix.arch }}.txt
+          echo "${{ matrix.app-id }} ${{ matrix.arch }} ${{ steps.build.outcome }}" > _build-results/${{ matrix.app-id }}-${{ matrix.arch }}.txt
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -269,17 +274,6 @@ jobs:
     if: always() && needs.plan-apps.outputs.matrix != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Check if any build succeeded
-        env:
-          BUILD_RESULT: ${{ needs.build-apps.result }}
-        run: |
-          if [[ "$BUILD_RESULT" == "success" ]]; then
-            echo "At least one build succeeded"
-          else
-            echo "All builds failed"
-            exit 1
-          fi
-
       - name: Download build results
         uses: actions/download-artifact@v8
         with:
@@ -287,31 +281,37 @@ jobs:
           path: _build_results
           merge-multiple: true
 
-      - name: Report failed cells
+      - name: Count successes and report failures
         if: always()
         run: |
           set -euo pipefail
           echo "## Build cell results" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
+          TOTAL=0
           FAILED=0
           for f in _build_results/*.txt; do
             [ -f "$f" ] || continue
+            TOTAL=$((TOTAL + 1))
             read -r app arch status < "$f"
             if [[ "$status" != "success" ]]; then
               echo "- ❌ $app ($arch): $status" >> "$GITHUB_STEP_SUMMARY"
               FAILED=$((FAILED + 1))
             fi
           done
+          if [[ "$TOTAL" -eq 0 ]]; then
+            echo "No build cells ran" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           if [[ "$FAILED" -eq 0 ]]; then
-            echo "All cells succeeded" >> "$GITHUB_STEP_SUMMARY"
+            echo "All $TOTAL cell(s) succeeded" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "$FAILED cell(s) failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "$FAILED of $TOTAL cell(s) failed" >> "$GITHUB_STEP_SUMMARY"
           fi
 
   publish-oci:
     needs: [plan-apps, build-apps-gate]
-    if: needs.plan-apps.outputs.matrix != ''
+    if: needs.plan-apps.outputs.matrix != '' && needs.build-apps-gate.result == 'success'
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.plan-apps.outputs.matrix) }}
@@ -350,8 +350,8 @@ jobs:
           retention-days: 1
 
   deploy-apps:
-    needs: [plan-apps, publish-oci]
-    if: needs.plan-apps.outputs.matrix != ''
+    needs: [plan-apps, build-apps-gate, publish-oci]
+    if: needs.plan-apps.outputs.matrix != '' && needs.build-apps-gate.result == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
