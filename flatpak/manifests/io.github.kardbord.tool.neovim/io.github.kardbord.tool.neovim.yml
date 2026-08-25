@@ -47,16 +47,13 @@ modules:
     no-autogen: true
     make-args:
       - USE_SYSTEM_MPACK=yes
-      - LUA_INCLUDE=-I${FLATPAK_DEST}/include/luajit-2.1/
+      - LUA_INCLUDE=-I/usr/include/luajit-2.1/
     make-install-args:
       - USE_SYSTEM_MPACK=yes
     sources:
       - type: archive
         url: https://github.com/libmpack/libmpack-lua/archive/1.0.13.tar.gz
         sha256: 436a6a3973207403d3f20082002c32e74c25d9149ff2516dc06b0b41514044bf
-      - type: shell
-        commands:
-          - sed -i "s|/usr/lib|${FLATPAK_DEST}/lib|" ./Makefile
     cleanup:
       - '*'
     modules:
