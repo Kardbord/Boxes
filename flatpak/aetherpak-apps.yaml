@@ -1,5 +1,4 @@
 remote_name: kardbord-boxes
-builder_args: ["--disable-rofiles-fuse"]
 defaults:
   remotes:
     flathub: https://dl.flathub.org/repo/flathub.flatpakrepo

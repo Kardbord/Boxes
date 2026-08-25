@@ -27,7 +27,6 @@ OUTPUT="$REPO_ROOT/flatpak/aetherpak-apps.yaml"
 generate() {
   cat <<'HEADER'
 remote_name: kardbord-boxes
-builder_args: ["--disable-rofiles-fuse"]
 defaults:
   remotes:
     flathub: https://dl.flathub.org/repo/flathub.flatpakrepo
