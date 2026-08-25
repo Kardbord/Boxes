@@ -284,7 +284,12 @@ User systems
 ```
 
 The hub app and extensions are all built by AetherPak's reusable
-`publish.yml` workflow in a parallel matrix.
+`publish.yml` workflow. Because extensions resolve the hub (their runtime)
+from the published OCI remote at build time, the workflow invokes
+`publish.yml` twice in sequence: first for the hub app alone, then — only
+after that completes — for the full app matrix. See
+[FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md#interdependency-model-staged-hub-first-builds)
+for details.
 
 ### Hub App and Extensions
 

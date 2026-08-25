@@ -37,8 +37,24 @@ jobs:
             exit 1
           fi
 
-  publish-apps:
+  publish-hub:
     needs: verify-config
+    permissions:
+      contents: read
+      packages: write
+      pages: write
+      id-token: write
+    uses: aetherpak/actions/.github/workflows/publish.yml@v3
+    with:
+      config: flatpak/aetherpak-apps.yaml
+      app: io.github.kardbord.dev
+      concurrency-group: flatpak-repo
+      index-template: .github/workflows/templates/index.html
+    secrets:
+      gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+
+  publish-apps:
+    needs: [verify-config, publish-hub]
     permissions:
       contents: read
       packages: write

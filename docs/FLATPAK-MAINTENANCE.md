@@ -147,7 +147,7 @@ a rebuild of the affected Flatpak packages. See
     `scripts/generate-aetherpak-config.sh` and commit the updated
     `flatpak/aetherpak-apps.yaml` alongside the new manifest.
 
-### Interdependency Model (Self-Referencing Remote)
+### Interdependency Model (Staged Hub-First Builds)
 
 Extension builds depend on the hub app (`io.github.kardbord.dev`) being
 available in a Flatpak remote at build time. Each extension's
@@ -158,20 +158,28 @@ auto-injects `--install-deps-from=kardbord-boxes` so flatpak-builder
 can resolve the hub's extension point during the build.
 
 Each extension is an independent parallel build cell, preserving per-tool
-update granularity and FEDC-driven rebuilds. The trade-off is a **bootstrap
-requirement**: the hub must already be published in the Boxes OCI repo before
-extensions can build.
+update granularity and FEDC-driven rebuilds. Because AetherPak has no
+cross-cell ordering, the CI workflow stages the build explicitly:
+`flatpak-build.yml` first invokes the reusable publish workflow for the hub
+app alone (`app: io.github.kardbord.dev`), then — only after that completes —
+invokes it again for the full app matrix. This guarantees the hub is present in
+the OCI remote before any extension tries to resolve its extension point.
 
-**Bootstrapping**: the first publish after adding or changing the hub
-must be done in two steps:
-1. Publish the hub alone (exclude extensions from the config temporarily,
-   or run `aetherpak publish` with `force-all` for the hub only).
-2. Once the hub is in the OCI repo, a subsequent push builds the
-   extensions normally.
+Consequences of this staged design:
 
-Subsequent hub-only changes follow the same two-step pattern: hub
-first, then extensions in the next push. Extension-only changes
-require no bootstrap since the hub is already live.
+- **No manual bootstrap step.** The hub is (re)published on every push, so a
+  brand-new repository, a first-ever push, or a hub change all work on the
+  first run.
+- **Per-push cost.** Because the hub phase forces a build regardless of change
+  detection, each push rebuilds and republishes the (very small, zero-permission)
+  hub app and produces two sequential Pages deploys; the second, extension-matrix
+  deploy is the authoritative index.
+- **Hub failure blocks the extension phase.** If the hub-phase build fails, the
+  extension phase does not start (nothing is published), consistent with the
+  repository-wide all-or-nothing publish policy.
+
+Local extension builds still require the hub to be installed in a local Flatpak
+repo before attempting the build — see the build steps earlier in this document.
 
 ## Removing a Package
 
@@ -310,6 +318,12 @@ signature lookaside are published alongside the index on Pages.
   `flatpak-prune.yml`, and `redeploy-pages.yml` share the `flatpak-repo`
   concurrency group (no cancellation). Rapid pushes queue rather than cancel
   each other, and a prune can never race an in-flight build.
+- **Hub builds are staged before extensions.** `flatpak-build.yml` runs the
+  reusable publish workflow twice in sequence: a hub-only phase
+  (`io.github.kardbord.dev`) followed by a full-app-matrix phase that `needs`
+  the hub phase. Both phases share the `flatpak-repo` concurrency group; the
+  `needs` link enforces order, so the hub is always published before any
+  extension resolves it. If the hub phase fails, the extension phase is skipped.
 - **Failed app builds block publishing.** All matrix cells run to completion,
   but if any cell fails, nothing from that run is published or deployed — all
   apps keep their last-good index entries and OCI images. Fix the failure and
