@@ -8,3 +8,4 @@ apps:
     manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
     arches: [x86_64, aarch64]
     branch: stable
+builder_args: ["--disable-rofiles-fuse"]
