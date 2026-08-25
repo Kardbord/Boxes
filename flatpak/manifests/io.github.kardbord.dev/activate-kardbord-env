@@ -3,12 +3,12 @@
 # and activate org.freedesktop.Sdk.Extension extensions, then exec the given
 # command.
 
-for _dir in /app/lib/kardbord-tools/*/bin; do
-	[ -d "${_dir}" ] && PATH="${_dir}:${PATH}"
-done
-
 for _dir in /usr/lib/sdk/*; do
 	[ -f "${_dir}/enable.sh" ] && . "${_dir}/enable.sh"
+done
+
+for _dir in /app/lib/kardbord-tools/*/bin /usr/lib/kardbord-tools/*/bin; do
+	[ -d "${_dir}" ] && PATH="${_dir}:${PATH}"
 done
 
 export PATH

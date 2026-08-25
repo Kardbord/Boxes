@@ -12,9 +12,9 @@ modules:
   - name: LuaJIT
     no-autogen: true
     make-args:
-      - PREFIX=/app
+      - PREFIX=${FLATPAK_DEST}
     make-install-args:
-      - PREFIX=/app
+      - PREFIX=${FLATPAK_DEST}
     sources:
       - type: archive
         url: https://github.com/luajit/luajit/archive/fbb36bb6bfa88716a47c58bcf9ce9f2ef752abac.tar.gz
@@ -34,10 +34,10 @@ modules:
     no-autogen: true
     no-make-install: true
     make-args:
-      - LUADIR=/app/include/luajit-2.1/
+      - LUADIR=${FLATPAK_DEST}/include/luajit-2.1/
     post-install:
-      - install -Dm755 -t /app/lib/lua/5.1/ lpeg.so
-      - install -Dm644 -t /app/share/lua/5.1/ re.lua
+      - install -Dm755 -t ${FLATPAK_DEST}/lib/lua/5.1/ lpeg.so
+      - install -Dm644 -t ${FLATPAK_DEST}/share/lua/5.1/ re.lua
     sources:
       - type: archive
         url: https://github.com/neovim/deps/raw/d495ee6f79e7962a53ad79670cb92488abe0b9b4/opt/lpeg-1.1.0.tar.gz
@@ -47,7 +47,7 @@ modules:
     no-autogen: true
     make-args:
       - USE_SYSTEM_MPACK=yes
-      - LUA_INCLUDE=-I/app/include/luajit-2.1/
+      - LUA_INCLUDE=-I${FLATPAK_DEST}/include/luajit-2.1/
     make-install-args:
       - USE_SYSTEM_MPACK=yes
     sources:
@@ -56,14 +56,14 @@ modules:
         sha256: 436a6a3973207403d3f20082002c32e74c25d9149ff2516dc06b0b41514044bf
       - type: shell
         commands:
-          - sed -i 's|/usr/lib|/app/lib|' ./Makefile
+          - sed -i "s|/usr/lib|${FLATPAK_DEST}/lib|" ./Makefile
     cleanup:
       - '*'
     modules:
       - name: mpack
         no-autogen: true
         make-install-args:
-          - PREFIX=/app
+          - PREFIX=${FLATPAK_DEST}
         sources:
           - type: archive
             url: https://github.com/libmpack/libmpack/archive/1.0.5.tar.gz
@@ -119,7 +119,7 @@ modules:
   - name: libvterm
     no-autogen: true
     make-install-args:
-      - PREFIX=/app
+      - PREFIX=${FLATPAK_DEST}
     sources:
       - type: archive
         url: https://github.com/neovim/libvterm/archive/0a15c6e983b0db7ef8276e0792414a805d01bdaf.tar.gz
@@ -134,7 +134,7 @@ modules:
   - name: libtermkey
     no-autogen: true
     make-install-args:
-      - PREFIX=/app
+      - PREFIX=${FLATPAK_DEST}
     sources:
       - type: archive
         url: http://www.leonerd.org.uk/code/libtermkey/libtermkey-0.22.tar.gz
@@ -186,7 +186,7 @@ modules:
   - name: tree-sitter
     no-autogen: true
     make-install-args:
-      - PREFIX=/app
+      - PREFIX=${FLATPAK_DEST}
     sources:
       - type: archive
         url: https://github.com/tree-sitter/tree-sitter/archive/v0.26.10.tar.gz
@@ -218,8 +218,8 @@ modules:
   - name: tree-sitter-bash
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/bash.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/bash.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter/tree-sitter-bash/archive/v0.25.0.tar.gz
@@ -228,8 +228,8 @@ modules:
   - name: tree-sitter-c
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/c.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/c.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter/tree-sitter-c/archive/v0.24.1.tar.gz
@@ -238,8 +238,8 @@ modules:
   - name: tree-sitter-lua
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o /app/lib/nvim/parser/lua.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/lua.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter-grammars/tree-sitter-lua/archive/v0.5.0.tar.gz
@@ -248,9 +248,9 @@ modules:
   - name: tree-sitter-markdown
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC tree-sitter-markdown/src/parser.c tree-sitter-markdown/src/scanner.c -I tree-sitter-markdown/src -o /app/lib/nvim/parser/markdown.so
-      - cc -shared -fPIC tree-sitter-markdown-inline/src/parser.c tree-sitter-markdown-inline/src/scanner.c -I tree-sitter-markdown-inline/src -o /app/lib/nvim/parser/markdown_inline.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC tree-sitter-markdown/src/parser.c tree-sitter-markdown/src/scanner.c -I tree-sitter-markdown/src -o ${FLATPAK_DEST}/lib/nvim/parser/markdown.so
+      - cc -shared -fPIC tree-sitter-markdown-inline/src/parser.c tree-sitter-markdown-inline/src/scanner.c -I tree-sitter-markdown-inline/src -o ${FLATPAK_DEST}/lib/nvim/parser/markdown_inline.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter-grammars/tree-sitter-markdown/archive/v0.5.3.tar.gz
@@ -259,8 +259,8 @@ modules:
   - name: tree-sitter-python
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o /app/lib/nvim/parser/python.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/python.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter/tree-sitter-python/archive/v0.25.0.tar.gz
@@ -269,8 +269,8 @@ modules:
   - name: tree-sitter-query
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/query.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/query.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter-grammars/tree-sitter-query/archive/v0.8.0.tar.gz
@@ -279,8 +279,8 @@ modules:
   - name: tree-sitter-vim
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o /app/lib/nvim/parser/vim.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c src/scanner.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/vim.so
     sources:
       - type: archive
         url: https://github.com/tree-sitter-grammars/tree-sitter-vim/archive/v0.8.1.tar.gz
@@ -289,8 +289,8 @@ modules:
   - name: tree-sitter-vimdoc
     buildsystem: simple
     build-commands:
-      - mkdir -p /app/lib/nvim/parser
-      - cc -shared -fPIC src/parser.c -I src -o /app/lib/nvim/parser/vimdoc.so
+      - mkdir -p ${FLATPAK_DEST}/lib/nvim/parser
+      - cc -shared -fPIC src/parser.c -I src -o ${FLATPAK_DEST}/lib/nvim/parser/vimdoc.so
     sources:
       - type: archive
         url: https://github.com/neovim/tree-sitter-vimdoc/archive/v4.1.0.tar.gz
