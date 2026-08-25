@@ -11,6 +11,14 @@ set -euo pipefail
 # Usage:
 #   scripts/generate-aetherpak-config.sh   # Write flatpak/aetherpak-apps.yaml
 
+# Pin the locale to C so glob ordering of the manifests directory (and thus
+# the emitted app order) is byte-order deterministic regardless of the host
+# locale. Without this, LC_COLLATE=en_US.* interleaves case (sk < Sdk < tool)
+# while CI's C.UTF-8 collates uppercase first, producing a spurious diff in
+# the workflow's config-sync guard. LC_ALL is used (not LC_COLLATE) because
+# an inherited LC_ALL would otherwise take precedence.
+export LC_ALL=C
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 MANIFESTS_DIR="$REPO_ROOT/flatpak/manifests"

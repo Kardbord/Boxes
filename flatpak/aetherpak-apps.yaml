@@ -11,6 +11,14 @@ defaults:
     - remote: kardbord-boxes
       ref: io.github.kardbord.Platform//stable
 apps:
+  - id: io.github.kardbord.Sdk
+    manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+    arches: [x86_64, aarch64]
+    branch: stable
+  - id: io.github.kardbord.Platform
+    manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
+    arches: [x86_64, aarch64]
+    branch: stable
   - id: io.github.kardbord.fd
     manifest: flatpak/manifests/io.github.kardbord.fd/io.github.kardbord.fd.yml
     arches: [x86_64, aarch64]
@@ -29,14 +37,6 @@ apps:
     branch: stable
   - id: io.github.kardbord.ripgrep
     manifest: flatpak/manifests/io.github.kardbord.ripgrep/io.github.kardbord.ripgrep.yml
-    arches: [x86_64, aarch64]
-    branch: stable
-  - id: io.github.kardbord.Sdk
-    manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
-    arches: [x86_64, aarch64]
-    branch: stable
-  - id: io.github.kardbord.Platform
-    manifest: flatpak/manifests/io.github.kardbord.Sdk/io.github.kardbord.Sdk.yml
     arches: [x86_64, aarch64]
     branch: stable
   - id: io.github.kardbord.sk
