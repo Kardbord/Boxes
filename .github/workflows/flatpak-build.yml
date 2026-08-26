@@ -50,6 +50,7 @@ jobs:
       app: io.github.kardbord.dev
       concurrency-group: flatpak-repo-deploy
       index-template: .github/workflows/templates/index.html
+      pages-artifact-name: github-pages-bootstrap
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
@@ -67,5 +68,6 @@ jobs:
       index-template: .github/workflows/templates/index.html
       workflow-path: .github/workflows/flatpak-build.yml
       force-all: ${{ github.event_name == 'workflow_dispatch' }}
+      pages-artifact-name: github-pages-apps
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
