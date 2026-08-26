@@ -11,7 +11,12 @@ for _dir in /app/lib/kardbord-tools/*/bin /usr/lib/kardbord-tools/*/bin; do
 	[ -d "${_dir}" ] && PATH="${_dir}:${PATH}"
 done
 
+for _dir in /app/lib/kardbord-tools/*/lib /usr/lib/kardbord-tools/*/lib; do
+	[ -d "${_dir}" ] && LD_LIBRARY_PATH="${_dir}:${LD_LIBRARY_PATH}"
+done
+
 export PATH
+export LD_LIBRARY_PATH
 unset _dir
 
 exec "$@"
