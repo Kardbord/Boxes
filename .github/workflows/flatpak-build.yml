@@ -100,5 +100,38 @@ jobs:
       index-template: .github/workflows/templates/index.html
       workflow-path: .github/workflows/flatpak-build.yml
       force-all: ${{ github.event_name == 'workflow_dispatch' }}
+      deploy: false
+      artifact-name: aetherpak-site-all
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
+
+  deploy-full-site:
+    needs: publish-apps
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: flatpak-repo-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Download hub site artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: aetherpak-site-all
+          path: _site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          name: github-pages
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v5
+        with:
+          artifact_name: github-pages
