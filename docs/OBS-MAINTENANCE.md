@@ -15,6 +15,7 @@ the OBS package name. Minimal `kardbord-breakout/` structure:
 ```
 kardbord-breakout/
 ├── _service              # Describes how to fetch upstream sources
+├── .upstream.yml         # Upstream tracking manifest for FEDC
 ├── kardbord-breakout.spec     # RPM build recipe
 ├── kardbord-breakout.dsc      # Debian source control file
 ├── debian.changelog
@@ -37,10 +38,13 @@ top-level `_manifest` file so the OBS SCM bridge treats it as a package.
    artifacts, the `debian.*` files and a `.dsc`. Follow the packaging
    conventions (placeholder `Version: 0`, `%{_docdir}` doc paths, EL8
    conditional flags, etc.) described in [ARCHITECTURE.md](../ARCHITECTURE.md#cross-distribution-packaging).
-4. **Register the package** in the top-level `_manifest` file.
-5. **Commit and push** to the `main` branch in GitHub. The mirror to
+4. **Add upstream tracking (optional but recommended)** — create `mypkg/.upstream.yml`
+   with `x-checker-data` annotations so the FEDC workflow can detect and propose
+   upstream updates automatically.
+5. **Register the package** in the top-level `_manifest` file.
+6. **Commit and push** to the `main` branch in GitHub. The mirror to
    src.opensuse.org propagates the change, and `scmsync` picks it up.
-6. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
+7. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
    that the package builds for the targets you care about; iterate on any
    distribution-specific failures the way `kardbord-breakout` did.
 

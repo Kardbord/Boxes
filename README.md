@@ -133,9 +133,9 @@ Flatpak packages are built and published using
 layers as OCI images in GitHub Container Registry (GHCR) and serves a small
 JSON index from GitHub Pages.
 
-1. **Build** — The hub app (`io.github.kardbord.dev`) and all extensions
-    are built in parallel by AetherPak's reusable publish workflow, driven
-    by the committed `flatpak/aetherpak-apps.yaml` config.
+1. **Build** — The hub app (`io.github.kardbord.dev`) is built and
+   published first, followed by parallel builds of all extensions driven
+   by the committed `flatpak/aetherpak-apps.yaml` config.
 2. **Publish** — Each package is pushed to GHCR as a signed OCI image. The index
    (`index/static`) is merged and reconciled against the registry, then deployed
    to GitHub Pages along with a landing page and `.flatpakref` files.
@@ -185,9 +185,20 @@ package repositories. Commonly installed packages:
 |-----------------------------------------------------------|-------------------------------------------------------------------|--------------|
 | [kardbord-breakout](./kardbord-breakout/)                | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
 | [io.github.kardbord.dev](./flatpak/)                      | Hub app providing the `io.github.kardbord.tool` extension point.  | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.tool.neovim](./flatpak/)            | Neovim extension for the hub app.                                 | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.tool.ripgrep](./flatpak/)            | ripgrep extension for the hub app.                                | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
-| [io.github.kardbord.tool.fd](./flatpak/)                 | fd extension for the hub app.                                     | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.actionlint](./flatpak/)          | actionlint extension for the hub app.                             | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.clipboard](./flatpak/)           | clipboard (cb) extension for the hub app.                         | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.fd](./flatpak/)                  | fd extension for the hub app.                                     | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.fzf](./flatpak/)                 | fzf extension for the hub app.                                    | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.git](./flatpak/)                 | git extension for the hub app.                                    | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.lua](./flatpak/)                 | Lua language extension for the hub app.                           | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.neovim](./flatpak/)              | Neovim extension for the hub app.                                 | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.opencode](./flatpak/)            | opencode extension for the hub app.                               | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.ripgrep](./flatpak/)             | ripgrep extension for the hub app.                                | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.ruby4](./flatpak/)               | Ruby 4.0 extension for the hub app.                               | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.sk](./flatpak/)                  | sk (skim) extension for the hub app.                              | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.treesitter-cli](./flatpak/)      | treesitter-cli extension for the hub app.                         | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.uv](./flatpak/)                  | uv extension for the hub app.                                     | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
+| [io.github.kardbord.tool.viu](./flatpak/)                 | viu image viewer extension for the hub app.                       | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
 
 </details>
 
