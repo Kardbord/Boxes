@@ -61,7 +61,6 @@ unless the tool cannot function without it.
 The `io.github.kardbord.tool` extension point is defined by the hub app:
 - `directory: lib/kardbord-tools`
 - `subdirectories: true` — each extension mounts at `lib/kardbord-tools/<name>/`
-- `no-autodownload: true` — extensions are not auto-installed with the hub
 - `version: stable`
 - `add-ld-path: lib` — adds each extension's `lib/` to the linker path
 
@@ -241,59 +240,6 @@ exists in GHCR), so deleting the manifest alone is not sufficient.
 Note that the prune workflow only deletes images *unreferenced* by the index,
 so it cannot remove an app on its own — the manual GHCR deletion in step 2 is
 what definitively removes the app.
-
-## Local Development
-
-### Prerequisites
-
-```bash
-sudo apt install flatpak flatpak-builder   # Debian-family
-# or
-sudo dnf install flatpak flatpak-builder   # RedHat-family
-flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub org.freedesktop.Sdk//25.08
-flatpak install flathub org.freedesktop.Platform//25.08
-
-# For building extensions, the hub app must also be installed:
-flatpak install flathub io.github.kardbord.dev
-```
-
-### Building the Hub App
-
-```bash
-flatpak-builder --force-clean --user --install-deps-from=flathub \
-  --repo=repo build-dir \
-  flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
-```
-
-### Building an Extension
-
-Extensions are built against the hub app as their runtime. The hub must be
-available in the build repo (installed from the Boxes OCI remote or a local
-repo).
-
-```bash
-# Install the hub app into a local repo first
-flatpak-builder --force-clean --user --install-deps-from=flathub \
-  --repo=repo build-dir \
-  flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
-flatpak --user remote-add --no-gpg-verify local-repo repo
-flatpak --user install local-repo io.github.kardbord.dev
-
-# Build the extension against the hub
-flatpak-builder --force-clean --user --install-deps-from=local-repo \
-  --repo=repo build-dir \
-  flatpak/manifests/io.github.kardbord.tool.ripgrep/io.github.kardbord.tool.ripgrep.yml
-```
-
-### Testing Locally
-
-```bash
-flatpak --user remote-add --no-gpg-verify local-repo repo
-flatpak --user install local-repo io.github.kardbord.dev
-flatpak --user install local-repo io.github.kardbord.tool.ripgrep
-flatpak run --command=sh io.github.kardbord.dev -c "which rg"
-```
 
 ## GPG Key Management
 

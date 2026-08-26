@@ -88,7 +88,7 @@ The `_meta` defines:
   list, and its build **dependency** `<path>` entries (the repositories OBS may
   read binaries from while building).
 
-Even if the in-repo `_meta` goes stale, the comments document what is configured,
+Even if the in-repo `_meta` goes stale, the comments document what was initially configured,
 so it is kept as an annotation of record.
 
 ### `_config` (project build configuration / prjconf)
