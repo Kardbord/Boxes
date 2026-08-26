@@ -49,6 +49,7 @@ Boxes/
 ├── ARCHITECTURE.md       # This document
 ├── _config               # OBS project build configuration (prjconf)
 ├── _meta                 # Informational copy of the OBS project metadata
+├── _manifest             # A listing of all OBS packages in this project
 ├── kardbord-breakout/    # A single package
 │   ├── _service          # Describes how to fetch upstream sources
 │   ├── kardbord-breakout.spec     # RPM build recipe
