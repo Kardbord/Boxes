@@ -2,10 +2,10 @@
 
 id: io.github.kardbord.dev
 default-branch: stable
-runtime: org.freedesktop.Platform
+runtime: org.freedesktop.Sdk
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk//25.08
-command: kardbord-dev
+command: activate-kardbord-env
 
 add-extensions:
   io.github.kardbord.tool:
@@ -15,15 +15,19 @@ add-extensions:
     version: stable
     add-ld-path: lib
 
+inherit-extensions:
+  - org.freedesktop.Sdk.Extension
+
+inherit-sdk-extensions:
+  - org.freedesktop.Sdk.Extension
+
 modules:
   - name: kardbord-env
     buildsystem: simple
     build-commands:
       - install -Dm755 activate-kardbord-env /app/bin/activate-kardbord-env
-      - install -Dm755 kardbord-dev /app/bin/kardbord-dev
       - install -d /app/lib/kardbord-tools
+      - install -d /app/lib/sdk
     sources:
       - type: file
         path: activate-kardbord-env
-      - type: file
-        path: kardbord-dev
