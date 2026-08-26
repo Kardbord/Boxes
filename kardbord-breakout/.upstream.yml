@@ -3,13 +3,10 @@ id: kardbord-breakout
 modules:
   - name: kardbord-breakout
     sources:
-      - type: archive
-        only-arches:
-          - x86_64
-        url: https://github.com/Kardbord/breakout/archive/refs/tags/v1.0.4.tar.gz
-        sha256: 903a63ab1961a0b1bf53527a1623c8cd9cfb3255f4df758cf6810f47920c422b
+      - type: git
+        url: https://github.com/Kardbord/breakout.git
+        tag: v1.0.3
+        commit: 3f51a1fbee9339e850d962ee26a888f3584662e8
         x-checker-data:
-          type: json
-          url: https://api.github.com/repos/Kardbord/breakout/releases/latest
-          version-query: .tag_name
-          url-query: '"https://github.com/Kardbord/breakout/archive/refs/tags/\(.tag_name).tar.gz"'
+          type: git
+          tag-pattern: "^v([\\d.]+)$"
