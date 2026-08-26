@@ -10,6 +10,20 @@ apps:
     manifest: flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
     arches: [x86_64, aarch64]
     branch: stable
+  - id: io.github.kardbord.tool.actionlint
+    manifest: flatpak/manifests/io.github.kardbord.tool.actionlint/io.github.kardbord.tool.actionlint.yml
+    arches: [x86_64, aarch64]
+    branch: stable
+    remotes:
+      kardbord-boxes:
+        url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    flatpaks:
+      - remote: kardbord-boxes
+        ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.fd
     manifest: flatpak/manifests/io.github.kardbord.tool.fd/io.github.kardbord.tool.fd.yml
     arches: [x86_64, aarch64]
