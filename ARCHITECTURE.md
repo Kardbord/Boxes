@@ -285,10 +285,28 @@ User systems
 
 The hub app and extensions are all built by AetherPak's reusable
 `publish.yml` workflow. Because extensions resolve the hub (their runtime)
-from the published OCI remote at build time, the workflow invokes
-`publish.yml` twice in sequence: first for the hub app alone, then — only
-after that completes — for the full app matrix. See
-[FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md#interdependency-model-staged-hub-first-builds)
+from the published OCI remote at build time, the workflow runs in three
+sequential stages:
+
+1. **publish-hub** — builds the hub app and pushes its OCI image to GHCR,
+   but does *not* deploy to Pages (`deploy: false`). The site is uploaded
+   as a plain artifact (`aetherpak-site-hub`).
+2. **deploy-hub-site** — downloads the hub site artifact, re-uploads it as
+   a Pages artifact under a distinct name (`github-pages-hub`), and deploys
+   it to GitHub Pages. This makes the `.flatpakrepo` file and hub index entry
+   available on Pages before any extension builds.
+3. **publish-apps** — builds the full extension matrix. Extensions resolve
+   the hub via the now-deployed `.flatpakrepo` on Pages
+   (`--install-deps-from=kardbord-boxes`). The reusable workflow downloads
+   all `aetherpak-record-*` artifacts (including the hub's), builds the
+   complete site, and deploys it to Pages under the default artifact name
+   (`github-pages`), overwriting the hub-only site from step 2.
+
+Using distinct Pages artifact names (`github-pages-hub` vs `github-pages`)
+avoids a collision that would otherwise occur when two jobs in the same
+workflow run both attempt to upload an artifact named `github-pages`.
+
+See [FLATPAK-MAINTENANCE.md](./docs/FLATPAK-MAINTENANCE.md#interdependency-model-staged-hub-first-builds)
 for details.
 
 ### Hub App and Extensions
@@ -339,11 +357,19 @@ their own `github.event.before`, so rapid pushes are never silently dropped.
 
 The reusable publish workflow's deploy job uses a *second*, distinct
 concurrency group (`flatpak-repo-deploy`), passed via the `concurrency-group`
-input. The two group names must never collide: if a job-level concurrency group
-equals the top-level workflow group, GitHub detects a deadlock (the deploy job
-waits on a group the parent run already holds) and cancels the run. Keeping the
-deploy group separate still serializes Pages deploys among themselves while the
-top-level group continues to serialize entire runs (including OCI pushes).
+input. The `deploy-hub-site` job also uses this group. The two group names
+must never collide: if a job-level concurrency group equals the top-level
+workflow group, GitHub detects a deadlock (the deploy job waits on a group
+the parent run already holds) and cancels the run. Keeping the deploy group
+separate still serializes Pages deploys among themselves while the top-level
+group continues to serialize entire runs (including OCI pushes).
+
+The hub site is deployed under a distinct Pages artifact name
+(`github-pages-hub`) to avoid colliding with the extension-matrix deploy
+(`github-pages`). Both deploys target the same Pages environment, so the
+second deploy overwrites the first — the final site is the complete index
+containing the hub and all extensions. During the brief window between the
+two deploys, the site shows only the hub app (no extensions).
 
 Change detection diffs against `github.event.before`. GitHub keeps at most one
 running and one pending run per concurrency group, so a third rapid push

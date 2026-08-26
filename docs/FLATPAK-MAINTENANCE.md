@@ -159,11 +159,27 @@ can resolve the hub's extension point during the build.
 
 Each extension is an independent parallel build cell, preserving per-tool
 update granularity and FEDC-driven rebuilds. Because AetherPak has no
-cross-cell ordering, the CI workflow stages the build explicitly:
-`flatpak-build.yml` first invokes the reusable publish workflow for the hub
-app alone (`app: io.github.kardbord.dev`), then — only after that completes —
-invokes it again for the full app matrix. This guarantees the hub is present in
-the OCI remote before any extension tries to resolve its extension point.
+cross-cell ordering, the CI workflow stages the build explicitly in three
+sequential jobs:
+
+1. **publish-hub** — invokes the reusable publish workflow for the hub app
+   alone (`app: io.github.kardbord.dev`) with `deploy: false`. The hub is
+   built and pushed to OCI, but the site is uploaded as a plain artifact
+   (`aetherpak-site-hub`) rather than deployed to Pages.
+2. **deploy-hub-site** — downloads the hub site artifact, re-uploads it as
+   a Pages artifact under a distinct name (`github-pages-hub`), and deploys
+   it to GitHub Pages. This makes the `.flatpakrepo` file and hub index entry
+   available on Pages before any extension builds.
+3. **publish-apps** — invokes the reusable publish workflow for the full app
+   matrix. Extensions resolve the hub via the now-deployed `.flatpakrepo` on
+   Pages (`--install-deps-from=kardbord-boxes`). The reusable workflow
+   downloads all `aetherpak-record-*` artifacts (including the hub's), builds
+   the complete site, and deploys it to Pages under the default artifact name
+   (`github-pages`), overwriting the hub-only site from step 2.
+
+Using distinct Pages artifact names (`github-pages-hub` vs `github-pages`)
+avoids a collision that would otherwise occur when two jobs in the same
+workflow run both attempt to upload an artifact named `github-pages`.
 
 Consequences of this staged design:
 
@@ -177,6 +193,9 @@ Consequences of this staged design:
 - **Hub failure blocks the extension phase.** If the hub-phase build fails, the
   extension phase does not start (nothing is published), consistent with the
   repository-wide all-or-nothing publish policy.
+- **Brief incomplete site window.** During the window between the hub deploy
+  (step 2) and the extension-matrix deploy (step 3), the site shows only the
+  hub app with no extensions. This window is typically minutes at most.
 
 Local extension builds still require the hub to be installed in a local Flatpak
 repo before attempting the build — see the build steps earlier in this document.
@@ -318,12 +337,18 @@ signature lookaside are published alongside the index on Pages.
   `flatpak-prune.yml`, and `redeploy-pages.yml` share the `flatpak-repo`
   concurrency group (no cancellation). Rapid pushes queue rather than cancel
   each other, and a prune can never race an in-flight build.
-- **Hub builds are staged before extensions.** `flatpak-build.yml` runs the
-  reusable publish workflow twice in sequence: a hub-only phase
-  (`io.github.kardbord.dev`) followed by a full-app-matrix phase that `needs`
-  the hub phase. The `needs` link enforces order, so the hub is always
-  published before any extension resolves it. If the hub phase fails, the
-  extension phase is skipped.
+- **Hub builds are staged before extensions.** `flatpak-build.yml` runs in
+  three sequential stages: `publish-hub` (hub-only build, no Pages deploy),
+  `deploy-hub-site` (deploys hub site to Pages under `github-pages-hub`),
+  and `publish-apps` (full extension matrix, deploys under `github-pages`).
+  The `needs` links enforce order, so the hub is always on Pages before any
+  extension resolves it. If the hub phase fails, the extension phase is
+  skipped.
+- **Two Pages deploys per run, distinct artifact names.** The hub site is
+  deployed under `github-pages-hub` and the extension-matrix site under
+  `github-pages`. Both target the same Pages environment, so the second
+  deploy overwrites the first. During the brief window between deploys, the
+  site shows only the hub app (no extensions).
 - **Two concurrency layers must stay distinct.** Top-level runs share the
   `flatpak-repo` group; the reusable workflow's Pages-deploy job uses
   `flatpak-repo-deploy` (via `concurrency-group`). These names must never be
