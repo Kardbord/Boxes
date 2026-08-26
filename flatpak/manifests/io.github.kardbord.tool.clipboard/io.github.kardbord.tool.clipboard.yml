@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.clipboard
+default-branch: stable
+build-extension: true
+separate-locales: false
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+
+modules:
+  - name: wl-clipboard
+    buildsystem: meson
+    config-opts:
+      - -Dzshcompletiondir=no
+      - -Dfishcompletiondir=no
+      - --prefix=/app/lib/kardbord-tools/clipboard
+      - --libdir=/app/lib/kardbord-tools/clipboard/lib
+    sources:
+      - type: archive
+        url: https://github.com/bugaevc/wl-clipboard/archive/v2.3.0.tar.gz
+        sha256: b4dc560973f0cd74e02f817ffa2fd44ba645a4f1ea94b7b9614dacc9f895f402
+        x-checker-data:
+          type: anitya
+          project-id: 49082
+          url-template: https://github.com/bugaevc/wl-clipboard/archive/v$version.tar.gz
+    cleanup:
+      - /share/man
+
+  - name: xclip
+    buildsystem: simple
+    build-commands:
+      - autoconf
+      - ./configure CFLAGS=-I${FLATPAK_DEST}/include LDFLAGS=-L${FLATPAK_DEST}/lib --prefix=${FLATPAK_DEST} --libdir=${FLATPAK_DEST}/lib --x-includes=${FLATPAK_DEST}/include
+      - make
+      - make install
+    config-opts:
+      - CFLAGS=-I${FLATPAK_DEST}/include
+      - LDFLAGS=-L${FLATPAK_DEST}/lib
+      - --prefix=${FLATPAK_DEST}
+      - --libdir=${FLATPAK_DEST}/lib
+    sources:
+      - type: archive
+        url: https://github.com/astrand/xclip/archive/0.13.tar.gz
+        sha256: ca5b8804e3c910a66423a882d79bf3c9450b875ac8528791fb60ec9de667f758
+    cleanup:
+      - /share/man
+      - /bin/xclip-*file
+    modules:
+      - name: libXmu
+        config-opts:
+          - --disable-static
+          - --disable-docs
+          - --prefix=${FLATPAK_DEST}
+          - --libdir=${FLATPAK_DEST}/lib
+        sources:
+          - type: archive
+            url: http://www.x.org/archive/individual/lib/libXmu-1.1.3.tar.bz2
+            sha256: 9c343225e7c3dc0904f2122b562278da5fed639b1b5e880d25111561bac5b731
+        cleanup:
+          #- /include
+          - /lib/pkgconfig
+          - '*.la'
