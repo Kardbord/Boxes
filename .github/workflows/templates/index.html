@@ -1064,10 +1064,7 @@ flatpak run --filesystem=host io.github.kardbord.dev nvim</code></pre>
               if (!ref) return;
               var parts = ref.split('/');
               if (parts.length < 4) return;
-              var kind = parts[0];
               var appId = parts[1];
-              if (kind !== 'app') return;
-              if (appId.indexOf('.Sdk') !== -1 || appId.indexOf('.Platform') !== -1) return;
               var nameParts = appId.split('.');
               var appName = nameParts[nameParts.length - 1];
               var displayName = appName.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
