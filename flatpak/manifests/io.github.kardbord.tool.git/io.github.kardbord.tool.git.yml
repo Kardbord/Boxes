@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.git
+default-branch: stable
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: git
+    buildsystem: simple
+    build-commands:
+      - make NO_RUST=1 NO_TCLTK=1 CFLAGS="-O2 -s" prefix=${FLATPAK_DEST} -j ${FLATPAK_BUILDER_N_JOBS} all install
+    sources:
+      - type: archive
+        url: https://github.com/git/git/archive/refs/tags/v2.55.0.tar.gz
+        sha256: 72923418db7b26dfddc21e2268660c5118e560bdfaa09b4489b67b38e9b69c49
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/git/git/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '"https://github.com/git/git/archive/refs/tags/\(.tag_name).tar.gz"'

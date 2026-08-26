@@ -52,6 +52,20 @@ apps:
         ref: io.github.kardbord.dev//stable
       - remote: flathub
         ref: org.freedesktop.Sdk//25.08
+  - id: io.github.kardbord.tool.git
+    manifest: flatpak/manifests/io.github.kardbord.tool.git/io.github.kardbord.tool.git.yml
+    arches: [x86_64, aarch64]
+    branch: stable
+    remotes:
+      kardbord-boxes:
+        url: https://kardbord.github.io/Boxes/kardbord-boxes.flatpakrepo
+      flathub:
+        url: https://dl.flathub.org/repo/flathub.flatpakrepo
+    flatpaks:
+      - remote: kardbord-boxes
+        ref: io.github.kardbord.dev//stable
+      - remote: flathub
+        ref: org.freedesktop.Sdk//25.08
   - id: io.github.kardbord.tool.lua
     manifest: flatpak/manifests/io.github.kardbord.tool.lua/io.github.kardbord.tool.lua.yml
     arches: [x86_64, aarch64]
