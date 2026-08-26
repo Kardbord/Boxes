@@ -11,7 +11,7 @@ add-extensions:
   io.github.kardbord.tool:
     directory: lib/kardbord-tools
     subdirectories: true
-    no-autodownload: true
+    no-autodownload: false
     version: stable
     add-ld-path: lib
 
