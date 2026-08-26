@@ -5,8 +5,8 @@ modules:
     sources:
       - type: git
         url: https://github.com/Kardbord/breakout.git
-        tag: v1.0.3
-        commit: 3f51a1fbee9339e850d962ee26a888f3584662e8
+        tag: v1.0.7
+        commit: 24810e2c5eacb23ab96dd9fbde8dfd6ac17a9cb0
         x-checker-data:
           type: git
-          tag-pattern: "^v([\\d.]+)$"
+          tag-pattern: ^v([\d.]+)$
