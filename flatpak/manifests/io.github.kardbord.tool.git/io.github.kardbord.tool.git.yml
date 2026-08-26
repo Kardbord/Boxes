@@ -21,4 +21,4 @@ modules:
           type: json
           url: https://api.github.com/repos/git/git/tags
           version-query: '.[0].name'
-          url-query: '"https://github.com/git/git/archive/refs/tags/\(.tag_name).tar.gz"'
+          url-query: '"https://github.com/git/git/archive/refs/tags/\(.[0].name).tar.gz"'
