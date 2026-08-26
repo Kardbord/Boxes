@@ -6,8 +6,8 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/Kardbord/breakout/archive/refs/tags/v1.0.4.tar.gz
-        sha256: 903a63ab1961a0b1bf53527a1623c8cd9cfb3255f4df758cf6810f47920c422b
+        url: https://github.com/Kardbord/breakout/archive/refs/tags/v1.0.7.tar.gz
+        sha256: 8f41be30257f4801f47be3074d66a51b638fb3780706abf9cafd695aa9092e50
         x-checker-data:
           type: json
           url: https://api.github.com/repos/Kardbord/breakout/releases/latest
