@@ -6,6 +6,10 @@ defaults:
     - remote: flathub
       ref: org.freedesktop.Sdk//25.08
 apps:
+  - id: io.github.kardbord.breakout
+    manifest: flatpak/manifests/io.github.kardbord.breakout/io.github.kardbord.breakout.yml
+    arches: [x86_64, aarch64]
+    branch: stable
   - id: io.github.kardbord.dev
     manifest: flatpak/manifests/io.github.kardbord.dev/io.github.kardbord.dev.yml
     arches: [x86_64, aarch64]
