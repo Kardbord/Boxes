@@ -1,0 +1,38 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+
+id: io.github.kardbord.tool.yq
+default-branch: stable
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+build-extension: true
+separate-locales: false
+
+modules:
+  - name: yq
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 yq_* ${FLATPAK_DEST}/bin/yq
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_amd64.tar.gz
+        sha256: 38b907b21b1b04327fb9481c595331d925a67c6ee1aabd0ef419d0b7d12dfb3d
+        strip-components: 0
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/mikefarah/yq/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("yq_linux_amd64\\.tar\\.gz$")) | .browser_download_url'
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/mikefarah/yq/releases/download/v4.53.6/yq_linux_arm64.tar.gz
+        sha256: d5e7531273d45c5d4b7abb4a1597c47a0fecb5d6b081dfa755064b38ffcc34f4
+        strip-components: 0
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/mikefarah/yq/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("yq_linux_arm64\\.tar\\.gz$")) | .browser_download_url'
