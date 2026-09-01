@@ -18,8 +18,8 @@ modules:
       - type: file
         only-arches:
           - x86_64
-        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.13/tree-sitter-cli-linux-x64.zip
-        sha256: 1b781c0dc1dfefea44b5db2ec2a58440fe9d006856c3f5b3fd9a17119d1138a2
+        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.27.0/tree-sitter-cli-linux-x64.zip
+        sha256: e4a3826bcd0fe099ee3a5617767374939cbc23c4a35b5b53f5fc04142525a2c1
         x-checker-data:
           type: json
           url: https://api.github.com/repos/tree-sitter/tree-sitter/releases/latest
@@ -28,8 +28,8 @@ modules:
       - type: file
         only-arches:
           - aarch64
-        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.26.13/tree-sitter-cli-linux-arm64.zip
-        sha256: 72c6d6c669c70491f93db290b285d9e85fd68ead9e324cc55ace35a1be66c3bd
+        url: https://github.com/tree-sitter/tree-sitter/releases/download/v0.27.0/tree-sitter-cli-linux-arm64.zip
+        sha256: 6260b621bf5ab87027dfb463bf955504ef32cdcda62b81f28447753e48c83a62
         x-checker-data:
           type: json
           url: https://api.github.com/repos/tree-sitter/tree-sitter/releases/latest

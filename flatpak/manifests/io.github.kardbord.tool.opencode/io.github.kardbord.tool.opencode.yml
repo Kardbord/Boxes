@@ -17,8 +17,8 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/anomalyco/opencode/releases/download/v1.18.23/opencode-linux-x64.tar.gz
-        sha256: ab7015cd8113e011a461f30a0c2b77d8299a144ff688cb62e93e8802835d7288
+        url: https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-linux-x64.tar.gz
+        sha256: 58a3729a6f3432dd6d2917fcc4a949788891a035818646ad480e12c947f56e78
         strip-components: 0
         x-checker-data:
           type: json
@@ -28,8 +28,8 @@ modules:
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/anomalyco/opencode/releases/download/v1.18.23/opencode-linux-arm64.tar.gz
-        sha256: 86d3afaf4e8784f9adab189be2a315c12b27ec40a04b70defbe70595c3cc7c65
+        url: https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-linux-arm64.tar.gz
+        sha256: 35ef77897425e41b5183a2c21ac4fb1d4d944d82a94e3c920f57b5490af11ac5
         strip-components: 0
         x-checker-data:
           type: json
