@@ -18,8 +18,8 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/astral-sh/uv/releases/download/0.12.7/uv-x86_64-unknown-linux-gnu.tar.gz
-        sha256: 788f18abea7c5f55d6216e4f5613fd89d4d59b631efeec117b2b07fe72f1da21
+        url: https://github.com/astral-sh/uv/releases/download/0.12.9/uv-x86_64-unknown-linux-gnu.tar.gz
+        sha256: ec7a99cd05e0cd7f80243f135ce1361c76835cb0ee60055d14d20eba8eba1460
         x-checker-data:
           type: json
           url: https://api.github.com/repos/astral-sh/uv/releases/latest
@@ -29,8 +29,8 @@ modules:
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/astral-sh/uv/releases/download/0.12.7/uv-aarch64-unknown-linux-gnu.tar.gz
-        sha256: 66393193038dd7eb108abd7a218d9cec04ac70ab98242b0720fa94de19223b7c
+        url: https://github.com/astral-sh/uv/releases/download/0.12.9/uv-aarch64-unknown-linux-gnu.tar.gz
+        sha256: c36fe17937ff6bd16dc42fc13854b5465999fcab2efe0af559381e945e3c6001
         x-checker-data:
           type: json
           url: https://api.github.com/repos/astral-sh/uv/releases/latest
