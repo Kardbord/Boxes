@@ -23,8 +23,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: flatpak-repo
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('flatpak-pr-{0}', github.head_ref) || 'flatpak-repo' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify-config:
