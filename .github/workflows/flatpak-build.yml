@@ -96,6 +96,7 @@ jobs:
 
   publish-apps:
     needs: [verify-config, deploy-hub-site]
+    if: ${{ !failure() && !cancelled() }}
     permissions:
       contents: read
       packages: write
