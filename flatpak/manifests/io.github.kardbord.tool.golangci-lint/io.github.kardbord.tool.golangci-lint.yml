@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+id: io.github.kardbord.tool.golangci-lint
+default-branch: stable
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+build-extension: true
+separate-locales: false
+modules:
+  - name: golangci-lint
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 golangci-lint ${FLATPAK_DEST}/bin/golangci-lint
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/golangci/golangci-lint/releases/download/v2.13.2/golangci-lint-2.13.2-linux-amd64.tar.gz
+        sha256: 2277d43b98ec0054280f2ac26b53268bae97682444678a59a657dd565da021d6
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/golangci/golangci-lint/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("-linux-amd64\\.tar\\.gz$")) | .browser_download_url
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/golangci/golangci-lint/releases/download/v2.13.2/golangci-lint-2.13.2-linux-arm64.tar.gz
+        sha256: a2a4e0065aa41be71f7c5ac90f271b61751331e5d04314e62afe4027855f0893
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/golangci/golangci-lint/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("-linux-arm64\\.tar\\.gz$")) | .browser_download_url
