@@ -8,6 +8,12 @@ on:
       - flatpak/**
       - scripts/generate-aetherpak-config.sh
       - .github/workflows/flatpak-build.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - flatpak/**
+      - scripts/generate-aetherpak-config.sh
+      - .github/workflows/flatpak-build.yml
   workflow_dispatch:
 
 permissions:
@@ -52,11 +58,13 @@ jobs:
       index-template: .github/workflows/templates/index.html
       deploy: false
       artifact-name: aetherpak-site-hub
+      dry-run: ${{ github.event_name == 'pull_request' }}
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
   deploy-hub-site:
     needs: publish-hub
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -102,11 +110,13 @@ jobs:
       force-all: ${{ github.event_name == 'workflow_dispatch' }}
       deploy: false
       artifact-name: aetherpak-site-all
+      dry-run: ${{ github.event_name == 'pull_request' }}
     secrets:
       gpg-private-key: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
 
   deploy-full-site:
     needs: publish-apps
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       pages: write
