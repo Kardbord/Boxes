@@ -10,10 +10,15 @@ on:
         description: 'Dry run (list only, no deletion)'
         type: boolean
         default: true
-  workflow_run:
-    workflows: ['Build and publish Flatpak repository']
-    types: [completed]
-    branches: [main]
+  # Note: a workflow_run trigger after "Build and publish Flatpak repository"
+  # would be ideal so that stale images are cleaned up promptly. However,
+  # GitHub Pages deployments are asynchronous — the build workflow completes
+  # once the deployment is queued, not when the new index is live. The prune
+  # job fetches the active index from Pages to determine which OCI digests to
+  # keep, so if it runs before the new index is served, it can delete the
+  # freshly-published images, causing 404s for clients. Until there is a way
+  # to await Pages propagation, prune can only be triggered on a schedule or
+  # manually.
 
 permissions:
   packages: write
@@ -26,7 +31,6 @@ concurrency:
 
 jobs:
   prune:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     uses: aetherpak/actions/.github/workflows/prune-github-container-registry.yml@v3
     with:
       oci-repository: boxes
