@@ -16,8 +16,8 @@ modules:
         all install
     sources:
       - type: archive
-        url: https://github.com/git/git/archive/refs/tags/v2.56.0-rc0.tar.gz
-        sha256: e8f45fa490a1d81cec2a9a42bbfd65f05b61681cd931613fac3d9e03560f9f75
+        url: https://github.com/git/git/archive/refs/tags/v2.56.0-rc1.tar.gz
+        sha256: 2914082cd7e7e495742f57a54dbdf4021b8455c2e77a3f8eb010c7d3eac829bf
         x-checker-data:
           type: json
           url: https://api.github.com/repos/git/git/tags

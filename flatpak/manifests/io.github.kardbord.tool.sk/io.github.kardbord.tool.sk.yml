@@ -17,8 +17,8 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/skim-rs/skim/releases/download/v5.7.0/skim-x86_64-unknown-linux-musl.tar.xz
-        sha256: 73df0c2d65697a82bc1b1670f1b1858bf60f1d8d70976fcc38e660c560de1a00
+        url: https://github.com/skim-rs/skim/releases/download/v5.7.1/skim-x86_64-unknown-linux-musl.tar.xz
+        sha256: faa78d7af69c68d9fd519c0a2e48afdb6dae290d288fa4490f28fd5b617a2ebb
         x-checker-data:
           type: json
           url: https://api.github.com/repos/skim-rs/skim/releases/latest
@@ -28,8 +28,8 @@ modules:
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/skim-rs/skim/releases/download/v5.7.0/skim-aarch64-unknown-linux-musl.tar.xz
-        sha256: 2968effb1600cefc84a671a90e5ee42da40cf32e785d93b7a9c6b7a69d288b9f
+        url: https://github.com/skim-rs/skim/releases/download/v5.7.1/skim-aarch64-unknown-linux-musl.tar.xz
+        sha256: 4e98ea9d94159a7eaafa7667520c29b494ded3ca71b606c4545ca1d8edb79955
         x-checker-data:
           type: json
           url: https://api.github.com/repos/skim-rs/skim/releases/latest
