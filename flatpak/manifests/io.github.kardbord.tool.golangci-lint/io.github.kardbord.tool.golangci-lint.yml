@@ -15,20 +15,22 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/golangci/golangci-lint/releases/download/v2.13.2/golangci-lint-2.13.2-linux-amd64.tar.gz
-        sha256: 2277d43b98ec0054280f2ac26b53268bae97682444678a59a657dd565da021d6
+        url: https://github.com/golangci/golangci-lint/releases/download/v2.14.0/golangci-lint-2.14.0-linux-amd64.tar.gz
+        sha256: ab90aeb7b066f92a33415b638a50fe5344bbb75a0d32ad30cc248d88f81032ab
         x-checker-data:
           type: json
           url: https://api.github.com/repos/golangci/golangci-lint/releases/latest
           version-query: .tag_name | sub("^v"; "")
-          url-query: .assets[] | select(.name | test("-linux-amd64\\.tar\\.gz$")) | .browser_download_url
+          url-query: .assets[] | select(.name | test("-linux-amd64\\.tar\\.gz$"))
+            | .browser_download_url
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/golangci/golangci-lint/releases/download/v2.13.2/golangci-lint-2.13.2-linux-arm64.tar.gz
-        sha256: a2a4e0065aa41be71f7c5ac90f271b61751331e5d04314e62afe4027855f0893
+        url: https://github.com/golangci/golangci-lint/releases/download/v2.14.0/golangci-lint-2.14.0-linux-arm64.tar.gz
+        sha256: ee7ec5f3453d15ddf106fae5a4d6c71737712348a979d1fe9cd52ec7ea299bae
         x-checker-data:
           type: json
           url: https://api.github.com/repos/golangci/golangci-lint/releases/latest
           version-query: .tag_name | sub("^v"; "")
-          url-query: .assets[] | select(.name | test("-linux-arm64\\.tar\\.gz$")) | .browser_download_url
+          url-query: .assets[] | select(.name | test("-linux-arm64\\.tar\\.gz$"))
+            | .browser_download_url
