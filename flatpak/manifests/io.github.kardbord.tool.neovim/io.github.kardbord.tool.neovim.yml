@@ -16,19 +16,21 @@ modules:
     sources:
       - type: archive
         only-arches: [x86_64]
-        url: https://github.com/neovim/neovim/releases/download/v0.12.5/nvim-linux-x86_64.tar.gz
-        sha256: bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+        url: https://github.com/neovim/neovim/releases/download/v0.12.6/nvim-linux-x86_64.tar.gz
+        sha256: 474430d53e6264f6d6dd18db42d6dc9df3a1b56ca9e88a325bbf860e1a811d87
         x-checker-data:
           type: json
           url: https://api.github.com/repos/neovim/neovim/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("linux-x86_64\\.tar\\.gz$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("linux-x86_64\\.tar\\.gz$"))
+            | .browser_download_url
       - type: archive
         only-arches: [aarch64]
-        url: https://github.com/neovim/neovim/releases/download/v0.12.5/nvim-linux-arm64.tar.gz
-        sha256: 1aa5ca085249580ae0f91eb14f27ec0919773ff2d99a163d03f3d6c21ac29725
+        url: https://github.com/neovim/neovim/releases/download/v0.12.6/nvim-linux-arm64.tar.gz
+        sha256: 8f1f64a0bdb97247034038c3823c6cbad5bdf9ecd5751b85494b71c3ee04c815
         x-checker-data:
           type: json
           url: https://api.github.com/repos/neovim/neovim/releases/latest
-          version-query: '.tag_name | sub("^v"; "")'
-          url-query: '.assets[] | select(.name | test("linux-arm64\\.tar\\.gz$")) | .browser_download_url'
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("linux-arm64\\.tar\\.gz$")) |
+            .browser_download_url
