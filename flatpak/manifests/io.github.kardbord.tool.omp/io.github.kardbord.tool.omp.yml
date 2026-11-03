@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+id: io.github.kardbord.tool.omp
+default-branch: stable
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+build-extension: true
+separate-locales: false
+modules:
+  - name: omp
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 omp* ${FLATPAK_DEST}/bin/omp
+    sources:
+      - type: file
+        only-arches:
+          - x86_64
+        url: https://github.com/can1357/oh-my-pi/releases/download/v18.16.0/omp-linux-x64
+        sha256: 6498ed785bab00d2926e0387e0ec02362d6d45f1c3d0d1b57c1618b7f95c9264
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/can1357/oh-my-pi/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("omp-linux-x64\\.tar\\.gz$")) | .browser_download_url
+      - type: file
+        only-arches:
+          - aarch64
+        url: https://github.com/can1357/oh-my-pi/releases/download/v18.16.0/omp-linux-arm64
+        sha256: c2be1ea85ce17c4270854b57efff2a7ea1d5a03c7557fd08721f2b9bb32698de
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/can1357/oh-my-pi/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("omp-linux-arm64\\.tar\\.gz$")) | .browser_download_url

@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+id: io.github.kardbord.tool.pi
+default-branch: stable
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+build-extension: true
+separate-locales: false
+modules:
+  - name: pi
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 pi ${FLATPAK_DEST}/bin/pi
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/earendil-works/pi/releases/download/v1.5.0/pi-linux-x64.tar.gz
+        sha256: df870ba0e344cb7b3358d8d8f19397b8b8d225a8669784736ad68a5c2169d53b
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/earendil-works/pi/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("pi-linux-x64\\.tar\\.gz$")) | .browser_download_url
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/earendil-works/pi/releases/download/v1.5.0/pi-linux-arm64.tar.gz
+        sha256: 5d5711b48600756473682e86360b026b11abf7591e5d112eb411d4da2c100d9a
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/earendil-works/pi/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("pi-linux-arm64\\.tar\\.gz$")) | .browser_download_url
