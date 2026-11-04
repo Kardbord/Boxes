@@ -10,7 +10,8 @@ modules:
   - name: pi
     buildsystem: simple
     build-commands:
-      - install -Dm755 pi ${FLATPAK_DEST}/bin/pi
+      - mkdir -p ${FLATPAK_DEST}/bin
+      - cp -a ./* ${FLATPAK_DEST}/bin
     sources:
       - type: archive
         only-arches:
