@@ -68,6 +68,7 @@ mypkg/
 ├── _service.in     # human-authored OBS service template (placeholders)
 ├── _service        # generated from _service.in by the sync script
 ├── mypkg.spec      # RPM build recipe (unpacks the right tarball per arch)
+├── mypkg.rpmlintrc # rpmlint exceptions (e.g. Dart AOT RUNPATH on openSUSE)
 └── debian.*        # Debian build recipes
 ```
 
@@ -106,6 +107,24 @@ mypkg/
   the regenerated `_service` files. Merging the PR is all that's needed:
   the push triggers `scmsync`, the server-side services re-download and
   re-verify the assets, and OBS rebuilds every target.
+- **Multiple tarballs require `DEBTRANSFORM-TAR` in the `.dsc`.** The deb
+  transformer (`debtransform`) auto-discovers the upstream source tarball
+  and refuses when more than one file looks like a candidate ("Too many
+  files looking like a usable source tarball") — which is the normal case
+  for per-arch prebuilt binaries. Set `DEBTRANSFORM-TAR: <tarball>` in the
+  `.dsc` to name the orig tarball explicitly; the remaining tarballs stay
+  in the package sources and are staged into the build root unchanged for
+  per-arch extraction. (debtransform strips the tag from the published
+  dsc, and `set_version` only rewrites `Version:`, so it survives builds.)
+- **Silence rpmlint for prebuilt binaries with `<pkg>.rpmlintrc`.**
+  Prebuilt upstream binaries routinely trip openSUSE rpmlint checks (e.g.
+  Dart AOT executables from `dart compile exe` embed `RUNPATH=$ORIGIN/`,
+  which is flagged as `binary-or-shlib-defines-rpath` with badness 10000
+  and aborts the Tumbleweed build). Ship a `<specname>.rpmlintrc` in the
+  package directory with `setBadness(...)`/`addFilter(...)` entries and a
+  comment explaining why the finding is expected, so the binary stays
+  bit-identical to upstream (see
+  `flutter-version-manager/flutter-version-manager.rpmlintrc`).
 
 #### Adding a prebuilt-binary package
 

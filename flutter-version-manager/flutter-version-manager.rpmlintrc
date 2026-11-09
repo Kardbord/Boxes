@@ -1,0 +1,10 @@
+# rpmlint exceptions for the flutter-version-manager package.
+#
+# The shipped binary is the upstream prebuilt Dart AOT executable
+# (produced by `dart compile exe`), which embeds RUNPATH=$ORIGIN/.
+# This is harmless — the executable is self-contained and the path
+# adds nothing at runtime — but openSUSE rpmlint flags it with
+# badness 10000, which aborts the Tumbleweed build.
+
+setBadness("binary-or-shlib-defines-rpath", 0)
+addFilter("binary-or-shlib-defines-rpath")
