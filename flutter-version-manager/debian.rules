@@ -12,23 +12,26 @@ override_dh_auto_build:
 # upstream and the snapshot data lives in ELF sections.
 override_dh_strip:
 
-# The upstream tarballs are attached into the source tree by debtransform
-# (DEBTRANSFORM-FILES, see the .dsc), but the attachment location has
-# differed between debtransform versions: debian/fvm-linux-<arch>.tar.gz
-# (remapped) or the verbatim source names at the top level, e.g.
-# debian.fvm-linux-<arch>.tar.gz. Locate each file wherever it landed.
-# Both copies carry identical bytes, so either match is equivalent.
-# Extract the one matching the build architecture into fvm/ (it contains
-# the prebuilt binary at fvm/fvm; the orig tarball's top-level fvm/
-# directory is overwritten and its contents are not used).
+# Payload sources (see the .dsc):
+# - amd64: the orig tarball IS the x64 release asset; dpkg-source has
+#   already extracted it, so the binary is available at fvm/fvm directly.
+# - arm64/armhf: the per-arch tarball is attached into the tree by
+#   debtransform (DEBTRANSFORM-FILES), but the attachment location has
+#   differed between debtransform versions: debian/fvm-linux-<arch>.tar.gz
+#   (remapped) or the verbatim source name at the top level, e.g.
+#   debian.fvm-linux-<arch>.tar.gz. Locate it wherever it landed (the
+#   copies carry identical bytes, so any match is equivalent), then
+#   extract — this overwrites the orig's fvm/fvm with the matching
+#   binary, which install then picks up.
 override_dh_auto_install:
 ifeq ($(DEB_HOST_ARCH),amd64)
-	tar -xzf $$(find . \( -name 'fvm-linux-x64.tar.gz' -o -name 'debian.fvm-linux-x64.tar.gz' \) | head -n1)
-else ifeq ($(DEB_HOST_ARCH),arm64)
-	tar -xzf $$(find . \( -name 'fvm-linux-arm64.tar.gz' -o -name 'debian.fvm-linux-arm64.tar.gz' \) | head -n1)
-else
-	tar -xzf $$(find . \( -name 'fvm-linux-arm.tar.gz' -o -name 'debian.fvm-linux-arm.tar.gz' \) | head -n1)
-endif
 	install -D -m 755 fvm/fvm debian/flutter-version-manager/usr/bin/fvm
+else ifeq ($(DEB_HOST_ARCH),arm64)
+	tar -xzf $$(find . -name '*fvm-linux-arm64.tar.gz' | head -n1)
+	install -D -m 755 fvm/fvm debian/flutter-version-manager/usr/bin/fvm
+else
+	tar -xzf $$(find . -name '*fvm-linux-arm.tar.gz' | head -n1)
+	install -D -m 755 fvm/fvm debian/flutter-version-manager/usr/bin/fvm
+endif
 	install -D -m 644 $$(find . \( -name 'fvm-LICENSE' -o -name 'debian.fvm-LICENSE' \) | head -n1) \
 	  debian/flutter-version-manager/usr/share/doc/flutter-version-manager/LICENSE

@@ -129,7 +129,14 @@ the normal case for per-arch prebuilt binaries. Set
     have `debian/rules` locate them by name (e.g. `find . -name
     'fvm-linux-arm64.tar.gz' -o -name 'debian.fvm-linux-arm64.tar.gz'`)
     rather than hard-coding a path. The payload copies carry identical
-    bytes, so either location is equivalent.
+    bytes, so either location is equivalent. **Every `DEBTRANSFORM-FILES`
+    entry must exist as a package source file** (a `download_url`
+    `filename` param) — debtransform does not check the attach exit
+    status, so a missing entry fails silently and the build only dies
+    later in `debian/rules`. Also note the orig tarball named by
+    `DEBTRANSFORM-TAR` is unpacked into the tree like any upstream
+    tarball; one arch's `debian/rules` branch can consume its extracted
+    payload directly instead of listing that arch twice.
   - Use **version-free** download filenames (via the `download_url`
 `filename` param) for everything referenced by the `.dsc`, `.spec`,
 and `debian.rules`, so a version bump only touches `.upstream.yml`,
