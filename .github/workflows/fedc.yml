@@ -1,15 +1,12 @@
 # yaml-language-server: $schema=https://www.schemastore.org/github-workflow.json
 name: Check for upstream updates
-
 on:
   schedule:
-    - cron: '0 5 * * 1'   # Weekly, Monday at 05:00 UTC
+    - cron: '0 5 * * 1' # Weekly, Monday at 05:00 UTC
   workflow_dispatch:
-
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   check-updates:
     runs-on: ubuntu-latest
@@ -18,7 +15,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: false
-
       - name: Run FEDC on manifests with x-checker-data
         id: fedc
         run: |
@@ -45,7 +41,8 @@ jobs:
             cat /tmp/fedc-errors.txt >> "$GITHUB_OUTPUT"
             echo "EOF" >> "$GITHUB_OUTPUT"
           fi
-
+      - name: Sync OBS _service files from updated manifests
+        run: ./scripts/sync-obs-services.sh
       - name: Create or update PR
         uses: peter-evans/create-pull-request@v8
         with:

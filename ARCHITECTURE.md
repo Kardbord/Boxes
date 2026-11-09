@@ -50,14 +50,21 @@ Boxes/
 ├── _config               # OBS project build configuration (prjconf)
 ├── _meta                 # Informational copy of the OBS project metadata
 ├── _manifest             # A listing of all OBS packages in this project
-├── kardbord-breakout/    # A single package
-│   ├── _service          # Describes how to fetch upstream sources
+├── kardbord-breakout/    # A package built from upstream source (obs_scm)
+│   ├── _service          # obs_scm: fetches the upstream git tree
+│   ├── .upstream.yml     # FEDC upstream tracking (tag-based)
 │   ├── kardbord-breakout.spec     # RPM build recipe
 │   ├── kardbord-breakout.dsc      # Debian source control file
 │   ├── kardbord-breakout.changes  # OBS changelog (RPM)
 │   ├── debian.changelog  # Debian changelog
 │   ├── debian.control    # Debian binary package definitions
 │   ├── debian.rules      # Debian build rules (debhelper + cmake)
+│   └── ...
+├── flutter-version-manager/  # A package shipping prebuilt upstream binaries
+│   ├── _service.in       # Human-authored OBS service template (placeholders)
+│   ├── _service          # Generated: download_url + verify_file + set_version
+│   ├── .upstream.yml     # FEDC upstream tracking (pinned URLs + sha256)
+│   ├── flutter-version-manager.spec  # RPM build recipe
 │   └── ...
 └── ...
 ```
@@ -104,7 +111,9 @@ needed later.
 ### `_service` (within a package)
 
 The `_service` file tells OBS how to prepare the upstream sources for a package.
-Boxes uses `obs_scm`:
+Boxes uses two patterns:
+
+#### Source-built packages (`kardbord-breakout`) use `obs_scm`
 
 ```xml
 <service name="obs_scm">
@@ -125,6 +134,20 @@ Boxes uses `obs_scm`:
     in the `.spec`/`.dsc`.
   - `tar` reconstructs a regular tarball from the `.obscpio` archive.
   - `recompress` compresses it (gzip for Boxes) for `rpmbuild`/`dpkg-buildpackage`.
+
+#### Prebuilt-binary packages (`flutter-version-manager`) use `download_url`
+
+**Prebuilt-binary packages** (`flutter-version-manager`) cannot build from
+source on the target matrix (no Dart SDK across Rocky/Alma/Ubuntu), so their
+`_service` instead uses `download_url` to fetch pinned upstream release
+assets, `verify_file` to check each asset's sha256 before building, and a
+buildtime `set_version` with an explicit `version` parameter. The `_service`
+file is generated from a `_service.in` template by
+`scripts/sync-obs-services.sh`, which keeps it in sync with the pinned URLs
+and sha256 checksums in the package's FEDC-tracked `.upstream.yml` — the
+FEDC workflow runs the sync script so its upstream-update PR updates
+everything at once. See
+[OBS-MAINTENANCE.md](./docs/OBS-MAINTENANCE.md#prebuilt-binary-packages).
 
 ### RPM `.spec` files
 

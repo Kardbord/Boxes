@@ -1,0 +1,62 @@
+<!-- OBS service definition for this package.
+
+     This file exists in two forms: _service.in is the template with
+     placeholders, and _service is the rendered result used by OBS.
+     Edit _service.in and re-run scripts/sync-obs-services.sh; the
+     rendered values come from the pinned version and sha256 checksums
+     in .upstream.yml (kept current by the FEDC workflow).
+
+     The placeholder syntax (version and per-file checksums) is
+     documented in docs/OBS-MAINTENANCE.md under "Prebuilt-Binary
+     Packages". Note that placeholder substitution applies to the whole
+     template, including comments. -->
+<services>
+  <!-- Server-side services (no mode attribute): run when scmsync picks up
+       a push, like obs_scm does for source-built packages. The pinned URLs
+       and checksums below are rewritten by scripts/sync-obs-services.sh. -->
+  <service name="download_url">
+    <param name="protocol">https</param>
+    <param name="host">github.com</param>
+    <param name="path">btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-x64.tar.gz</param>
+  </service>
+  <service name="download_url">
+    <param name="protocol">https</param>
+    <param name="host">github.com</param>
+    <param name="path">btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-arm64.tar.gz</param>
+  </service>
+  <service name="download_url">
+    <param name="protocol">https</param>
+    <param name="host">github.com</param>
+    <param name="path">btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-arm.tar.gz</param>
+  </service>
+  <service name="download_url">
+    <!-- Upstream license text; not covered by verify_file because it has
+         no entry (and thus no checksum) in .upstream.yml. -->
+    <param name="protocol">https</param>
+    <param name="host">raw.githubusercontent.com</param>
+    <param name="path">btwld/fvm/4.3.2/LICENSE</param>
+    <param name="filename">fvm-LICENSE</param>
+  </service>
+  <!-- Verify the downloaded release assets before anything is built. -->
+  <service name="verify_file">
+    <param name="file">fvm-4.3.2-linux-x64.tar.gz</param>
+    <param name="verifier">sha256</param>
+    <param name="checksum">17dfced05f5b0cb32398dadd0691acc2bc458e8c4b0045a781cd5aa6c85f6ecb</param>
+  </service>
+  <service name="verify_file">
+    <param name="file">fvm-4.3.2-linux-arm64.tar.gz</param>
+    <param name="verifier">sha256</param>
+    <param name="checksum">df05c7682eeac21b08939e7be131687dc3d54fd5575b5e4bca931717ddeb0a01</param>
+  </service>
+  <service name="verify_file">
+    <param name="file">fvm-4.3.2-linux-arm.tar.gz</param>
+    <param name="verifier">sha256</param>
+    <param name="checksum">d0b2b4e75280403fe2b389363b15df43fa8085c122043263041ba688a694b3c0</param>
+  </service>
+  <!-- Buildtime service: rewrites Version: in the .spec, .dsc, and
+       debian.changelog from the pinned version above. -->
+  <service mode="buildtime" name="set_version">
+    <param name="version">4.3.2</param>
+  </service>
+</services>
+<!-- vim: set ft=xml: -->
