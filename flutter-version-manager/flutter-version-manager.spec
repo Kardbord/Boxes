@@ -4,10 +4,15 @@ Release:        0%{?dist}
 Summary:        FVM (Flutter Version Management) — a version manager for the Flutter SDK
 License:        MIT
 URL:            https://fvm.app
-Source0:        fvm-%{version}-linux-x64.tar.gz
-Source1:        fvm-%{version}-linux-arm64.tar.gz
-Source2:        fvm-%{version}-linux-arm.tar.gz
-Source3:        fvm-LICENSE
+# Source names are version-free (renamed by the _service download_url
+# blocks) so version bumps only touch .upstream.yml/_service and the
+# Version: tag that set_version rewrites. The "debian."-prefixed names
+# are what debtransform attaches into the Debian source tree; the same
+# files are consumed here for the RPM side.
+Source0:        fvm-linux-x64.tar.gz
+Source1:        debian.fvm-linux-arm64.tar.gz
+Source2:        debian.fvm-linux-arm.tar.gz
+Source3:        debian.fvm-LICENSE
 ExclusiveArch:  x86_64 aarch64
 
 %description

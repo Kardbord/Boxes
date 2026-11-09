@@ -12,13 +12,18 @@ override_dh_auto_build:
 # upstream and the snapshot data lives in ELF sections.
 override_dh_strip:
 
+# The upstream tarballs are attached into debian/ by debtransform
+# (DEBTRANSFORM-FILES, see the .dsc). Extract the one matching the build
+# architecture into fvm/ (it contains the prebuilt binary at fvm/fvm;
+# the orig tarball's top-level fvm/ directory is overwritten and its
+# contents are not used).
 override_dh_auto_install:
 ifeq ($(DEB_HOST_ARCH),amd64)
-	tar -xzf fvm-*-linux-x64.tar.gz
+	tar -xzf debian/fvm-linux-x64.tar.gz
 else ifeq ($(DEB_HOST_ARCH),arm64)
-	tar -xzf fvm-*-linux-arm64.tar.gz
+	tar -xzf debian/fvm-linux-arm64.tar.gz
 else
-	tar -xzf fvm-*-linux-arm.tar.gz
+	tar -xzf debian/fvm-linux-arm.tar.gz
 endif
 	install -D -m 755 fvm/fvm debian/flutter-version-manager/usr/bin/fvm
-	install -D -m 644 fvm-LICENSE debian/flutter-version-manager/usr/share/doc/flutter-version-manager/LICENSE
+	install -D -m 644 debian/fvm-LICENSE debian/flutter-version-manager/usr/share/doc/flutter-version-manager/LICENSE

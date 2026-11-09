@@ -107,15 +107,33 @@ mypkg/
   the regenerated `_service` files. Merging the PR is all that's needed:
   the push triggers `scmsync`, the server-side services re-download and
   re-verify the assets, and OBS rebuilds every target.
-- **Multiple tarballs require `DEBTRANSFORM-TAR` in the `.dsc`.** The deb
-  transformer (`debtransform`) auto-discovers the upstream source tarball
-  and refuses when more than one file looks like a candidate ("Too many
-  files looking like a usable source tarball") — which is the normal case
-  for per-arch prebuilt binaries. Set `DEBTRANSFORM-TAR: <tarball>` in the
-  `.dsc` to name the orig tarball explicitly; the remaining tarballs stay
-  in the package sources and are staged into the build root unchanged for
-  per-arch extraction. (debtransform strips the tag from the published
-  dsc, and `set_version` only rewrites `Version:`, so it survives builds.)
+- **Deb builds only see the transformed source package — attach extra
+  files with `DEBTRANSFORM-TAR`/`DEBTRANSFORM-FILES`.** Unlike RPM builds
+  (which stage all source files into the build root), the deb build tree
+  contains only the unpacked source package: the orig tarball plus the
+  debian overlay. Consequences:
+  - The deb transformer (`debtransform`) auto-discovers the upstream
+source tarball and refuses when more than one file looks like a
+candidate ("Too many files looking like a usable source tarball") —
+the normal case for per-arch prebuilt binaries. Set
+`DEBTRANSFORM-TAR: <tarball>` in the `.dsc` to name the orig tarball.
+  - Anything else the `debian/rules` needs (the other per-arch tarballs,
+a license file, …) must be named `debian.<name>` in the package
+sources and listed in `DEBTRANSFORM-FILES` (space-separated). debtransform's
+quilt path maps `debian.<name>` to `debian/<name>` inside the source
+tree, where `debian/rules` consumes it. `debian.fvm-LICENSE`-style
+non-tarball attachments are added automatically by debtransform's
+generic `debian.` loop and don't need to be listed.
+  - Use **version-free** download filenames (via the `download_url`
+`filename` param) for everything referenced by the `.dsc`, `.spec`,
+and `debian.rules`, so a version bump only touches `.upstream.yml`,
+`_service`, and the `Version:` tags that `set_version` rewrites.
+  - dsc comments must not contain `:` characters: debtransform colon-parses
+the first dsc paragraph, and a comment line with a colon would be
+re-emitted into the published dsc as a bogus tag.
+  (debtransform strips the `DEBTRANSFORM-*` tags from the published dsc,
+  and `set_version` only rewrites `Version:`, so the wiring survives
+  builds.)
 - **Silence rpmlint for prebuilt binaries with `<pkg>.rpmlintrc`.**
   Prebuilt upstream binaries routinely trip openSUSE rpmlint checks (e.g.
   Dart AOT executables from `dart compile exe` embed `RUNPATH=$ORIGIN/`,

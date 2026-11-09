@@ -11,23 +11,40 @@
      Packages". Note that placeholder substitution applies to the whole
      template, including comments. -->
 <services>
-  <!-- Server-side services (no mode attribute): run when scmsync picks up
-       a push, like obs_scm does for source-built packages. The pinned URLs
-       and checksums below are rewritten by scripts/sync-obs-services.sh. -->
+  <!-- download_url fetches the pinned release assets and renames them via
+       the filename param. Names are version-free (so version bumps touch
+       only .upstream.yml and the path params) and follow conventions:
+       - "fvm-linux-x64.tar.gz"           - the plain asset; becomes the
+                                            Debian orig tarball (dsc
+                                            DEBTRANSFORM-TAR) and RPM Source0
+       - "debian.fvm-linux-<arch>.tar.gz" - attached into the Debian source
+                                            tree at debian/fvm-linux-<arch>.tar.gz
+                                            by debtransform's DEBTRANSFORM-FILES
+                                            handling (its quilt path maps
+                                            "debian.<name>" -> "debian/<name>");
+                                            also consumed by the RPM spec
+       - "debian.fvm-LICENSE"             - attached into the Debian tree at
+                                            debian/fvm-LICENSE by debtransform's
+                                            generic "debian." loop; RPM Source3
+       OBS strips the _service: prefix when staging sources for builds, so
+       the spec/dsc/rules reference these plain names. -->
   <service name="download_url">
     <param name="protocol">https</param>
     <param name="host">github.com</param>
     <param name="path">btwld/fvm/releases/download/{{UPSTREAM_VERSION}}/fvm-{{UPSTREAM_VERSION}}-linux-x64.tar.gz</param>
+    <param name="filename">fvm-linux-x64.tar.gz</param>
   </service>
   <service name="download_url">
     <param name="protocol">https</param>
     <param name="host">github.com</param>
     <param name="path">btwld/fvm/releases/download/{{UPSTREAM_VERSION}}/fvm-{{UPSTREAM_VERSION}}-linux-arm64.tar.gz</param>
+    <param name="filename">debian.fvm-linux-arm64.tar.gz</param>
   </service>
   <service name="download_url">
     <param name="protocol">https</param>
     <param name="host">github.com</param>
     <param name="path">btwld/fvm/releases/download/{{UPSTREAM_VERSION}}/fvm-{{UPSTREAM_VERSION}}-linux-arm.tar.gz</param>
+    <param name="filename">debian.fvm-linux-arm.tar.gz</param>
   </service>
   <service name="download_url">
     <!-- Upstream license text; not covered by verify_file because it has
@@ -35,26 +52,27 @@
     <param name="protocol">https</param>
     <param name="host">raw.githubusercontent.com</param>
     <param name="path">btwld/fvm/{{UPSTREAM_VERSION}}/LICENSE</param>
-    <param name="filename">fvm-LICENSE</param>
+    <param name="filename">debian.fvm-LICENSE</param>
   </service>
   <!-- Verify the downloaded release assets before anything is built.
-       The file params must use the "_service:download_url:"-prefixed
-       names: on the OBS server, bs_service renames each service's output
-       with that prefix between service runs, so the plain names do not
-       exist while verify_file executes. (Checksum placeholder keys stay
-       plain filenames; they match the .upstream.yml entries.) -->
+       The file params must use the "_service:download_url:"-prefixed,
+       renamed names: on the OBS server, bs_service renames each service's
+       output with that prefix between service runs, so the plain names do
+       not exist while verify_file executes. (Checksum placeholder keys
+       stay plain versioned filenames; they match the .upstream.yml
+       entries.) -->
   <service name="verify_file">
-    <param name="file">_service:download_url:fvm-{{UPSTREAM_VERSION}}-linux-x64.tar.gz</param>
+    <param name="file">_service:download_url:fvm-linux-x64.tar.gz</param>
     <param name="verifier">sha256</param>
     <param name="checksum">{{SHA256:fvm-{{UPSTREAM_VERSION}}-linux-x64.tar.gz}}</param>
   </service>
   <service name="verify_file">
-    <param name="file">_service:download_url:fvm-{{UPSTREAM_VERSION}}-linux-arm64.tar.gz</param>
+    <param name="file">_service:download_url:debian.fvm-linux-arm64.tar.gz</param>
     <param name="verifier">sha256</param>
     <param name="checksum">{{SHA256:fvm-{{UPSTREAM_VERSION}}-linux-arm64.tar.gz}}</param>
   </service>
   <service name="verify_file">
-    <param name="file">_service:download_url:fvm-{{UPSTREAM_VERSION}}-linux-arm.tar.gz</param>
+    <param name="file">_service:download_url:debian.fvm-linux-arm.tar.gz</param>
     <param name="verifier">sha256</param>
     <param name="checksum">{{SHA256:fvm-{{UPSTREAM_VERSION}}-linux-arm.tar.gz}}</param>
   </service>
