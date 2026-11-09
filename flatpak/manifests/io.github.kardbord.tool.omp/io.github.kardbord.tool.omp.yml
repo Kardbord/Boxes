@@ -15,8 +15,8 @@ modules:
       - type: file
         only-arches:
           - x86_64
-        url: https://github.com/can1357/oh-my-pi/releases/download/v18.16.0/omp-linux-x64
-        sha256: 6498ed785bab00d2926e0387e0ec02362d6d45f1c3d0d1b57c1618b7f95c9264
+        url: https://github.com/can1357/oh-my-pi/releases/download/v18.18.3/omp-linux-x64
+        sha256: 8c9a178fed74ec1da21aafb7d28cd9839b3b0c9e7d607c86cc3b6177355729f4
         x-checker-data:
           type: json
           url: https://api.github.com/repos/can1357/oh-my-pi/releases/latest
@@ -25,8 +25,8 @@ modules:
       - type: file
         only-arches:
           - aarch64
-        url: https://github.com/can1357/oh-my-pi/releases/download/v18.16.0/omp-linux-arm64
-        sha256: c2be1ea85ce17c4270854b57efff2a7ea1d5a03c7557fd08721f2b9bb32698de
+        url: https://github.com/can1357/oh-my-pi/releases/download/v18.18.3/omp-linux-arm64
+        sha256: c49a84875d915c7d0de8bb69fe180b3bf53c16600bc4d5a61ea22ac2b3ac45c9
         x-checker-data:
           type: json
           url: https://api.github.com/repos/can1357/oh-my-pi/releases/latest

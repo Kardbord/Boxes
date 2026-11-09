@@ -17,8 +17,8 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_amd64.tar.gz
-        sha256: e68a456f90c577af3fe4960184b3a3cf5c461e0348407c10f107da3a5fec8972
+        url: https://github.com/mikefarah/yq/releases/download/v4.54.3/yq_linux_amd64.tar.gz
+        sha256: 09a25baa0e136b8633949e03117fc82cb9e50d10910f988ef17a1305539ebce4
         strip-components: 0
         x-checker-data:
           type: json
@@ -29,8 +29,8 @@ modules:
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_linux_arm64.tar.gz
-        sha256: 8c27f6e7476fb5acefb9352e3d30f6bc2dc93f1956eb92e8da727173fb7ec6d3
+        url: https://github.com/mikefarah/yq/releases/download/v4.54.3/yq_linux_arm64.tar.gz
+        sha256: 980de87c439acb5172707560dd137e9fe4a1628af5aaf6f33b293f04c71d4e9d
         strip-components: 0
         x-checker-data:
           type: json
