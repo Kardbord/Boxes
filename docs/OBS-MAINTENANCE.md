@@ -80,6 +80,17 @@ mypkg/
   each asset's sha256 **before anything is built**, and a buildtime
   **`set_version`** service with an explicit `version` parameter that
   rewrites `Version:` in the `.spec`, `.dsc`, and `debian.changelog`.
+- **`verify_file` must reference the service-prefixed filename**:
+  `_service:download_url:<file>`. Between server-side service runs, the
+  OBS service daemon (`bs_service`) renames each service's output with
+  `_service:<service-name>:` — so when `verify_file` executes, the plain
+  filenames do not exist in the working directory and verification would
+  fail with `sha256sum: ...: No such file or directory`. This is the
+  standard idiom for chained `download_url` + `verify_file` packages.
+  Note the asymmetry: `osc service localrun` runs services *without*
+  prefixing, so local service runs fail at the `verify_file` step. Verify
+  locally by either checking sums manually against `.upstream.yml` or by
+  triggering the real server-side run: `osc service remoterun`.
 - `.upstream.yml` is a dummy flatpak manifest with `x-checker-data` JSON
   annotations (same recipe as the Flatpak manifests). FEDC rewrites the
   archive `url` **and `sha256`** fields in place when upstream publishes a
@@ -105,7 +116,9 @@ mypkg/
    matching Flatpak manifest if one exists).
 3. Write a `_service.in` template using `download_url` + `verify_file` +
    `set_version`, with `{{UPSTREAM_VERSION}}` / `{{SHA256:<filename>}}`
-   placeholders (see `flutter-version-manager/_service.in`).
+   placeholders (see `flutter-version-manager/_service.in`). Reference
+   `_service:download_url:<file>` in the `verify_file` `file` params —
+   see the prefixed-filename note under "How it works" above.
 4. Run `scripts/sync-obs-services.sh <pkg>` to generate `_service`.
 5. Register the package in `_manifest` (this also makes the FEDC workflow
    pick up its `.upstream.yml`), commit, and push.

@@ -37,19 +37,24 @@
     <param name="path">btwld/fvm/{{UPSTREAM_VERSION}}/LICENSE</param>
     <param name="filename">fvm-LICENSE</param>
   </service>
-  <!-- Verify the downloaded release assets before anything is built. -->
+  <!-- Verify the downloaded release assets before anything is built.
+       The file params must use the "_service:download_url:"-prefixed
+       names: on the OBS server, bs_service renames each service's output
+       with that prefix between service runs, so the plain names do not
+       exist while verify_file executes. (Checksum placeholder keys stay
+       plain filenames; they match the .upstream.yml entries.) -->
   <service name="verify_file">
-    <param name="file">fvm-{{UPSTREAM_VERSION}}-linux-x64.tar.gz</param>
+    <param name="file">_service:download_url:fvm-{{UPSTREAM_VERSION}}-linux-x64.tar.gz</param>
     <param name="verifier">sha256</param>
     <param name="checksum">{{SHA256:fvm-{{UPSTREAM_VERSION}}-linux-x64.tar.gz}}</param>
   </service>
   <service name="verify_file">
-    <param name="file">fvm-{{UPSTREAM_VERSION}}-linux-arm64.tar.gz</param>
+    <param name="file">_service:download_url:fvm-{{UPSTREAM_VERSION}}-linux-arm64.tar.gz</param>
     <param name="verifier">sha256</param>
     <param name="checksum">{{SHA256:fvm-{{UPSTREAM_VERSION}}-linux-arm64.tar.gz}}</param>
   </service>
   <service name="verify_file">
-    <param name="file">fvm-{{UPSTREAM_VERSION}}-linux-arm.tar.gz</param>
+    <param name="file">_service:download_url:fvm-{{UPSTREAM_VERSION}}-linux-arm.tar.gz</param>
     <param name="verifier">sha256</param>
     <param name="checksum">{{SHA256:fvm-{{UPSTREAM_VERSION}}-linux-arm.tar.gz}}</param>
   </service>
