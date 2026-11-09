@@ -38,6 +38,10 @@ top-level `_manifest` file so the OBS SCM bridge treats it as a package.
    artifacts, the `debian.*` files and a `.dsc`. Follow the packaging
    conventions (placeholder `Version: 0`, `%{_docdir}` doc paths, EL8
    conditional flags, etc.) described in [ARCHITECTURE.md](../ARCHITECTURE.md#cross-distribution-packaging).
+   If the package ships prebuilt upstream binaries instead of building from
+   source, see [Prebuilt-Binary Packages](#prebuilt-binary-packages) below —
+   it uses a `_service.in` template and a `download_url`-based `_service`
+   instead of `obs_scm`.
 4. **Add upstream tracking (optional but recommended)** — create `mypkg/.upstream.yml`
    with `x-checker-data` annotations so the FEDC workflow can detect and propose
    upstream updates automatically.
@@ -47,6 +51,68 @@ top-level `_manifest` file so the OBS SCM bridge treats it as a package.
 7. **Verify** on [OBS](https://build.opensuse.org/project/show/home:Kardbord:Boxes)
    that the package builds for the targets you care about; iterate on any
    distribution-specific failures the way `kardbord-breakout` did.
+
+### Prebuilt-Binary Packages
+
+Some packages (e.g. `flutter-version-manager`) ship **prebuilt upstream
+release binaries** rather than building from source — the upstream project
+compiles them (e.g. a Dart AOT CLI) and there is no viable from-source build
+across the OBS target matrix. These packages follow a different source and
+update flow:
+
+#### Layout
+
+```
+mypkg/
+├── .upstream.yml   # FEDC tracking manifest: pinned archive URLs + sha256s
+├── _service.in     # human-authored OBS service template (placeholders)
+├── _service        # generated from _service.in by the sync script
+├── mypkg.spec      # RPM build recipe (unpacks the right tarball per arch)
+└── debian.*        # Debian build recipes
+```
+
+#### How it works
+
+- The `_service` file uses **`download_url`** (no `mode` attribute, so it
+  runs server-side when `scmsync` picks up a push — same trigger path as
+  `obs_scm`, and no build-environment service dependencies) to fetch pinned
+  upstream release assets, followed by **`verify_file`** blocks that check
+  each asset's sha256 **before anything is built**, and a buildtime
+  **`set_version`** service with an explicit `version` parameter that
+  rewrites `Version:` in the `.spec`, `.dsc`, and `debian.changelog`.
+- `.upstream.yml` is a dummy flatpak manifest with `x-checker-data` JSON
+  annotations (same recipe as the Flatpak manifests). FEDC rewrites the
+  archive `url` **and `sha256`** fields in place when upstream publishes a
+  new release.
+- `scripts/sync-obs-services.sh` renders `_service` from `_service.in`:
+  it derives the version from the `/releases/download/<version>/` URLs,
+  asserts all archive sources agree on it, substitutes the
+  `{{UPSTREAM_VERSION}}` and `{{SHA256:<filename>}}` placeholders, refuses
+  to leave unresolved placeholders or unreferenced archive sources, and
+  writes `_service` only when it changed.
+- The FEDC workflow runs the sync script right after its check loop, so the
+  weekly upstream-update PR contains both the rewritten `.upstream.yml` and
+  the regenerated `_service` files. Merging the PR is all that's needed:
+  the push triggers `scmsync`, the server-side services re-download and
+  re-verify the assets, and OBS rebuilds every target.
+
+#### Adding a prebuilt-binary package
+
+1. Create the package directory with a `.spec` (and `debian.*` files) that
+   unpacks the downloaded tarball per architecture and installs the binary.
+2. Add a `.upstream.yml` with one `type: archive` source per asset, each
+   with `url`, `sha256`, and `x-checker-data` (copy the recipe from the
+   matching Flatpak manifest if one exists).
+3. Write a `_service.in` template using `download_url` + `verify_file` +
+   `set_version`, with `{{UPSTREAM_VERSION}}` / `{{SHA256:<filename>}}`
+   placeholders (see `flutter-version-manager/_service.in`).
+4. Run `scripts/sync-obs-services.sh <pkg>` to generate `_service`.
+5. Register the package in `_manifest` (this also makes the FEDC workflow
+   pick up its `.upstream.yml`), commit, and push.
+
+Trade-off: the checksums come from GitHub release metadata over TLS; if
+upstream re-uploads a release asset, builds fail (by design) until FEDC
+refreshes the URLs and checksums in the next weekly run.
 
 ## Rebuilding and Re-running Services
 

@@ -1,0 +1,6 @@
+-------------------------------------------------------------------
+Wed Oct 15 2026 Tanner Kvarfordt <tanner.kvarfordt@proton.me>
+
+- Initial package of flutter-version-manager (FVM), a version manager
+  for the Flutter SDK. Ships the official prebuilt Dart AOT binary as
+  /usr/bin/fvm.

@@ -1,0 +1,6 @@
+flutter-version-manager (4.3.2-1) unstable; urgency=medium
+
+  * Initial package of FVM (Flutter Version Management), the official
+    prebuilt command-line tool from btwld/fvm.
+
+ -- Tanner Kvarfordt <tanner.kvarfordt@proton.me>  Wed, 15 Oct 2026 00:00:00 +0000

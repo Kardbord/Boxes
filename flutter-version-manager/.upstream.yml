@@ -1,0 +1,41 @@
+# Dummy flatpak manifest for FEDC to check for upstream updates.
+#
+# This is the source of truth for the pinned OBS package version: the
+# archive URLs (and sha256 checksums) below are rewritten in place by the
+# FEDC workflow, and scripts/sync-obs-services.sh renders them into the
+# OBS _service file (via _service.in) so the package builds against the
+# new release.
+id: flutter-version-manager
+modules:
+  - name: flutter-version-manager
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-x64.tar.gz
+        sha256: 17dfced05f5b0cb32398dadd0691acc2bc458e8c4b0045a781cd5aa6c85f6ecb
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/btwld/fvm/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("-linux-x64\\.tar\\.gz$")) | .browser_download_url'
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-arm64.tar.gz
+        sha256: df05c7682eeac21b08939e7be131687dc3d54fd5575b5e4bca931717ddeb0a01
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/btwld/fvm/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("-linux-arm64\\.tar\\.gz$")) | .browser_download_url'
+      - type: archive
+        only-arches:
+          - arm
+        url: https://github.com/btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-arm.tar.gz
+        sha256: d0b2b4e75280403fe2b389363b15df43fa8085c122043263041ba688a694b3c0
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/btwld/fvm/releases/latest
+          version-query: '.tag_name | sub("^v"; "")'
+          url-query: '.assets[] | select(.name | test("-linux-arm\\.tar\\.gz$")) | .browser_download_url'

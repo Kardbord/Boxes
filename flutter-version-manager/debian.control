@@ -1,0 +1,17 @@
+Source: flutter-version-manager
+Section: utils
+Priority: optional
+Maintainer: Tanner Kvarfordt <tanner.kvarfordt@proton.me>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://fvm.app
+
+Package: flutter-version-manager
+Architecture: amd64 arm64 armhf
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: FVM (Flutter Version Management) — manage Flutter SDK versions
+ FVM helps you manage multiple Flutter SDK versions per project, caching
+ installed SDKs and switching between them per workspace. This package
+ installs the official prebuilt FVM command-line tool as /usr/bin/fvm.
+ FVM is a third-party tool and is not affiliated with Google or the
+ Flutter project.

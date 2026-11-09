@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+# Nothing to build: upstream ships a prebuilt Dart AOT binary.
+override_dh_auto_build:
+
+# Do not strip the binary; stripping a Dart AOT executable is untested
+# upstream and the snapshot data lives in ELF sections.
+override_dh_strip:
+
+override_dh_auto_install:
+ifeq ($(DEB_HOST_ARCH),amd64)
+	tar -xzf fvm-*-linux-x64.tar.gz
+else ifeq ($(DEB_HOST_ARCH),arm64)
+	tar -xzf fvm-*-linux-arm64.tar.gz
+else
+	tar -xzf fvm-*-linux-arm.tar.gz
+endif
+	install -D -m 755 fvm/fvm debian/flutter-version-manager/usr/bin/fvm
+	install -D -m 644 fvm-LICENSE debian/flutter-version-manager/usr/share/doc/flutter-version-manager/LICENSE

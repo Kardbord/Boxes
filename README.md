@@ -177,13 +177,14 @@ Packages are built for the following distribution and architecture combinations:
 
 <summary><b>Packages in this repository</b></summary>
 
-The authoritative inventory is discoverable in the repository (`kardbord-breakout/`
-for OBS, `flatpak/manifests/` for Flatpak), via the OBS project, or via the
-package repositories. Commonly installed packages:
+The authoritative inventory is discoverable in the repository (top-level
+package directories for OBS, `flatpak/manifests/` for Flatpak), via the OBS
+project, or via the package repositories. Commonly installed packages:
 
 | Package                                                   | Description                                                       | Build Status |
 |-----------------------------------------------------------|-------------------------------------------------------------------|--------------|
 | [kardbord-breakout](./kardbord-breakout/)                | A terminal-based clone of the classic brick-breaking arcade game. | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/kardbord-breakout/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/kardbord-breakout) |
+| [flutter-version-manager](./flutter-version-manager/)    | FVM (Flutter Version Management) — manages Flutter SDK versions per project (installs `fvm`). | [![OBS](https://build.opensuse.org/projects/home:Kardbord:Boxes/packages/flutter-version-manager/badge.svg)](https://build.opensuse.org/package/show/home:Kardbord:Boxes/flutter-version-manager) |
 | [io.github.kardbord.dev](./flatpak/)                      | Hub app providing the `io.github.kardbord.tool` extension point.  | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
 | [io.github.kardbord.tool.actionlint](./flatpak/)          | actionlint extension for the hub app.                             | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
 | [io.github.kardbord.tool.clipboard](./flatpak/)           | clipboard (cb) extension for the hub app.                         | [![Flatpak Build](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml/badge.svg)](https://github.com/Kardbord/Boxes/actions/workflows/flatpak-build.yml) |
