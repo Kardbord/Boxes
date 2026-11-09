@@ -118,12 +118,18 @@ candidate ("Too many files looking like a usable source tarball") —
 the normal case for per-arch prebuilt binaries. Set
 `DEBTRANSFORM-TAR: <tarball>` in the `.dsc` to name the orig tarball.
   - Anything else the `debian/rules` needs (the other per-arch tarballs,
-a license file, …) must be named `debian.<name>` in the package
-sources and listed in `DEBTRANSFORM-FILES` (space-separated). debtransform's
-quilt path maps `debian.<name>` to `debian/<name>` inside the source
-tree, where `debian/rules` consumes it. `debian.fvm-LICENSE`-style
-non-tarball attachments are added automatically by debtransform's
-generic `debian.` loop and don't need to be listed.
+    a license file, …) must be named `debian.<name>` in the package
+    sources and listed in `DEBTRANSFORM-FILES` (space-separated).
+    `debian.fvm-LICENSE`-style non-tarball attachments are added
+    automatically by debtransform's generic `debian.` loop and don't need
+    to be listed. **Where the attachments land inside the source tree has
+    differed between debtransform versions** (remapped to
+    `debian/<name>` or verbatim at the top level as `debian.<name>` —
+    observable via dpkg's include-binaries notes in the build log), so
+    have `debian/rules` locate them by name (e.g. `find . -name
+    'fvm-linux-arm64.tar.gz' -o -name 'debian.fvm-linux-arm64.tar.gz'`)
+    rather than hard-coding a path. The payload copies carry identical
+    bytes, so either location is equivalent.
   - Use **version-free** download filenames (via the `download_url`
 `filename` param) for everything referenced by the `.dsc`, `.spec`,
 and `debian.rules`, so a version bump only touches `.upstream.yml`,
