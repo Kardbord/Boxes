@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://www.schemastore.org/flatpak-manifest.json
+id: io.github.kardbord.tool.fvm
+default-branch: stable
+runtime: io.github.kardbord.dev
+runtime-version: stable
+sdk: org.freedesktop.Sdk//25.08
+build-extension: true
+separate-locales: false
+modules:
+  - name: fvm
+    buildsystem: simple
+    build-commands:
+      - mkdir -p ${FLATPAK_DEST}/bin
+      - cp -a ./* ${FLATPAK_DEST}/bin
+    sources:
+      - type: archive
+        only-arches:
+          - x86_64
+        url: https://github.com/btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-x64.tar.gz
+        sha256: 17dfced05f5b0cb32398dadd0691acc2bc458e8c4b0045a781cd5aa6c85f6ecb
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/btwld/fvm/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("-linux-x64\\.tar\\.gz$")) | .browser_download_url
+      - type: archive
+        only-arches:
+          - aarch64
+        url: https://github.com/btwld/fvm/releases/download/4.3.2/fvm-4.3.2-linux-arm64.tar.gz
+        sha256: df05c7682eeac21b08939e7be131687dc3d54fd5575b5e4bca931717ddeb0a01
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/btwld/fvm/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: .assets[] | select(.name | test("-linux-arm64\\.tar\\.gz$")) | .browser_download_url
