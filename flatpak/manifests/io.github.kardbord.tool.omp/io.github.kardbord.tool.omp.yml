@@ -21,7 +21,7 @@ modules:
           type: json
           url: https://api.github.com/repos/can1357/oh-my-pi/releases/latest
           version-query: .tag_name | sub("^v"; "")
-          url-query: .assets[] | select(.name | test("omp-linux-x64\\.tar\\.gz$")) | .browser_download_url
+          url-query: .assets[] | select(.name | test("omp-linux-x64$")) | .browser_download_url
       - type: file
         only-arches:
           - aarch64
@@ -31,4 +31,4 @@ modules:
           type: json
           url: https://api.github.com/repos/can1357/oh-my-pi/releases/latest
           version-query: .tag_name | sub("^v"; "")
-          url-query: .assets[] | select(.name | test("omp-linux-arm64\\.tar\\.gz$")) | .browser_download_url
+          url-query: .assets[] | select(.name | test("omp-linux-arm64$")) | .browser_download_url
