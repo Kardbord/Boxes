@@ -50,6 +50,7 @@ tar -xf %{SOURCE1}
 if [ -f fvm/src/fvm.snapshot ]; then
   install -d -m 755 %{buildroot}%{_libdir}/flutter-version-manager
   cp -a fvm/. %{buildroot}%{_libdir}/flutter-version-manager/
+  install -d -m 755 %{buildroot}%{_bindir}
   ln -s %{_libdir}/flutter-version-manager/fvm %{buildroot}%{_bindir}/fvm
 else
   install -Dpm0755 fvm/fvm %{buildroot}%{_bindir}/fvm

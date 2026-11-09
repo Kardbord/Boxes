@@ -32,7 +32,9 @@ override_dh_strip:
 override_dh_auto_install:
 	mkdir -p .fvm-build
 ifeq ($(DEB_HOST_ARCH),amd64)
-	tar -xzf $$(ls *.orig.tar.gz | head -n1) -C .fvm-build
+	# dpkg-buildpackage relocates the orig tarball to the parent directory
+	# before `rules binary` runs; glob both locations.
+	tar -xzf $$(ls ../*.orig.tar.gz *.orig.tar.gz 2>/dev/null | head -n1) -C .fvm-build
 else ifeq ($(DEB_HOST_ARCH),arm64)
 	tar -xzf $$(find . -name '*fvm-linux-arm64.tar.gz' | head -n1) -C .fvm-build
 else

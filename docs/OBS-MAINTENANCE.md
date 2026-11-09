@@ -100,7 +100,10 @@ mypkg/
     attach failures are silent.
   - Don't trust the unpacked orig tree (dpkg may strip or alter the
     top-level directory); extract payloads into a scratch dir and locate
-    attachments by name (`find . -name '*<file>'`).
+    attachments by name (`find . -name '*<file>'`). The orig tarball
+    itself may sit in the source tree or its parent by the time
+    `debian/rules binary` runs (dpkg-buildpackage relocates it) — glob
+    both.
   - dsc comments must not contain `:`.
 - Filenames referenced by the `.dsc`, `.spec`, and `debian.rules` must be
   version-free, so a version bump only touches `.upstream.yml`, `_service`,
