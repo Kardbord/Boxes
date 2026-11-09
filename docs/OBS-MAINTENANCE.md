@@ -38,10 +38,7 @@ top-level `_manifest` file so the OBS SCM bridge treats it as a package.
    artifacts, the `debian.*` files and a `.dsc`. Follow the packaging
    conventions (placeholder `Version: 0`, `%{_docdir}` doc paths, EL8
    conditional flags, etc.) described in [ARCHITECTURE.md](../ARCHITECTURE.md#cross-distribution-packaging).
-   If the package ships prebuilt upstream binaries instead of building from
-   source, see [Prebuilt-Binary Packages](#prebuilt-binary-packages) below —
-   it uses a `_service.in` template and a `download_url`-based `_service`
-   instead of `obs_scm`.
+   For prebuilt upstream binaries, see [Prebuilt-Binary Packages](#prebuilt-binary-packages).
 4. **Add upstream tracking (optional but recommended)** — create `mypkg/.upstream.yml`
    with `x-checker-data` annotations so the FEDC workflow can detect and propose
    upstream updates automatically.
@@ -54,10 +51,8 @@ top-level `_manifest` file so the OBS SCM bridge treats it as a package.
 
 ### Prebuilt-Binary Packages
 
-Some packages (e.g. `flutter-version-manager`) ship **prebuilt upstream
-release binaries** rather than building from source — the upstream project
-compiles them (e.g. a Dart AOT CLI) and there is no viable from-source build
-across the OBS target matrix. These packages follow a different source and
+Some packages (e.g. `flutter-version-manager`) ship prebuilt upstream release
+binaries instead of building from source. They use a different source and
 update flow:
 
 #### Layout
@@ -67,115 +62,73 @@ mypkg/
 ├── .upstream.yml   # FEDC tracking manifest: pinned archive URLs + sha256s
 ├── _service.in     # human-authored OBS service template (placeholders)
 ├── _service        # generated from _service.in by the sync script
-├── mypkg.spec      # RPM build recipe (unpacks the right tarball per arch)
+├── mypkg.spec      # RPM build recipe
 ├── mypkg.rpmlintrc # rpmlint exceptions (e.g. Dart AOT RUNPATH on openSUSE)
 └── debian.*        # Debian build recipes
 ```
 
 #### How it works
 
-- The `_service` file uses **`download_url`** (no `mode` attribute, so it
-  runs server-side when `scmsync` picks up a push — same trigger path as
-  `obs_scm`, and no build-environment service dependencies) to fetch pinned
-  upstream release assets, followed by **`verify_file`** blocks that check
-  each asset's sha256 **before anything is built**, and a buildtime
-  **`set_version`** service with an explicit `version` parameter that
-  rewrites `Version:` in the `.spec`, `.dsc`, and `debian.changelog`.
-- **`verify_file` must reference the service-prefixed filename**:
-  `_service:download_url:<file>`. Between server-side service runs, the
-  OBS service daemon (`bs_service`) renames each service's output with
-  `_service:<service-name>:` — so when `verify_file` executes, the plain
-  filenames do not exist in the working directory and verification would
-  fail with `sha256sum: ...: No such file or directory`. This is the
-  standard idiom for chained `download_url` + `verify_file` packages.
-  Note the asymmetry: `osc service localrun` runs services *without*
-  prefixing, so local service runs fail at the `verify_file` step. Verify
-  locally by either checking sums manually against `.upstream.yml` or by
-  triggering the real server-side run: `osc service remoterun`.
-- `.upstream.yml` is a dummy flatpak manifest with `x-checker-data` JSON
-  annotations (same recipe as the Flatpak manifests). FEDC rewrites the
-  archive `url` **and `sha256`** fields in place when upstream publishes a
-  new release.
-- `scripts/sync-obs-services.sh` renders `_service` from `_service.in`:
-  it derives the version from the `/releases/download/<version>/` URLs,
-  asserts all archive sources agree on it, substitutes the
-  `{{UPSTREAM_VERSION}}` and `{{SHA256:<filename>}}` placeholders, refuses
-  to leave unresolved placeholders or unreferenced archive sources, and
-  writes `_service` only when it changed.
-- The FEDC workflow runs the sync script right after its check loop, so the
-  weekly upstream-update PR contains both the rewritten `.upstream.yml` and
-  the regenerated `_service` files. Merging the PR is all that's needed:
-  the push triggers `scmsync`, the server-side services re-download and
-  re-verify the assets, and OBS rebuilds every target.
-- **Deb builds only see the transformed source package — attach extra
-  files with `DEBTRANSFORM-TAR`/`DEBTRANSFORM-FILES`.** Unlike RPM builds
-  (which stage all source files into the build root), the deb build tree
-  contains only the unpacked source package: the orig tarball plus the
-  debian overlay. Consequences:
-  - The deb transformer (`debtransform`) auto-discovers the upstream
-source tarball and refuses when more than one file looks like a
-candidate ("Too many files looking like a usable source tarball") —
-the normal case for per-arch prebuilt binaries. Set
-`DEBTRANSFORM-TAR: <tarball>` in the `.dsc` to name the orig tarball.
-  - Anything else the `debian/rules` needs (the other per-arch tarballs,
-    a license file, …) must be named `debian.<name>` in the package
-    sources and listed in `DEBTRANSFORM-FILES` (space-separated).
-    `debian.fvm-LICENSE`-style non-tarball attachments are added
-    automatically by debtransform's generic `debian.` loop and don't need
-    to be listed. **Where the attachments land inside the source tree has
-    differed between debtransform versions** (remapped to
-    `debian/<name>` or verbatim at the top level as `debian.<name>` —
-    observable via dpkg's include-binaries notes in the build log), so
-    have `debian/rules` locate them by name (e.g. `find . -name
-    'fvm-linux-arm64.tar.gz' -o -name 'debian.fvm-linux-arm64.tar.gz'`)
-    rather than hard-coding a path. The payload copies carry identical
-    bytes, so either location is equivalent. **Every `DEBTRANSFORM-FILES`
-    entry must exist as a package source file** (a `download_url`
-    `filename` param) — debtransform does not check the attach exit
-    status, so a missing entry fails silently and the build only dies
-    later in `debian/rules`. Also note the orig tarball named by
-    `DEBTRANSFORM-TAR` is unpacked into the tree like any upstream
-    tarball; one arch's `debian/rules` branch can consume its extracted
-    payload directly instead of listing that arch twice.
-  - Use **version-free** download filenames (via the `download_url`
-`filename` param) for everything referenced by the `.dsc`, `.spec`,
-and `debian.rules`, so a version bump only touches `.upstream.yml`,
-`_service`, and the `Version:` tags that `set_version` rewrites.
-  - dsc comments must not contain `:` characters: debtransform colon-parses
-the first dsc paragraph, and a comment line with a colon would be
-re-emitted into the published dsc as a bogus tag.
-  (debtransform strips the `DEBTRANSFORM-*` tags from the published dsc,
-  and `set_version` only rewrites `Version:`, so the wiring survives
-  builds.)
-- **Silence rpmlint for prebuilt binaries with `<pkg>.rpmlintrc`.**
-  Prebuilt upstream binaries routinely trip openSUSE rpmlint checks (e.g.
-  Dart AOT executables from `dart compile exe` embed `RUNPATH=$ORIGIN/`,
-  which is flagged as `binary-or-shlib-defines-rpath` with badness 10000
-  and aborts the Tumbleweed build). Ship a `<specname>.rpmlintrc` in the
-  package directory with `setBadness(...)`/`addFilter(...)` entries and a
-  comment explaining why the finding is expected, so the binary stays
-  bit-identical to upstream (see
-  `flutter-version-manager/flutter-version-manager.rpmlintrc`).
+- `_service` chains `download_url` (server-side; renames assets to
+  version-free names via the `filename` param) → `verify_file` (sha256
+  checks, before any build) → buildtime `set_version` (explicit `version`
+  param; rewrites `Version:` in the `.spec`, `.dsc`, and
+  `debian.changelog`).
+- `.upstream.yml` is a dummy flatpak manifest with `x-checker-data`; FEDC
+  rewrites each archive source's `url` and `sha256` on new releases.
+- `scripts/sync-obs-services.sh` renders `_service` from `_service.in`
+  (`{{UPSTREAM_VERSION}}` / `{{SHA256:<filename>}}` placeholders,
+  consistency-checked), and the FEDC workflow runs it so its weekly PR
+  updates both. Merging that PR is the entire update flow.
+
+#### Gotchas
+
+- `verify_file` `file` params must use the `_service:download_url:<file>`
+  prefix: bs_service renames each service's outputs between server-side
+  runs. Local service runs (`osc service run`) do not prefix; verify
+  locally with manual sha256 checks or trigger the real server-side run
+  with `osc service remoterun`.
+- Deb builds see only the transformed source package (orig tarball +
+  debian overlay), not the staged sources:
+  - `DEBTRANSFORM-TAR: <tarball>` in the `.dsc` names the orig tarball
+    (auto-discovery fails with multiple per-arch tarballs).
+  - Other payload files are named `debian.<name>` in the sources and
+    listed space-separated in `DEBTRANSFORM-FILES`; they land in the
+    source tree under their verbatim names. Non-tarball `debian.*` files
+    attach automatically as `debian/<name>` and are not listed. Every
+    `DEBTRANSFORM-FILES` entry must exist as a package source file —
+    attach failures are silent.
+  - Don't trust the unpacked orig tree (dpkg may strip or alter the
+    top-level directory); extract payloads into a scratch dir and locate
+    attachments by name (`find . -name '*<file>'`).
+  - dsc comments must not contain `:`.
+- Filenames referenced by the `.dsc`, `.spec`, and `debian.rules` must be
+  version-free, so a version bump only touches `.upstream.yml`, `_service`,
+  and the `Version:` tags `set_version` rewrites.
+- Prebuilt binaries trip rpmlint (e.g. Dart AOT `RUNPATH=$ORIGIN/`); ship
+  `<specname>.rpmlintrc` with `setBadness(...)`/`addFilter(...)`.
+- Check upstream's per-arch asset layouts before writing install recipes.
+  cli_pkg (FVM) ships single binaries for some platforms and
+  wrapper + `src/{dart,<name>.snapshot}` bundles for others. Wrapper
+  assets install as a tree under `/usr/lib` (or `%{_libdir}`) with a
+  `/usr/bin` symlink (the wrapper resolves its own real path via
+  `readlink -f`); single binaries install directly. Detect the layout by
+  content (e.g. presence of `fvm/src/<name>.snapshot`), not by arch.
 
 #### Adding a prebuilt-binary package
 
-1. Create the package directory with a `.spec` (and `debian.*` files) that
-   unpacks the downloaded tarball per architecture and installs the binary.
-2. Add a `.upstream.yml` with one `type: archive` source per asset, each
-   with `url`, `sha256`, and `x-checker-data` (copy the recipe from the
-   matching Flatpak manifest if one exists).
-3. Write a `_service.in` template using `download_url` + `verify_file` +
-   `set_version`, with `{{UPSTREAM_VERSION}}` / `{{SHA256:<filename>}}`
-   placeholders (see `flutter-version-manager/_service.in`). Reference
-   `_service:download_url:<file>` in the `verify_file` `file` params —
-   see the prefixed-filename note under "How it works" above.
-4. Run `scripts/sync-obs-services.sh <pkg>` to generate `_service`.
-5. Register the package in `_manifest` (this also makes the FEDC workflow
-   pick up its `.upstream.yml`), commit, and push.
+1. Create the package dir with a `.spec` (+ `debian.*`) that extracts the
+   payload per architecture (see the gotchas above).
+2. Add `.upstream.yml` with one `type: archive` source per asset (`url`,
+   `sha256`, `x-checker-data` — copy the matching Flatpak manifest's
+   recipe if one exists).
+3. Add a `_service.in` template (see `flutter-version-manager/_service.in`)
+   and run `scripts/sync-obs-services.sh <pkg>` to generate `_service`.
+4. Register in `_manifest`, commit, and push.
 
-Trade-off: the checksums come from GitHub release metadata over TLS; if
-upstream re-uploads a release asset, builds fail (by design) until FEDC
-refreshes the URLs and checksums in the next weekly run.
+Trade-off: checksums come from GitHub release metadata over TLS; if upstream
+re-uploads an asset, builds fail (by design) until the next FEDC run refreshes
+the URLs and checksums.
 
 ## Rebuilding and Re-running Services
 

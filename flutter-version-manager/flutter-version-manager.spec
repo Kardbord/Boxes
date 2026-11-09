@@ -24,8 +24,10 @@ Flutter project.
 
 %prep
 # The upstream release archives (built by cli_pkg) contain a top-level
-# `fvm/` directory holding the prebuilt binary; extract the archive
-# matching the build architecture. The shipped license is the separately
+# `fvm/` directory; extract the archive matching the build architecture.
+# The x64 asset is a single self-contained Dart AOT binary (fvm/fvm);
+# the aarch64 asset is the snapshot layout (fvm/fvm wrapper next to
+# fvm/src/{dart,fvm.snapshot}). The shipped license is the separately
 # downloaded upstream LICENSE (Source3), not the tarball's combined
 # dependency license text.
 cp %{SOURCE3} fvm-LICENSE
@@ -37,13 +39,27 @@ tar -xf %{SOURCE1}
 %endif
 
 %build
-# Prebuilt Dart AOT binary; nothing to build.
+# Prebuilt Dart artifacts; nothing to build.
 
 %install
-install -Dpm0755 fvm/fvm %{buildroot}%{_bindir}/fvm
+# Snapshot-layout assets (wrapper + src/) must be installed as a tree:
+# the wrapper resolves its own real path via readlink -f, so a symlink
+# from /usr/bin/fvm into the tree works. Single-binary assets go straight
+# to /usr/bin/fvm. Detected via the snapshot file so it adapts if
+# upstream changes an asset's layout.
+if [ -f fvm/src/fvm.snapshot ]; then
+  install -d -m 755 %{buildroot}%{_libdir}/flutter-version-manager
+  cp -a fvm/. %{buildroot}%{_libdir}/flutter-version-manager/
+  ln -s %{_libdir}/flutter-version-manager/fvm %{buildroot}%{_bindir}/fvm
+else
+  install -Dpm0755 fvm/fvm %{buildroot}%{_bindir}/fvm
+fi
 
 %files
 %license fvm-LICENSE
 %{_bindir}/fvm
+%ifarch aarch64
+%{_libdir}/flutter-version-manager/
+%endif
 
 %changelog
