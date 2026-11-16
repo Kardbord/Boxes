@@ -17,12 +17,15 @@ jobs:
           persist-credentials: false
       - name: Run FEDC on manifests with x-checker-data
         id: fedc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -uo pipefail
           > /tmp/fedc-errors.txt
           for manifest in $(grep -rl 'x-checker-data' flatpak/manifests "$(yq .packages[] < _manifest)"); do
             echo "Checking $manifest..."
             if ! docker run --rm \
+              -e GITHUB_TOKEN \
               -v "$PWD:/workspace" \
               -v "$PWD/.git:/workspace/.git" \
               -w /workspace \
