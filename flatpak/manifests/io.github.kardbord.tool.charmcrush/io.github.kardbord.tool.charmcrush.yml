@@ -15,8 +15,8 @@ modules:
       - type: archive
         only-arches:
           - x86_64
-        url: https://github.com/charmbracelet/crush/releases/download/v0.101.0/crush_0.101.0_Linux_x86_64.tar.gz
-        sha256: cf234948e3d7c5236d18a048a38f25a7df9ca24ba0b8fdaa525d45c5f705f99a
+        url: https://github.com/charmbracelet/crush/releases/download/v0.102.0/crush_0.102.0_Linux_x86_64.tar.gz
+        sha256: 7930cc14a2dec3a857ddd2070c863c1c5d7edb335d20cdfb65a5b44e62a0ca1e
         x-checker-data:
           type: json
           url: https://api.github.com/repos/charmbracelet/crush/releases/latest
@@ -25,8 +25,8 @@ modules:
       - type: archive
         only-arches:
           - aarch64
-        url: https://github.com/charmbracelet/crush/releases/download/v0.101.0/crush_0.101.0_Linux_arm64.tar.gz
-        sha256: ebbc141e80ad19d321b89558c2513fac5bebabd97530570ce749902dc4411f05
+        url: https://github.com/charmbracelet/crush/releases/download/v0.102.0/crush_0.102.0_Linux_arm64.tar.gz
+        sha256: 311e0a5b67e595ad2b6f2276181bcea78c396ac220541544fdd1b419c4ba62d1
         x-checker-data:
           type: json
           url: https://api.github.com/repos/charmbracelet/crush/releases/latest
